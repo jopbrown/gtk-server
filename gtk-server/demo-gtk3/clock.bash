@@ -11,10 +11,10 @@
 # Adapted for GTK3 and Cairo in december 2016 - PvE.
 #-------------------------------------------------------------------------------------------------
 
-rm -f $HOME/.gtk4bash
+rm -f $HOME/.gtk3forbash
 
 # Remove old version
-rm -f $HOME/.gtk4bash
+rm -f $HOME/.gtk3forbash
 
 # Pipe filename must be unique for your application
 PIPE="/tmp/gtk.bash.\$$"
@@ -31,17 +31,17 @@ else
     exit 1
 fi
 # Now create global functionnames from GTK API
-if [[ ! -f $HOME/.gtk4bash || $CFG -nt $HOME/.gtk4bash ]]; then
-    echo "#!/bin/bash" > $HOME/.gtk4bash
-    echo "gtk-server -fifo=$PIPE -log=/tmp/gtk-server.log &" >> $HOME/.gtk4bash
-    echo "while [ ! -p $PIPE ]; do continue; done" >> $HOME/.gtk4bash
+if [[ ! -f $HOME/.gtk3forbash || $CFG -nt $HOME/.gtk3forbash ]]; then
+    echo "#!/bin/bash" > $HOME/.gtk3forbash
+    echo "gtk-server -fifo=$PIPE -log=/tmp/gtk-server.log &" >> $HOME/.gtk3forbash
+    echo "while [ ! -p $PIPE ]; do continue; done" >> $HOME/.gtk3forbash
     while read LINE
     do
 	if [[ $LINE = FUNCTION_NAME* ]]; then
 	    LINE=${LINE#*= }
-	    printf "\nfunction ${LINE%%,*}\n" >> $HOME/.gtk4bash
-	    printf "{\n/bin/echo ${LINE%%,*} \$@ > $PIPE" >> $HOME/.gtk4bash
-	    printf "\nread GTK < $PIPE\n}\n" >> $HOME/.gtk4bash
+	    printf "\nfunction ${LINE%%,*}\n" >> $HOME/.gtk3forbash
+	    printf "{\n/bin/echo ${LINE%%,*} \$@ > $PIPE" >> $HOME/.gtk3forbash
+	    printf "\nread GTK < $PIPE\n}\n" >> $HOME/.gtk3forbash
 	fi
     done < $CFG
 fi
@@ -49,8 +49,8 @@ fi
 declare GTK NULL="NULL"
 unset CFG PIPE LINE
 
-# Include the generated '.gtk4bash'-file
-. $HOME/.gtk4bash
+# Include the generated '.gtk3forbash'-file
+. $HOME/.gtk3forbash
 
 # Assignment function
 function define() { $2 $3 $4 $5 $6 $7 $8 $9; eval $1="$GTK"; }

@@ -23,15 +23,15 @@ else
 fi
 
 # Now create global functionnames from GTK API
-if [[ ! -f $HOME/.gtk4korn || $CFG -nt $HOME/.gtk4korn ]]; then
-    print "# Embedded GTK functions for KornShell" > $HOME/.gtk4korn
+if [[ ! -f $HOME/.gtk3forkorn || $CFG -nt $HOME/.gtk3forkorn ]]; then
+    print "# Embedded GTK functions for KornShell" > $HOME/.gtk3forkorn
     while read LINE
     do
 	if [[ $LINE = +(FUNCTION_NAME*) ]]; then
 	    TMP=${LINE#*= }
-	    print "function ${TMP%%,*}" >> $HOME/.gtk4korn
-	    print "{\nprint -p ${TMP%%,*} \$@" >> $HOME/.gtk4korn
-	    print "read -p GTK\n}" >> $HOME/.gtk4korn
+	    print "function ${TMP%%,*}" >> $HOME/.gtk3forkorn
+	    print "{\nprint -p ${TMP%%,*} \$@" >> $HOME/.gtk3forkorn
+	    print "read -p GTK\n}" >> $HOME/.gtk3forkorn
 	fi
     done < $CFG
 fi
@@ -41,7 +41,7 @@ typeset GTK NULL="NULL"
 unset CFG PIPE LINE
 
 # Include embedded GTK for KornShell
-. $HOME/.gtk4korn
+. $HOME/.gtk3forkorn
 
 # Assignment function
 function define { $2 $3 $4 $5 $6 $7 $8 $9; eval $1="$GTK"; }

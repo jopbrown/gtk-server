@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # A small tetris game wih the HUG abstraction layer (HUG-al)
 #
@@ -22,7 +22,7 @@
 #--------------------------------------------------------------------- Embed HUG macros
 
 # Cleanup
-rm -f $HOME/.hug4bash
+rm -f $HOME/.hug4bash3
 
 # Set the extended globbing option in BASH
 shopt -s extglob
@@ -43,22 +43,22 @@ else
 fi
 
 # Now create global functionnames from HUG macros
-if [[ ! -f $HOME/.hug4bash || $CFG -nt $HOME/.hug4bash ]]; then
-    echo "#!/bin/bash" > $HOME/.hug4bash
-    echo "gtk-server -fifo=$PIPE &" >> $HOME/.hug4bash
-    echo "while [ ! -p $PIPE ]; do continue; done" >> $HOME/.hug4bash
+if [[ ! -f $HOME/.hug4bash3 || $CFG -nt $HOME/.hug4bash3 ]]; then
+    echo "#!/bin/bash" > $HOME/.hug4bash3
+    echo "gtk-server -fifo=$PIPE &" >> $HOME/.hug4bash3
+    echo "while [ ! -p $PIPE ]; do continue; done" >> $HOME/.hug4bash3
     while read LINE
     do
 	if [[ $LINE = MACRO* ]]; then
 	    NAME=${LINE#* }
-	    printf "function ${NAME}\n" >> $HOME/.hug4bash
-	    printf "{\necho ${NAME} \$@ > $PIPE" >> $HOME/.hug4bash
-	    printf "\nread GTK < $PIPE\n}\n" >> $HOME/.hug4bash
+	    printf "function ${NAME}\n" >> $HOME/.hug4bash3
+	    printf "{\necho ${NAME} \$@ > $PIPE" >> $HOME/.hug4bash3
+	    printf "\nread GTK < $PIPE\n}\n" >> $HOME/.hug4bash3
 	    if [[ ${NAME} = +(u_*) ]]
 	    then
-		printf "function m_${NAME#*u_}\n" >> $HOME/.hug4bash
-		printf "{\necho m_${NAME#*u_} \$@ > $PIPE" >> $HOME/.hug4bash
-		printf "\nread GTK < $PIPE\n}\n" >> $HOME/.hug4bash
+		printf "function m_${NAME#*u_}\n" >> $HOME/.hug4bash3
+		printf "{\necho m_${NAME#*u_} \$@ > $PIPE" >> $HOME/.hug4bash3
+		printf "\nread GTK < $PIPE\n}\n" >> $HOME/.hug4bash3
 	    fi
 	fi
     done < $CFG
@@ -1300,10 +1300,14 @@ fi
 #--------------------------------------------------------------------- Main program
 
 # Save my directory
-MYDIR=${0%/*}
+MYDIR="."
+if [[ $0 = +(*/*) ]]
+then
+    MYDIR=${0%/*}
+fi
 
 # Include the generated file to use embedded HUG functions
-. ${HOME}/.hug4bash
+. ${HOME}/.hug4bash3
 
 # Check if we can play music
 TIMIDITY=`which timidity 2>/dev/null`

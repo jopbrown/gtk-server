@@ -144,9 +144,9 @@ install : $(TARGET)
 	    echo "Done."; \
 	fi;
 	mkdir -p $(MANDIR)/man1
-	$(INSTALL) -m 644 docs/gtk-server.1 $(MANDIR)/man1
-	$(INSTALL) -m 644 docs/gtk-server.cfg.1 $(MANDIR)/man1
-	$(INSTALL) -m 644 docs/stop-gtk-server.1 $(MANDIR)/man1
+	$(INSTALL) -m 644 documentation/gtk-server.1 $(MANDIR)/man1
+	$(INSTALL) -m 644 documentation/gtk-server.cfg.1 $(MANDIR)/man1
+	$(INSTALL) -m 644 documentation/stop-gtk-server.1 $(MANDIR)/man1
 	@if [ $(DEFAULT) -eq "3" ]; then \
 		echo "Installing S-Lang module..."; \
 		mv libgtk-server.so /usr/lib/gtk-module.so; \

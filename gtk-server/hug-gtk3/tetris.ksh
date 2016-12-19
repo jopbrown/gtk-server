@@ -1,4 +1,4 @@
-#!/bin/ksh
+#!/usr/bin/env ksh
 #
 # A small tetris game wih the HUG abstraction layer (HUG-al)
 #
@@ -22,7 +22,7 @@
 #--------------------------------------------------------------------- Embed HUG macros
 
 # Cleanup
-rm -f $HOME/.hug4ksh
+rm -f $HOME/.hug4ksh3
 
 # Find GTK-server configfile first
 if [[ -f gtk-server.cfg ]]; then
@@ -37,20 +37,20 @@ else
 fi
 
 # Now create global functionnames from HUG macros
-if [[ ! -f $HOME/.hug4ksh || $CFG -nt $HOME/.hug4ksh ]]; then
-    echo "#!/bin/ksh" > $HOME/.hug4ksh
+if [[ ! -f $HOME/.hug4ksh3 || $CFG -nt $HOME/.hug4ksh3 ]]; then
+    echo "#!/bin/ksh" > $HOME/.hug4ksh3
     while read LINE
     do
 	if [[ $LINE = MACRO* ]]; then
 	    NAME=${LINE#* }
-	    print "function ${NAME}" >> $HOME/.hug4ksh
-	    print "{\nprint -p ${NAME} \$@" >> $HOME/.hug4ksh
-	    print "read -p GTK\n}" >> $HOME/.hug4ksh
+	    print "function ${NAME}" >> $HOME/.hug4ksh3
+	    print "{\nprint -p ${NAME} \$@" >> $HOME/.hug4ksh3
+	    print "read -p GTK\n}" >> $HOME/.hug4ksh3
 	    if [[ ${NAME} = +(u_*) ]]
 	    then
-		print "function m_${NAME#*u_}" >> $HOME/.hug4ksh
-		print "{\nprint -p m_${NAME#*u_} \$@" >> $HOME/.hug4ksh
-		print "read -p GTK\n}" >> $HOME/.hug4ksh
+		print "function m_${NAME#*u_}" >> $HOME/.hug4ksh3
+		print "{\nprint -p m_${NAME#*u_} \$@" >> $HOME/.hug4ksh3
+		print "read -p GTK\n}" >> $HOME/.hug4ksh3
 	    fi
 	fi
     done < $CFG
@@ -1291,10 +1291,14 @@ fi
 #--------------------------------------------------------------------- Main program
 
 # Save my directory
-MYDIR=${0%/*}
+MYDIR="."
+if [[ $0 = +(*/*) ]]
+then
+    MYDIR=${0%/*}
+fi
 
 # Include the generated file to use embedded HUG functions
-. ${HOME}/.hug4ksh
+. ${HOME}/.hug4ksh3
 
 # Start GTK-server in STDIN mode
 gtk-server -stdin |&

@@ -8,6 +8,7 @@
 # Enjoy nice music from www.modarchive.org!
 #
 # September 2008, PvE - tested with GTK-server 2.2.8 on Linux.
+# December 2016, PvE - tested with GTK-server 2.4 on Linux Mint 18.
 #
 #---------------------------------------------------------------------
 
@@ -18,18 +19,22 @@ FILE="welcome.mod"
 # Communication function; assignment function
 #---------------------------------------------------------------------
 function mikmod { print -p $1; read -p MIKMOD; }
-function define { $2 "$3"; eval $1="$MIKMOD"; }
+function define { $2 "$3"; eval $1="${MIKMOD}" >/dev/null 2>&1 ; }
 
 # Start GTK-server in STDIN mode
 gtk-server -stdin |&
 
 # Open MikMod library
-define MM mikmod "gtk_server_require libmikmod.so.3"
+define MM mikmod "gtk_server_require libmikmod.so.2"
 if [[ $MM != "ok" ]]
 then
-    echo "No MikMod found on this system! Please install from http://mikmod.raphnet.net/. Exiting..."
-    mikmod "gtk_server_exit"
-    exit
+    define MM mikmod "gtk_server_require libmikmod.so.3"
+    if [[ $MM != "ok" ]]
+    then
+	echo "No MikMod found on this system! Please install from http://mikmod.raphnet.net/. Exiting..."
+	mikmod "gtk_server_exit"
+	exit 1
+    fi
 fi
 
 # Define some mikmod calls

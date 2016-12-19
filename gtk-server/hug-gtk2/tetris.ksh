@@ -1,4 +1,4 @@
-#!/bin/ksh
+#!/usr/bin/env ksh
 #
 # A small tetris game wih the HUG abstraction layer (HUG-al)
 #
@@ -1279,7 +1279,11 @@ fi
 #--------------------------------------------------------------------- Main program
 
 # Save my directory
-MYDIR=${0%/*}
+MYDIR="."
+if [[ $0 = +(*/*) ]]
+then
+    MYDIR=${0%/*}
+fi
 
 # Include the generated file to use embedded HUG functions
 . ${HOME}/.hug4ksh
