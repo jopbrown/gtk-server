@@ -1,0 +1,67 @@
+#!/usr/bin/scriba -n
+REM
+REM Generate functions from GTK-server configfile
+REM
+REM Add the result to "gtk.bas" to embed genuine GTK functions in your BASIC program
+REM By default, 'gtk.bas' already contains the latest.
+REM
+REM July 26, 2006 - Peter van Eerten
+REM---------------------------------------------------------------------------------
+
+REM For Windows use this line instead:
+REM OPEN "c:\\GTK-server\\gtk-server.cfg" FOR INPUT AS 1
+
+REM We're running Linux
+OPEN "/etc/gtk-server.cfg" FOR INPUT AS 1
+
+OPEN "functions.sb" FOR OUTPUT AS 2
+
+WHILE NOT EOF(1)
+
+    LINE INPUT #1, st
+
+    IF LEFT(st, 13) = "FUNCTION_NAME" THEN
+
+        SPLITA st BY " " TO terms
+
+	gtkfuncname = REPLACE(terms[2], ",", "")
+        PRINT #2, "FUNCTION " & gtkfuncname
+
+        argamount = REPLACE(terms[5], ",", "")
+
+	IF VAL(argamount) > 0 THEN
+	    PRINT #2, "("
+	    FOR x = 1 TO VAL(argamount)
+		PRINT #2, " arg" & STR(x)
+		IF x < VAL(argamount) THEN
+		    PRINT #2, ","
+		END IF
+	    NEXT x
+	    PRINT #2, ")"
+	END IF
+	PRINT #2, "\n"
+
+	PRINT #2, gtkfuncname & "=" & "GTK::gtk(\"" & gtkfuncname
+	IF VAL(argamount) > 0 THEN
+	    PRINT #2, " \\\"\" &"
+	    FOR x = 1 TO VAL(argamount)
+		PRINT #2, " STR(arg" & STR(x) & ")"
+		IF x < VAL(argamount) THEN
+		    PRINT #2, " & \"\\\" \\\"\" & "
+		END IF
+	    NEXT x
+	    PRINT #2, " & \"\\\"\")\n"
+	ELSE
+	    PRINT #2, "\")\n"
+	END IF
+
+	PRINT #2, "END FUNCTION\n\n"
+    END IF
+
+WEND
+
+CLOSE 2
+CLOSE 1
+
+PRINT "The file 'functions.sb' is generated.\n"
+END

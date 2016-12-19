@@ -1,0 +1,65 @@
+These people have helped to create the GTK-server as it is:
+
+* Albert Wessel: pointing to the crucial C library functions
+* Norman Deppenbroek: general programming tricks, design optimizations, troubleshooting
+* Larry Richardson: fixed compile problems with GCC 2.95
+* Ronald Meijer: Win32 tips and tricks
+* Takafumi Shido: Win32 STDIN trick and CLisp troubleshooting
+* Joe Armstrong: major improvements in the callback functionality (1.2)
+* James Bailey: writing a flawless s-expression parser (1.3)
+* Sebastiaan van Erk: bugfixes
+* Peter Bui: improved configure scripts (2.0.2)
+* Jeremy Shute: BOOL args, explicit escaping in returnstrings (2.0.3)
+* Wolfgang Oertl: improving the gtk_server_connect function (2.0.3)
+* Leonardo Cecchi: bugfix in gtk_server_redefine (2.0.7)
+* Todd Dukes: bugfix with returning emtpty strings while in C escaping mode (2.0.8)
+* Leonardo Cecchi: bugfix with returning special characters while in C escaping mode (2.0.8)
+* Christian Thaeter: improving format of returnstrings, accept grouping of strings with single quote (2.0.10)
+* Norm Kaiser: found bug with double/float (fixed in 2.0.12)
+* Ben Kelly: ideas for returning values at pointer arguments (2.2.3)
+* Jean-Marc Farinas: ideas for opaque widget declaration (2.2.3)
+* Igor Furlan: idea to set correct GTK lib during instalation (2.2.3)
+* Tim Launchbury: found bug in IPC interface (fixed 2.2.4)
+* John Spikowski: INCLUDE concept (added 2.2.4)
+* Joonas Pihlaja: bugs found in UDP interface (hotfixed in 2.2.4)
+* Danie Brink: -socket option, many suggestions for improvements (2.3.1)
+
+
+These people have contributed demoscripts:
+
+* CLISP: Jörg Kalsbach
+* PHP: Roberto Rossi
+* Python: Evan Hempel
+* Rebol, TCL, Bash, newLISP: Norman Deppenbroek
+* Ruby: Mark Janssen
+* Scheme: Felix Winkelmann
+* Forth: Jorge Acereda
+* CLisp/DLL: Leonardo Cecchi
+* PowerBasic: John Spikowski
+* Pawn: Thiadmer Riemersma
+* D: Charles Hixson
+* Bigloo/DLL: Eduardo Costa
+* SBCL: John Stoneham
+* Perl: Luigi Di Fraia
+* CMUCL: Simon Saville
+* GNU Smalltalk: Jean-Marc Farinas
+
+
+These people have contributed bindings with languages:
+
+* Python, Scriptbasic: Evan Hempel
+* Bigloo: Jeremy Shute
+* Clisp: Leonardo Cecchi
+* Yabasic: Derek Griffin
+
+
+The UTHASH software from Troy D. Hanson is essential in the GTK-server.
+More info on this great hash table implementation can be found here:
+
+-> http://uthash.sourceforge.net
+
+----------------------------------------------------------------------
+Apologies to anyone I did not mention (please let me know).
+
+Peter van Eerten
+peter@gtk-server.org

@@ -1,0 +1,130 @@
+#---------------------------------------------------------------------------
+#
+#  HHHHHHHHH     HHHHHHHHHUUUUUUUU     UUUUUUUU       GGGGGGGGGGGGG
+#  H:::::::H     H:::::::HU::::::U     U::::::U    GGG::::::::::::G
+#  H:::::::H     H:::::::HU::::::U     U::::::U  GG:::::::::::::::G
+#  HH::::::H     H::::::HHUU:::::U     U:::::UU G:::::GGGGGGGG::::G
+#    H:::::H     H:::::H   U:::::U     U:::::U G:::::G       GGGGGG
+#    H:::::H     H:::::H   U:::::D     D:::::UG:::::G
+#    H::::::HHHHH::::::H   U:::::D     D:::::UG:::::G
+#    H:::::::::::::::::H   U:::::D     D:::::UG:::::G    GGGGGGGGGG
+#    H:::::::::::::::::H   U:::::D     D:::::UG:::::G    G::::::::G
+#    H::::::HHHHH::::::H   U:::::D     D:::::UG:::::G    GGGGG::::G
+#    H:::::H     H:::::H   U:::::D     D:::::UG:::::G        G::::G
+#    H:::::H     H:::::H   U::::::U   U::::::U G:::::G       G::::G
+#  HH::::::H     H::::::HH U:::::::UUU:::::::U  G:::::GGGGGGGG::::G
+#  H:::::::H     H:::::::H  UU:::::::::::::UU    GG:::::::::::::::G
+#  H:::::::H     H:::::::H    UU:::::::::UU        GGG::::::GGG:::G
+#  HHHHHHHHH     HHHHHHHHH      UUUUUUUUU             GGGGGG   GGGG
+#
+#---------------------------------------------------------------------------
+
+This is some documentation for the High-level Universal GUI (HUG).
+
+HUG was created to provide elementary access to GTK widgets without needing
+a lot of code in a client script to achieve this. With HUG it is possible
+to create userinterfaces and also to have access to graphical functions. 
+
+#==========================================================================================================================================================================================
+# Widgets
+#==========================================================================================================================================================================================
+
+u_window "title" xsize ysize			: Define a new window.
+u_button "label" xsize ysize [toggle]		: Define a button. If optional [toggle] unequal 0 then button is a togglebutton.
+u_stock "stock-label" xsize ysize		: Define a stock button.
+u_check "label" xsize ysize			: Define a checkbutton.
+u_radio "label" xsize ysize group		: Define a radiobutton.
+u_entry "text" xsize ysize			: Define a text entry.
+u_password xsize ysize				: Define a password entry.
+u_label "text" xsize ysize [xalign yalign]	: Define a label. Optional xalign=0=left, 0.5=middle, 1=right. Optional yalign=0=up, 0.5=middle, 1=down.
+u_combo "text" xsize ysize			: Define a droplist.
+u_hseparator xsize				: Define a horizontal separator.
+u_vseparator ysize				: Define a vertical separator.
+u_frame xsize ysize				: Define a frame.
+u_text xsize ysize				: Define a multiline text.
+u_list xsize ysize				: Define a multiline list widget.
+u_dialog "title" "text" xsize ysize		: Define a dialog. Notes: if the dialogID occurs as event, it means button or window was clicked
+
+#==========================================================================================================================================================================================
+# Graphical stuff
+#==========================================================================================================================================================================================
+
+u_canvas xsize ysize [color]			: Define a drawing canvas. Notes: color is optional, default=white. Default canvas is last one created.
+u_draw canvas					: Define the default canvas where we are drawing
+u_circle color x y xsize ysize fill		: Draw a circle on a canvas.
+u_pixel color x y				: Draw a pixel on a canvas.
+u_line color xstart ystart xend yend		: Draw a line on a canvas.
+u_square color x y xsize ysize fill		: Draw a rectangle on a canvas.
+u_out "text" fgcolor bgcolor x y		: Draw some text on a canvas.
+u_image "file"					: Load a picture from a file into a canvas
+
+#==========================================================================================================================================================================================
+# Methods (setting and getting properties)
+#==========================================================================================================================================================================================
+
+u_bgcolor widget state [state] ...		: Set background color of widget for a state. Color example: "#00FF00" or "Red". States are NORMAL, ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
+u_fgcolor widget state [state] ...		: Set foreground color of widget for a state. Color example: "#00FFA0" or "Yellow". States are NORMAL, ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
+u_textcolor widget state [state] ...		: Set textcolor of widget for a state. Color example "#BB0000" or "Blue". States are NORMAL, ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
+u_basecolor widget state [state] ...		: Set baseground color of widget for a state. Color example "#12EE11" or "Green". States are NORMAL, ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
+
+u_button_text widget text			: Set text into button
+u_radio_text widget text			: Set text into radiobutton
+u_check_text widget text			: Set text into checkbutton
+u_window_text widget text			: Set text into titlebar of window
+u_entry_text widget text			: Set text into entry widget
+u_password_text widget text			: Set text into password widget
+u_label_text widget text			: Set text of label
+u_combo_text widget text			: Add a line of text to combobox
+u_frame_text widget text			: Set text of frame
+u_text_text widget text				: Set text into a multiline text widget. Note: not more than 1024 chars at once.
+u_list_text widget text				: Add text to a list widget. Note: not more than 1024 chars at once.
+
+u_button_grab widget				: Get text from button
+u_radio_grab widget				: Get text from radiobutton
+u_check_grab widget				: Get text from checkbutton
+u_window_grab widget				: Get text from titlebar of window
+u_entry_grab widget				: Get text from entry widget
+u_password_grab widget				: Get text from password widget
+u_label_grab widget				: Get text from label
+u_combo_grab widget				: Get active line of text from combobox
+u_frame_grab widget				: Get text from frame
+u_text_grab widget				: Get text from multine text widget
+u_list_grab widget				: Get current selected text from list widget
+
+u_button_get widget				: Get status of button, in case of a togglebutton
+u_check_get widget				: Get status of checkbutton
+u_radio_get widget				: Get status of radiobutton
+u_combo_get wiget				: Get indexnr of currently selected text
+u_text_get widget				: Get amount of lines in multiline text widget
+u_list_get widget				: Get current selected linenumber of list widget
+
+u_button_set widget value			: Set the button, in case of a togglebutton: 0=normal, 1=pressed
+u_check_set widget value			: Set the checkbutton: 0=normal, 1=selected
+u_radio_set widget value			: Set the radiobutton: 0=normal, 1=selected
+u_combo_set widget indexnr			: Select this line of the combobox
+u_text_set widget linenr			: Scroll the multiline text widget to this linenr
+u_list_set widget nr				: Select this line in list widget
+
+u_font widget font				: Set font in widget. Font examples: "Arial 15", "Luxi Mono 12".
+
+#==========================================================================================================================================================================================
+# Generic functions
+#==========================================================================================================================================================================================
+
+u_attach window widget x y			: Attach a widget on a parent Window at x,y
+
+u_focus widget					: Give focus to widget
+u_unfocus widget				: Disable focus on widget
+
+u_disable widget				: Disable widget
+u_enable widget					: Enable widget
+u_hide widget					: Hide widget
+u_show widget					: Show widget
+
+u_key						: Get last key pressed on keyboard
+u_mouse arg					: Get mouse info. Notes: arg = 0 = x_coordinate, arg = 1 = y_coordinate, arg = 2 = button, arg = 3 = wheel
+
+u_event [arg]					: Wait for an event. Note: if argument is provided, this call returns immediately.
+u_timeout widget seconds			: Setup a timeout while waiting for an event. The timeout connects to the 'show'-signal belonging to a widget.
+						    Note: can be changed to another timeout value during runtime
+u_end						: Cleanup and exit HUG.

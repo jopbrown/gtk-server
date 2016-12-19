@@ -1,0 +1,39 @@
+--------------------------------------
+
+Hints to install GTK-server on RedHat AS 4.0 and other Linux distros
+
+1) Make sure all necessary libraries are installed. Sometimes it is necessary to install the
+   development libraries for GTK, GDK and PNG manually. For 64bit systems, it seems that the
+   64bit version of GTK resides in the '/usr/lib64/frysk' directory. To compile successfully,
+   first set the PKG_CONFIG_PATH variable:
+
+    export PKG_CONFIG_PATH=/usr/lib64/frysk/pkgconfig
+
+
+2) Sometimes GTK is installed but not detected automatically. Then specify GTK2 explicitly
+    with the configure-script:
+
+    ./configure --with-gtk2
+
+
+3) Also verify your MAN page directory. On some RedHat systems, the MANPATH resides at '/usr/share/man'
+    instead of the default '/usr/man'. In that case, run the configure-script as follows:
+
+    ./configure --with-gtk2 --mandir=/usr/share/man
+
+
+4) If FFI is installed in an unusual place, set the environment variable CPPFLAGS to that location prior
+    to running the configure-script:
+
+    export CPPFLAGS=-I/your/dir/with/ffiheaderfiles
+
+
+5) If compilation of GTK-server as shared object is required, run the configure-script with the
+    optional argument '--enable-library':
+
+    ./configure --<your other options> --enable-library
+
+--------------------------------------
+
+After the configurescript has completed sucessfully, run 'make' and 'make install' to compile and
+install the GTK-server.

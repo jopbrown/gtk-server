@@ -1,0 +1,239 @@
+.TH gtk\-server.cfg 1
+.SH "NAME"
+gtk\-server.cfg \- Configfile for the gtk-server.
+.SH "SYNOPSIS" 
+.B gtk\-server.cfg
+.SH "DESCRIPTION"
+.P
+The 'gtk\-server.cfg' file is a configfile which is used by the GTK\-server. If
+the 'gtk\-server.cfg' file is available in the same 
+directory as your client script, the GTK\-server will read this local configfile
+(preferred). This way each client program can use it's own GTK configuration.
+If the configfile is not available locally, the GTK\-server will follow the next logic:
+.P
+1) try reading the environment variable GTK_SERVER_CONFIG. This variable should
+contain the full path and name to the configfile.
+.P
+2) try finding the (hidden) configfile in the homedir of the user. The name of 
+the configfile should be preceded by a dot, e.g. '.gtk-server.cfg'.
+.P
+3) try finding the configfile in the /etc directory.
+.P
+4) try finding the configfile in the /usr/local/etc directory.
+.P
+The 'gtk\-server.cfg' file contains the decriptions of the GTK functions which
+will be used by your client script. The format of the file is <KEYWORD = VALUE>. Lines
+starting with a hash '#' will be skipped. The keywords must be written using capitals.
+.P
+The following keywords are recognized by the GTK\-server:
+.TP
+\fBLIB_NAME = <library name 1, library name 2, ...>\fP
+Describes the name of the libraries (.so or .dll) to open.
+This keyword may occur multiple times in the configfile. At a maximum 32 libraries can be opened simultanously.
+.br
+
+Example:
+.B LIB_NAME = libgtk-x11-2.0.so, libgdk-x11-2.0.so, libglib-2.0.so, libgobject-2.0.so
+.TP
+\fBINCLUDE = <file>\fP
+Define an additional configuration file with additional GTK function descriptions or macros.
+.br
+
+Example:
+.B INCLUDE = /etc/gtk-extra.cfg
+.TP
+\fBFUNCTION_NAME = <func>, <callback>, <type>, <amount>, <arg1>...<argx>\fP
+Every GTK function used by a script must be described here. First the name of
+the function itself must be mentioned, after that a callback signal if applicable. The real
+names for the GTK callback signals must be used here. Then the type of the returnvalue 
+must be specified. The type can be one of the following: NONE, VOID, WIDGET, POINTER, BOOL, STRING, INT, LONG, 
+DOUBLE, FLOAT or ADDRESS. After that, it must be clear how many arguments the GTK function needs.
+Finally, the type of each indivdual argument must be declared. The type of the arguments can
+be one of the following: NULL, WIDGET, POINTER, BOOL, STRING, INT, LONG, DOUBLE, FLOAT, ENUM, MACRO, DATA or BASE64.
+
+The ADDRESS returntype is used to return the address of a function in memory. The BASE64 type is used to send
+base64 encoded binary data to the GTK-server. The POINTER type can be used for generic pointers and non-GTK
+libraries. The ENUM type is used to define an enumeration name (see below).
+
+The MACRO type can be used in case a user function needs to be registered. In case GTK must execute a user
+function, the described macro will be used. A MACRO type always needs an DATA type, in which additional data
+can be specified. Macros are explained in the MACRO section of this manpage.
+
+The 'gtk\-server.cfg' file may not contain duplicate function definitions. This is verified
+by the GTK\-server during startup.
+.br
+
+Example:
+.B FUNCTION_NAME = gtk_window_new, delete-event, WIDGET, 1, LONG
+.TP
+\fBENUM_NAME = <name>, <integer>\fP
+The GTK and also the XForms API use a lot of predefined constants and enumerations. With this optional
+configuration line these can be defined also. The clientscript can use the same enumeration name, and the
+GTK-server will substitute to the corresponding value automatically. Values may be entered in decimal, octal
+or hexadecimal format. With octal use a preceding '0', and hexadecimal a preceding '0x' or '0X'.
+
+Please note that enumeration names only may contain integer values. So in a defined GTK function, only at arguments
+defined as 'INT', 'LONG' or 'ENUM' the GTK-server will check for an enumeration name. If it cannot match an
+enumeration name, it is assumed there is a real value.
+
+Duplicate enumeration names are not allowed. This is verified by the GTK\-server during startup.
+
+Example:
+.B ENUM_NAME = GTK_WINDOW_TOPLEVEL, 0
+.TP
+\fBALIAS_NAME = <alias>, <real name>\fP
+Some functions in external libraries may have the same name as an existing statement in a programming language. For
+example, shell scripts can use the statement 'read', while the function 'read' also can be imported from libc. In
+order to avoid the client interpreter mixing up these statements, it is possible to define an alias. So instead of
+using the real name, the client program can use the defined alias to invoke the external function.
+
+Aliasing also allows the programmer to rename external functions so they comply to the standard of the client language.
+
+Duplicate alias names are not allowed. This is verified by the GTK\-server during startup.
+
+Example:
+.B ALIAS_NAME = libc_read, read
+.TP
+\fBMACRO <name> <...> ENDMACRO\fP
+For an explanation on macros see below.
+.SH "Pointer arguments"
+Some GTK functions return a result in their pointer arguments. The way to retrieve the value from
+such arguments is to create a definition for the GTK function with special parameters. For example:
+
+FUNCTION_NAME = gdk_window_get_pointer, NONE, WIDGET, 4, WIDGET, PTR_INT, PTR_INT, NULL
+
+In this case, a call to 'gdk_window_get_pointer' will return a widget but also the values stored in the
+second and third argument. The returned result will be formatted in S-expression syntax, just as
+the GTK-server also accepts S-expression syntax. Next to the type PTR_INT the types PTR_LONG, PTR_FLOAT,
+PTR_DOUBLE, PTR_STRING, PTR_BOOL and PTR_WIDGET can be used.
+.SH "Macros"
+In GTK sometimes more than one function is needed to define a widget. These functions can be
+grouped into a macro. From a clientscript the name of the macro can be used to invoke the macro. A 
+macro can have the following layout:
+
+.B MACRO <name>
+.br
+.B $a : GTK_function
+.br
+.B GTK_function $1 $2 $3
+.br
+.B ...
+.br
+.B RETURN <value>
+.br
+.B ENDMACRO
+
+Each line in the macro may contain only one GTK function. A macro can be invoked with arguments.
+Within the macro these arguments are denoted with $1, $2, $3 an so on. The $0 points 
+to the macroname itself. It is possible to refer to all arguments at once with $@. A macro can 
+accept up to 9 arguments. If there are more arguments then these are ignored.
+
+Macros may also use variables. Variablenames must start with a dollarsign '$'. After that, only the first letter of
+the variablename is important, which means that there are at most 26 variables in each macro (lowercase).
+
+Within a macro, it is possible to assign a result of a GTK function to a variable. However, it is important
+that the colon symbol, which is the assignment operator, is not attached to the variablename or the GTK
+functionname. For example:
+
+.B $window : gtk_window_new GTK_WINDOW_TOPLEVEL
+
+Also it is possible to assign a string to a variable. To do this, the string should be preceded
+by the '&' sign. For example:
+
+.B $var : &Hello world
+
+Variables in macros are initialized to zero automatically, but keep their values after the macro object has been 
+executed. Afterwards the variables can be retrieved in your clientscript by using the call 'gtk_server_macro_var'. For example:
+
+.B gtk_server_macro_var <macroname> var
+
+There are a few commands to use in macros. These should be written in capitals. For example, it is possible
+to perform a relative jump on the condition of the value of a variable. The command 'VALUE' jumps
+when a variable contains a value not equal to zero, and the command 'EMPTY' jumps when a variable is zero. The command 'JUMP' always
+jumps, no matter what condition. For example:
+
+.B $var VALUE 3
+
+In this example, the GTK-server will jump three statements forward in case the variable 'var' is not equal to zero. The
+commands 'EMPTY', 'VALUE' and 'JUMP' can jump forward and backward, but only within the macro object. Jumps outside
+the macro will just go to the end of the macro, or to the beginning if the jump is negative.
+
+Next to jumps, a comparison between variables can be made with 'COMPARE'. When two variables are compared, the
+result of the comparison will be put into the local z-variable. So if the contents of the compared variables are equal, the z-variable
+will be '0'. Else the local z-variable will be '1'. For example:
+
+.B $event COMPARE $window
+.br
+.B $z EMPTY -5
+
+Also it is possible to setup associative arrays. An associative array is globally visible to all macro's. With
+associative arrays the main returnvalue of a macro can be connected to another value. This way multiple
+results can be returned from a macro. An array with one element can be defined as follows:
+
+.B $ebox ASSOC $pix
+
+If, to another macro, the 'ebox' is passed as an argument, the associated value can be retrieved in that macro as follows:
+
+.B $pix GET $1
+
+In this example, the 'pix' variable will be assigned the value associated to the first argument of the macro. There is no limit
+to the amount of associations; associative arrays can be of endless length, for example:
+
+.B $ebox ASSOC $pix
+.br
+.B $pix ASSOC $widget
+.br
+.B $widget ASSOC $window
+.br
+.B [...]
+
+All values can be retrieved using an inverse GET:
+
+.B $pix GET $1
+.br
+.B $widget GET $pix
+.br
+.B $window GET $widget
+.br
+.B [...]
+
+Note that with all operator commands, which are 'GET', 'ASSOC', 'COMPARE', 'VALUE', 'EMPTY', and the ':', the left
+operand must be a variable.
+
+It is not allowed to define a macro within a macro. Also, duplicate macro names are not allowed. However, macros may
+invoke other macros. Also, macros may return a value to the client script with the keyword 'RETURN'. For example:
+
+.B RETURN $window
+
+To find out which value is assigned to a variable, the command DEBUG can be used. This will print the result
+in the logfile, if logging is enabled. Example:
+
+.B DEBUG $button
+
+The Highlevel Universal GUI (HUG) defined in the GTK-server configfile is implemented using macro objects.
+.SH "EXAMPLES"
+An example of a 'gtk\-server.cfg' file can be found in the sourcepackage.
+.SH "LICENSE"
+GPL license.
+
+This program is free software; you can redistribute it and/or modify 
+it under the terms of the GNU General Public License as published 
+by the Free Software Foundation; either version 2 of the License, 
+or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, 
+but WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License 
+along with this program; if not, write to the Free Software 
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, 
+MA 02111-1307 USA.
+.SH "SEE ALSO"
+gtk-server(1), stop-gtk-server(1)
+.SH "AUTHORS"
+Orignal concept, design and implementation by Peter van Eerten, e\-mail : peter@gtk-server.org
+
+Current version of the GTK-server was created with help of many others - see the CREDITS file in
+the sourcepackage for credits.

@@ -1,0 +1,46 @@
+--------------------------------------
+
+Hints to install GTK-server on MacOSX
+
+1) Install Xcode from http://connect.apple.com
+2) Install GTK framework from http://www.gtk-osx.org/
+3) Compile and install 'pkg-config' from http://pkg-config.freedesktop.org/wiki/
+4) Set CPPFLAGS to the FFI header files at '/usr/include/ffi' as follows:
+
+export CPPFLAGS=-I/usr/include/ffi
+
+5) Set PKG_CONFIG_PATH:
+
+export PKG_CONFIG_PATH=/Library/Frameworks/GLib.framework/Resources/dev/lib/pkgconfig:/Library/Frameworks/Gtk.framework/Resources/dev/lib/pkgconfig:/Library/Frameworks/Cairo.framework/Resources/dev/lib/pkgconfig
+
+Preparations are done, run the configure-script:
+./configure --prefix=/usr --sysconfdir=/etc --with-gtk2
+
+But if you need GTK-server compiled as dynamic library, run:
+./configure --prefix=/usr --sysconfdir=/etc --with-gtk2 --enable-library
+
+Then compile and install:
+make; make install
+
+--------------------------------------
+
+FAQ
+
+Q: Some of the demoprograms in the GTK-server sourcepackage do not work!
+A: That's right, some of the programs require GNU Awk instead of the standard AWK of MacOSX. Some programs need Glade
+which at the time of writing was not ported to MacOSX yet. Some programs need OpenGL, this should be supported by your system.
+
+Q: Why the GTK error "Unable to find default local directory monitor type" appears when using a fileselector?
+A: This seems to be a flaw in the current GTK port for Darwin (MacOSX).
+
+Q: Why does the GTK window appear behind the current terminal window?
+A: This seems to be a known issue in MacOSX Quartz. It also happens with users of TK and wxPython. Any program launched
+from the Terminal window will always popup behind the terminal.
+
+It can be worked around by applying 'gtk_window_set_type_hint' to GDK_WINDOW_TYPE_HINT_UTILITY first, and then in your mainloop
+reset the typehint to GDK_WINDOW_TYPE_HINT_NORMAL again.
+
+--------------------------------------
+
+Peter van Eerten
+peter@gtk-server.org

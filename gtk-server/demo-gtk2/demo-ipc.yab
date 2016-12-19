@@ -1,0 +1,75 @@
+#!/usr/local/bin/yabasic
+REM *************************************************************
+REM
+REM Demoprogram for Yabasic with the GTK-server using IPC
+REM
+REM Tested on Zenwalk Linux 3.0 using Yabasic 2.763
+REM
+REM By Peter van Eerten, january 7 2007
+REM
+REM *************************************************************
+
+REM Communication function
+SUB GTK$(st$)
+
+RETURN SYSTEM$("gtk-server msg=1," + CHR$(34) + st$ + CHR$(34))
+
+END SUB
+
+REM ************* MAIN program starts here
+
+REM Start the GTK-server
+SYSTEM("gtk-server -ipc=1 &")
+
+REM Setup GUI
+GTK$("gtk_init NULL NULL")
+win$ = GTK$("gtk_window_new 0")
+GTK$("gtk_window_set_title " + win$ + " 'Yabasic Demo program with IPC'")
+GTK$("gtk_widget_set_usize " + win$ + " 450 400")
+table$ = GTK$("gtk_table_new 50 50 1")
+GTK$("gtk_container_add " + win$ + " " + table$)
+button$ = GTK$("gtk_button_new_with_label Exit")
+GTK$("gtk_table_attach_defaults " + table$ + " " + button$ + " 41 49 45 49")
+userinput$ = GTK$("gtk_entry_new")
+GTK$("gtk_table_attach_defaults " + table$ + " " + userinput$ + " 1 40 45 49")
+REM Define TEXTVIEW
+txtbuf$ = GTK$("gtk_text_buffer_new NULL")
+entry$ = GTK$("gtk_text_view_new_with_buffer " + txtbuf$)
+GTK$("gtk_text_view_set_wrap_mode " + entry$ + " 0")
+sw$ = GTK$("gtk_scrolled_window_new NULL NULL")
+GTK$("gtk_scrolled_window_set_policy " + sw$ + " 1 1")
+GTK$("gtk_scrolled_window_set_shadow_type "+ sw$ + " 1")
+GTK$("gtk_container_add " + sw$ + " " + entry$)
+GTK$("gtk_text_view_set_editable " + entry$ + " 0")
+GTK$("gtk_text_view_set_cursor_visible " + entry$ + " 0")
+GTK$("gtk_table_attach_defaults " + table$ + " " + sw$ + " 1 49 8 44")
+REM Define iter
+iter$ = GTK$("gtk_frame_new")
+REM Define radio buttons
+radio1$ = GTK$("gtk_radio_button_new_with_label_from_widget NULL Yes")
+GTK$("gtk_table_attach_defaults " + table$ + " " + radio1$ + " 1 10 1 4")
+radio2$ = GTK$("gtk_radio_button_new_with_label_from_widget " + radio1$ + " No")
+GTK$("gtk_table_attach_defaults " + table$ + " " + radio2$ + " 1 10 4 7")
+GTK$("gtk_widget_show_all " + win$)
+GTK$("gtk_widget_grab_focus " + userinput$)
+
+REM Mainloop
+REPEAT
+    event$ = GTK$("gtk_server_callback wait")
+    IF (event$ = userinput$) THEN
+	tmp$ = GTK$("gtk_entry_get_text " + userinput$)
+	GTK$("gtk_text_buffer_get_end_iter " + txtbuf$ + " " + iter$)
+	GTK$("gtk_text_buffer_insert " + txtbuf$ + " " + iter$ + " '" + tmp$ + "\n' -1")
+	REM Scroll to end
+	mark$ = GTK$("gtk_text_buffer_create_mark " + txtbuf$ + " mymark " + iter$ + " 0")
+	GTK$("gtk_text_view_scroll_to_mark " + entry$ + " " + mark$ + " 0 1 0.0 1.0")
+	GTK$("gtk_text_buffer_delete_mark " + txtbuf$ + " " + mark$)
+	REM Empty entry field
+	GTK$("gtk_editable_delete_text " + userinput$ + " 0 -1")
+    ENDIF
+UNTIL (event$ = button$ OR event$ = win$)
+
+REM Exit GTK
+GTK$("gtk_exit 0")
+
+END

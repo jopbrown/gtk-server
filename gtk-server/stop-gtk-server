@@ -1,0 +1,174 @@
+#!/bin/sh
+#
+# Script to kill GTK-server processes which have not been exited
+# properly by a client program.
+#
+# October 6, 2006 until july 8, 2008 - PvE.
+# December 2009: adjustments for MacOSX - PvE.
+#---------------------------------------------------------------
+
+# Define temporary file to dump processlist
+PROCESS=/tmp/process.txt
+
+# Determine platform
+PLATFORM=`uname`
+
+# Check usage
+if [ "$#" -eq 0 ]
+then
+    echo
+    echo "*** Stop GTK-server processes ***"
+    echo
+    echo "Usage: stop-gtk-server <[-]stdin> | <[-]tcp> | <[-]udp> | <[-]fifo> | <[-]ipc> | <[-]all> | <[-]show>"
+    echo
+    exit 1
+fi
+
+# Dump processlist in temporary file
+ps aux | grep -v stop-gtk-server > $PROCESS
+
+# Check if we are going to kill FIFO gtk-server processes
+if [ $1 = "fifo" ]
+then
+    # Determine FIFO processes
+    GTK=`awk '/gtk-server fifo/ {print $2}' $PROCESS`
+    # Determine pipe files
+    FILES=`awk '{gsub(/=/, " ")} /gtk-server fifo/ {print $13}' $PROCESS`
+elif [ $1 = "-fifo" ]
+then
+    # Determine FIFO processes
+    GTK=`awk '/gtk-server -fifo/ {print $2}' $PROCESS`
+    # Determine pipe files
+    FILES=`awk '{gsub(/=/, " ")} /gtk-server -fifo/ {print $13}' $PROCESS`
+
+# Check on TCP process
+elif [ $1 = "tcp" ]
+then
+    GTK=`awk '/gtk-server tcp/ {print $2}' $PROCESS`
+elif [ $1 = "-tcp" ]
+then
+    GTK=`awk '/gtk-server -tcp/ {print $2}' $PROCESS`
+
+# Check on UDP process
+elif [ $1 = "udp" ]
+then
+    GTK=`awk '/gtk-server udp/ {print $2}' $PROCESS`
+elif [ $1 = "-udp" ]
+then
+    GTK=`awk '/gtk-server -udp/ {print $2}' $PROCESS`
+
+# Check if we are going to kill STDIN gtk-server processes
+elif [ $1 = "stdin" ]
+then
+    GTK=`awk '/gtk-server stdin/ {print $2}' $PROCESS`
+elif [ $1 = "-stdin" ]
+then
+    GTK=`awk '/gtk-server -stdin/ {print $2}' $PROCESS`
+
+# Check if we are going to kill IPC gtk-server processes
+elif [ $1 = "ipc" ]
+then
+    GTK=`awk '/gtk-server ipc/ {print $2}' $PROCESS`
+    # Determine message queues
+    IPC=`awk '{gsub(/=/, " ")} /gtk-server ipc/ {print $13}' $PROCESS`
+elif [ $1 = "-ipc" ]
+then
+    GTK=`awk '/gtk-server -ipc/ {print $2}' $PROCESS`
+    # Determine message queues
+    IPC=`awk '{gsub(/=/, " ")} /gtk-server -ipc/ {print $13}' $PROCESS`
+
+# Check if we are going to kill ALL gtk-server processes
+elif [ $1 = "all" -o $1 = "-all" ]
+then
+    # Determine processes
+    GTK=`awk '/gtk-server / {print $2}' $PROCESS`
+    # Determine pipe files
+    FILES=`awk '{gsub(/=/, " ")} /gtk-server fifo/ {print $13}' $PROCESS`
+    FILES="$FILES `awk '{gsub(/=/, " ")} /gtk-server -fifo/ {print $13}' $PROCESS`"
+    # Determine message queues
+    IPC=`awk '{gsub(/=/, " ")} /gtk-server ipc/ {print $13}' $PROCESS`
+    IPC="$IPC `awk '{gsub(/=/, " ")} /gtk-server -ipc/ {print $13}' $PROCESS`"
+
+# Check if we are going to kill ALL gtk-server processes
+elif [ $1 = "show" -o $1 = "-show" ]
+then
+    # Determine processes
+    echo
+    GTK=`awk '/gtk-server / {print}' $PROCESS`
+    if [ -z "${GTK}" ]
+    then
+	echo "No GTK-server processes found!"
+    else
+	awk '/gtk-server / {print $1, $2, $9, $11, $12, $13, $14, $15, $16, $17, $18}' $PROCESS
+    fi
+    echo
+    exit 0
+
+# Generate error warning -> argument not recognized
+else
+    echo "Argument not recognized!"
+    echo "Run 'stop-gtk-server' to see usage."
+    exit -1
+fi
+
+# Kill the GTK-server processes
+for i in $GTK
+do
+    kill -9 ${i}
+    echo "Process ${i} stopped."
+done
+
+# Remove PIPE files if they exist
+for i in $FILES
+do
+    if [ -p "${i}" ]
+    then
+	rm ${i}
+	echo "Pipefile ${i} removed."
+    fi
+done
+
+# Remove message queues if they exist
+if [ "`expr "$PLATFORM" : '.*\(BSD\)'`" = "BSD" ]
+then
+    QUEUE=`ipcs -q | awk '/[0123456789]/ {printf "%d ", $3}'`
+elif [ "`expr "$PLATFORM" : '.*\(Darwin\)'`" = "Darwin" ]
+then
+    QUEUE=`ipcs -q | awk '/0x/ {printf "%d ", $3}'`
+else
+    QUEUE=`ipcs -q | awk '/[0123456789]/ {printf "%d ", strtonum($1)}'`
+fi
+
+for k in $IPC
+do
+    for j in $QUEUE
+    do
+	if [ "$k" = "$j" ]
+	then
+	    if [ "`expr "$PLATFORM" : '.*\(BSD\)'`" = "BSD" ]
+	    then
+		ID=`ipcs -q | awk -v ARG=$k '/[0123456789]/ {if ($3==ARG) print $2}'`
+	    elif [ "`expr "$PLATFORM" : '.*\(Darwin\)'`" = "Darwin" ]
+	    then
+		ID=`ipcs -q | awk -v ARG=$k '/0x/ {if ($3==ARG) print $2}'`
+	    else
+		ID=`ipcs -q | awk -v ARG=$k '/[0123456789]/ {if (strtonum($1)==ARG) print $2}'`
+	    fi
+	    ipcrm -q $ID
+	    echo "Message queue ${ID} removed."
+	fi
+    done
+done
+
+# Tell if there are no processes found
+if [ -z "$GTK" ]
+then
+    echo
+    echo "No GTK-server processes found!"
+    echo
+fi
+
+# Remove temporary file
+rm $PROCESS
+
+exit 0

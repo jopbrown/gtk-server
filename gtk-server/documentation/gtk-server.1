@@ -1,0 +1,412 @@
+.TH gtk\-server 1
+.SH "NAME"
+gtk\-server \- GUI access for shellscripts and interpreted languages.
+.SH "SYNOPSIS" 
+.B gtk\-server
+.I <\-stdin> |
+.I <\-tcp>=host:port[:max] |
+.I <\-sock>=host:port |
+.I <\-udp>=host:port |
+.I <\-fifo>=filename |
+.I <\-ipc>=number
+.I [\-log=filename]
+.I [\-signal=number]
+.I [\-cfg=filename]
+.I [\-pre=string]
+.I [\-post=string]
+.I [\-handle]
+.I [\-detach]
+.I [\-nocreate]
+.I [\-showconf]
+.I [\-start=macro]
+.I [\-init=handshake]
+.I [\-ssl=[cert.pem]]
+.I [\-password=passwd]
+.I [\-ca=cert.pem]
+.SH "DESCRIPTION"
+.P
+The GTK\-server is a binary which can be started from a (shell\-)script or
+an interpreted language. 
+It will read the configuration file 'gtk\-server.cfg' after which a 
+client script can execute GTK functions. These GTK functions are sent in
+plain text to the gtk\-server, using a 2\-way pipe, a named pipe or a TCP or UDP
+connection.
+.P
+The GTK\-server was inspired by 'dtksh' for the Common Desktop
+Environment (CDE).
+.SH "ARGUMENTS"
+.PP
+The GTK\-server must be started with one of the following
+arguments:
+.TP
+.B -stdin
+Start the GTK\-server with 2\-way pipes. The client script language must start
+a 2\-way pipe to the GTK\-server to enable communication. (In KSH and AWK for example, the 
+symbol '|&' is used for this.)
+.TP
+.B -tcp=host:port[:max]
+Start the GTK\-server as TCP server. The client script language must
+connect to this host and port. Commonly 'localhost' and a portnumber higher than 
+1024 are used. The 'max' part determines the maximum amount of client scripts 
+which can connect. If 'max' is omitted only 1 client script may connect.
+.TP
+.B -sock=host:port
+Start the GTK\-server as TCP client. The client script language acts like a server, sending
+the commands to the GTK-server.
+.TP
+.B -udp=host:port
+Start the GTK-server in UDP mode. The client script must connect to <host> and 
+<port> using the UDP protocol.
+.TP
+.B -fifo=<file>
+Start the GTK\-server with a named pipe. The pipe is created by the GTK\-server automatically
+and has the name of <file>. When the script is finished the named pipe will be
+deleted automatically. To avoid the pipe being created automatically, also use the option 'nocreate'.
+.TP
+.B -ipc=number
+Start the GTK\-server with a message queue. The number must lay within the range from
+1 to 65535 and specifies the queue number. When the script is finished the GTK\-server will
+delete the message queue from memory.
+.br
+
+After the GTK\-server has been started with a message queue, subsequent GTK requests must
+be sent with the GTK\-server binary using the argument 'msg'. The number of the communication
+channel must be specified, as well as the string to be sent. For example:
+.br
+
+.B gtk-server -msg=1,"gtk_init NULL NULL"
+.br
+
+Here a GTK function is sent to communication channel 1. Make sure there is no space between
+the number, the comma and the string, otherwise the GTK-server will regard these as separate
+arguments.
+.br
+
+Message queues also can be retrieved using the Unix command 'ipcs', and can be deleted using
+the Unix command 'ipcrm'.
+.br
+
+.SH "OPTIONS"
+.PP
+The GTK\-server accepts the following optional parameters:
+.TP
+.B -log=<filename>
+Start the GTK\-server in debug mode. A file with the name 'filename' will be created. This logfile 
+contains the strings which were received by the GTK\-server, and the responses
+of the GTK\-server to those strings.
+.TP
+.B -signal=<number>
+Define a signal which must be sent to the clientprogram when the GTK-server exits (UNIX only).
+.TP
+.B -cfg=<filename>
+Explain to the GTK-server where it can find the configfile if it cannot be found at a standard
+location.
+.TP
+.B -pre=<string>
+Put the specified string in front of the GTK-server returnstrings.
+.TP
+.B -post=<string>
+Put the specified string behind the GTK-server returnstrings.
+.TP
+.B -nocreate
+To be used in combination with the fifo option. When specified the pipefile will not be created
+by the GTK\-server, but must be created by the client program.
+.TP
+.B -handle
+This option can be used to synchronize communication. When specified the client script can send requests
+starting with a self-defined handle, for example a unique number. The GTK\-server will ignore this
+handle when parsing the incoming request, but the returnstring for this request will start with the same handle.
+.TP
+.B -detach
+When specified the GTK\-server will try to spawn to the background.
+.TP
+.B -showconf
+When the GTK-server starts, it will read information about GTK-calls from the configfile.
+This argument will dump the information to stdout. This is particularly usefull when
+debugging scripts.
+.TP
+.B -start=<macro>
+When the GTK-server starts, first execute the specified macro before doing anything else.
+.TP
+.B -init=<handshake>
+When running in socket mode, the GTK-server can send a string to handshake and identify itself with
+the other side.
+.TP
+.B -ssl[=cert.pem]
+When running in socket mode, this option sets up an SSL connection. An optional certificatefile
+can be provided which is presented by the GTK\-server to the remote host during the SSL negotiation.
+.TP
+.B -ca=cert.pem
+When running in socket mode, this option sets up an SSL connection. A certificatefile must be
+provided to this option to verify the certificate presented by the remote host.
+.TP
+.B -password=string
+To be used in combination with the ssl option. This option should provide a password to decrypt
+the SSL certificate's key if the key was encrypted.
+
+.SH "SHEBANG"
+.PP
+A GTK-server configfile can contain a standalone program implemented with macro's. As with most Unix
+scripts, a shebang can be added to the first line of the configfile to execute it with the GTK-server:
+.P
+.B
+#!/usr/bin/gtk-server -this
+.P
+The GTK-server searches for a macro with the name 'main' which will be executed first.
+
+.SH "SHARED OBJECT / DLL / MODULE"
+.PP
+If the GTK-server is compiled as a shared object, the function 'gtk' can be imported
+into the client program. All GTK calls can be passed as a stringargument to this function
+(formatted as S-expression). The function always will return a pointer to a string containing
+the result of the last GTK call.
+.P
+The C-prototype definition for the 'gtk' function in the GTK-server is as follows:
+.P
+.B
+(char*) gtk (char* S-expression)
+.P
+It is also possible to compile the GTK-server as an S-Lang, Scriptbasic or Kornshell module,
+which can be imported in a client program. See the respective directories in the sourcepackage
+for details.
+.P
+Only with the first call to the imported 'gtk'-function the options 'log', 'cfg', 'pre' and 'post' can be
+submitted. For example:
+.P
+gtk "log=/dir/logfile cfg=/my/dir/gtk-server.cfg post=."
+.P
+Now the GTK-server module will open the configfile at location '/my/dir', output it's logging
+to the configured logfile and also will put a dot behind all returned answers. (These separate options
+also may be preceded by the dummy command 'gtk_server_cfg'.)
+
+.SH "INTERNAL COMMANDS"
+.PP
+The GTK-server recognizes the following internal commands:
+.TP
+.B gtk_server_version
+This command returns the current version of the GTK-server.
+.TP
+.B gtk_server_ffi
+This command returns the Foreign Function interface which has been used to compile the GTK-server: FFI,
+FFCALL, C/Invoke or DYNCALL.
+.TP
+.B gtk_server_toolkit
+This command returns the backend which has been used to compile the GTK-server: GTK1, GTK2 or XForms.
+.TP
+.B gtk_server_os
+This command returns the platform for which the GTK-server was compiled.
+.TP
+.B gtk_server_callback <argument>
+With this command the client program will fetch a signal for one of the widgets.
+By default the widget ID is returned when a signal is received. If <argument> is 0,
+the command will return to the client program immediately, and the client program
+has to perform a GTK iteration by itself. If there was no signal, the returnvalue will
+be 0. If <argument> is 1, the command also will
+update all GTK widgets, but *only* return to the client script if a signal has occured. This setting will
+be appropriate in most situations. Instead of '1' also the terms 'wait' or 'WAIT'
+may be used. Finally, if <argument> is 2, the command will update all pending GTK-events and
+return immediately with the last known signal. If there was no signal, the
+returnvalue will be 0. Instead of 2 also the terms 'update' or 'UPDATE' may be used.
+.TP
+.B gtk_server_callback_value <argument> <type>
+If values need to be retrieved from a callback function, it can be performed with
+this function. For example: the "select-row" signal for the CList widget in GTK1 will pass the row number
+and column number to the callback function. These occur as the 1st and 2nd argument of the
+signal. (Argument 0 passes the widget ID.) To retrieve the clicked column number of a CList widget,
+perform the call 'gtk_server_callback_value 2 INT' in the client program, just after a signal
+on this widget has occurend. This will retrieve the column. The first argument may range from 0 to 7.
+The second argument 'type' may be INT or STRING to specify the type.
+This function is not available when the GTK-server has been compiled for the XForms backend.
+.TP
+.B gtk_server_connect <widgetID> <signal> <description> [flag]
+This command adds an extra callback signal to a widget. The first argument refers to
+the widget ID, which is returned when creating the widget. The second argument is the
+signal name as used in GTK programming, e.g. "clicked", "enter", "pressed" and so on.
+The third argument is the string which will be returned by the GTK-server when the
+signal has occured. The optional last argument will explain GTK to propagate the event
+further. If [flag] is omitted or 0, the occured signal will only be handled by the client
+program. Any value other than 0 will propagate the event to GTK also.
+
+When the GTK-server has been compiled for XForms, the ID of the form must be provided as first argument,
+after which the event mask should be entered. The event mask can be one of KeyPressMask, KeyReleaseMask,
+ButtonPressMask, ButtonReleaseMask, EnterWindowMask, LeaveWindowMask, PointerMotionMask or
+ButtonMotionMask. These are defined in the X-Server header files.
+.TP
+.B gtk_server_connect_after <widgetID> <signal> <description> [flag]
+Similar to "gtk_server_connect", but the signal occurs after other signals take place.
+This function is not available when the GTK-server has been compiled for the XForms backend.
+.TP
+.B gtk_server_disconnect <widgetID> <description>
+Disconnects a signal from a widget which has been defined with "gtk_server_connect" or
+"gtk_server_connect_after" previously. The signals defined in the configfile can be disconnected
+when the signalnames are used for description also. This function is not available when the GTK-server has
+been compiled for the XForms backend.
+.TP
+.B gtk_server_enable_c_string_escaping
+This command puts the GTK-server into C escaping mode. Returned strings are surrounded with
+doublequotes, and by default the special characters BELL, CR, newline, TAB, doublequote and backslash 
+will be preceded by the escape sign '\\'. This allows debugging of strings without the client
+program actually interpreting the special characters. To change the default set of characters,
+use 'gtk_server_set_c_string_escaping' (see below).
+.TP
+.B gtk_server_disable_c_string_escaping
+Switches off the C escaping mode (default).
+.TP
+.B gtk_server_set_c_string_escaping <argument>
+Defines the set of characters which should be escaped before they are returned by the GTK-server.
+.TP
+.B gtk_server_mouse <argument>
+With this call the status of the mousepointer can be retrieved. When <argument> equals to 0,
+the x-coordinate of the mouse on the widget is returned. When <argument> equals to 1, the 
+y-coordinate on the widget is returned. When <argument> equals to 2, the status of
+the mousebutton is returned, which is a value of 1 (left button), 2 (middle button), 3 (right button),
+4 or 5 (other buttons). It is required to connect the 'button-press-event' signal to the widget.
+
+Finally, when <argument> equals to 3, the direction of the scrollbutton(s) on the mouse will
+be returned: '0' means up, '1' down, '2' left and '3' means right. It is required to connect
+the 'scroll-event' signal to the widget.
+
+For XForms it is necessary to connect the 'ButtonPressMask' and 'PointerMotion' mask to the form.
+The result is an X event type enumeration. So if the returnvalue is 256, the left mousebutton is
+pressed, if the returnvalue is 512, the middle mousebutton is pressed and with 1024 the right mousebutton
+is pressed. Also modifier keys like CTRL, ALT, SHIFT etc. are notified. Here is a complete table of
+returnvalues:
+
+.br
+1 = SHIFT KEY
+.br
+2 = CAPS_LOCK or SHIFT_LOCK
+.br
+4 = CONTROL KEY
+.br
+8 = MODIFIER1 (determined by the configuration of X)
+.br
+16 = MODIFIER2 (determined by the configuration of X)
+.br
+32 = MODIFIER3 (determined by the configuration of X)
+.br
+64 = MODIFIER4 (determined by the configuration of X)
+.br
+128 = MODIFIER5 (determined by the configuration of X)
+.br
+256 = MOUSEBUTTON1 (left)
+.br
+512 = MOUSEBUTTON2 (middle)
+.br
+1024 = MOUSEBUTTON3 (right)
+.br
+2048 = MOUSEBUTTON4
+.br
+4096 = MOUSEBUTTON5
+
+.br
+The returned result also can contain a combination of the above values. E.g. the result
+260 means that both the <CTRL> key and the left mousebutton are pressed at the same time.
+.TP
+.B gtk_server_define <gtk function> <signal> <returnvalue> <amount> <arg1> ... <argn>
+This call defines a new GTK function. If the GTK function is already available in the configfile
+then it will be redefined automatically. The syntax to define a GTK function is similar to the
+syntax used in the 'gtk-server.cfg' file. Please refer to the man page of 'gtk-server.cfg' for details.
+.TP
+.B gtk_server_redefine <gtk function> <signal> <returnvalue> <amount> <arg1> ... <argn>
+This call redefines a GTK function which is mentioned in the 'gtk-server.cfg' file. If the GTK
+function is not available in the configfile then it will be defined as a new GTK function.
+The syntax to redefine a GTK function is similar to the syntax used in the 'gtk-server.cfg' file.
+Please refer to the man page of 'gtk-server.cfg' for details.
+.TP
+.B gtk_server_require <libraryname>
+Checks if <libraryname> is available on the system or not. If <libraryname> is not available, this call
+will return a "0", else it will return a "1". If <libraryname> is not mentioned in the configfile, this call
+will try to open it during runtime of the clientscript.
+.TP
+.B gtk_server_timeout <milliseconds> <widget> <signal>
+This call sets up a timeout in the idle loop of GTK. When waiting for an event with 'gtk_server_callback wait',
+each amount of configured milliseconds an event will be generated by GTK so the callback function returns with
+the configured widgetID or string. Make sure to connect the signal in the GTK-server configfile
+or with 'gtk_server_connect'-call first, otherwise the signal will not be recognized. This functions returns
+a unique handle to identify the timeout. The handle can be used to remove the timeout with 'gtk_server_timeout_remove'.
+This function is not available when the GTK-server has been compiled for the XForms backend.
+.TP
+.B gtk_server_timeout_remove <handle>
+Remove a timeout which has been setup earlier. This function is not available when the GTK-server has been compiled
+for the XForms backend.
+.TP
+.B gtk_server_opaque
+Returns an undefined widget. This can be used in cases where GTK has no explicit call to create a widget of a
+certain type, for example with GtkIter or GdkColor. This function is not available when the GTK-server has been compiled
+for the XForms backend.
+.TP
+.B gtk_server_echo <string1> <string2>...<stringn>
+This is a debug function. It will return the string which is sent to the GTK-server. Convenient when in
+STDIN mode, or when using the GTK-server from a programming language console. Also this function
+can be used to keep an IP connection open when running in TCP/UDP mode.
+.TP
+.B gtk_server_exit
+Exits the GTK-server, freeing all allocated resources.
+.TP
+.B gtk_server_pid
+Returns the current process ID of the GTK-server (Unix only).
+.TP
+.B gtk_server_macro_var <macro> <variablename>
+Returns the value of a variable defined in a macro. The variablenames may vary from 'a' to 'z'. See also the 'gtk-server.cfg'
+manpage for more info on macros.
+.TP
+.B gtk_server_macro_define <macrodefinition>
+Defines a macro. The definition should have the same format as in the configfile. The lines in a macro should be separated with a
+newline. See also the 'gtk-server.cfg' manpage for more info on macros.
+.TP
+.B gtk_server_macro_redefine <macrodefinition>
+Redefines a macro. The definition should have the same format as in the configfile. See also the 'gtk-server.cfg' manpage for more info on macros.
+.TP
+.B gtk_server_key
+Returns the value of the last key pressed. It is required to connect the 'key-press-event' to the widget first, otherwise the event
+is not recognized by GTK. For example:
+
+.br
+gtk_server_connect <widgetID> "key-press-event" "keypressed"
+
+For XForms it is necessary to connect at least the 'KeyPressMask' event mask to the form. XForms uses the standard event masks from
+the X header files. If the 'KeyPressMask' has a value of 1, it should be connected as follows:
+
+gtk_server_connect <formID> 1
+.TP
+.B gtk_server_state
+Returns the value of a state key if it is pressed. If SHIFT is pressed, a '1' is returned, if CTRL is pressed '4', if ALT is pressed '8' and so on.
+It is required to connect the 'key-press-event' to the widget first, otherwise the event is not recognized by GTK. For example:
+
+.br
+gtk_server_connect <widgetID> "key-press-event" "keypressed"
+.SH "FILES"
+.I gtk-server.cfg
+.RS
+The configuration file for the GTK-server.
+.RE
+.SH "EXAMPLES"
+Examples of scripts using the GTK\-server can be found in the sourcepackage. Also consult
+the latest demoscripts at http://www.gtk-server.org/.
+.SH "LICENSE"
+GPL License.
+
+This program is free software; you can redistribute it and/or modify 
+it under the terms of the GNU General Public License as published 
+by the Free Software Foundation; either version 2 of the License, 
+or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, 
+but WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License 
+along with this program; if not, write to the Free Software 
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, 
+MA 02111-1307 USA.
+.SH "BUGS"
+Please report bugs to: bugs@gtk-server.org
+.SH "SEE ALSO"
+stop-gtk-server(1), gtk-server.cfg(1)
+.SH "AUTHORS"
+Orignal concept, design and implementation by Peter van Eerten, e\-mail : peter@gtk-server.org
+
+Current version of the GTK-server was created with help of many others - see the CREDITS file in
+the sourcepackage for credits.

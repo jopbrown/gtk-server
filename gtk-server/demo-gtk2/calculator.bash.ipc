@@ -1,0 +1,553 @@
+#!/bin/bash
+#
+# Demonstration on how to use Glade and the GTK-server with BASH.
+#
+# Tested with GTK-server 2.2.9 on SLAMD12 and BASH 3.1
+# Nov 1, 2008 (c) Peter van Eerten - GPL license.
+#
+# Proving that the IPC interface accepts unlimited input.
+#
+#----------------------------------------------------------- Setup embedded GTK
+
+# Pipe filename must be unique for your application
+IPC="\$$"
+
+# Find GTK-server configfile first
+if [[ -f gtk-server.cfg ]]; then
+    CFG=gtk-server.cfg
+elif [[ -f /etc/gtk-server.cfg ]]; then
+    CFG=/etc/gtk-server.cfg
+elif [[ -f /usr/local/etc/gtk-server.cfg ]]; then
+    CFG=/usr/local/etc/gtk-server.cfg
+else
+    echo "No GTK-server configfile found! Please install GTK-server..."
+    exit 1
+fi
+# Now create global functionnames from GTK API
+if [[ ! -f $HOME/.gtk4bash-ipc || $CFG -nt $HOME/.gtk4bash-ipc ]]; then
+    echo "#!/bin/bash" > $HOME/.gtk4bash-ipc
+    echo "gtk-server -ipc=$IPC &" >> $HOME/.gtk4bash-ipc
+    while read LINE
+    do
+	if [[ $LINE = FUNCTION_NAME* ]]; then
+	    LINE=${LINE#*= }
+	    printf "function ${LINE%%,*}\n" >> $HOME/.gtk4bash-ipc
+	    printf "{\nARGS=\"\$@\"\n" >> $HOME/.gtk4bash-ipc
+	    printf "GTK=\`gtk-server -msg=$IPC,\"${LINE%%,*} \$ARGS\"\`\n}\n" >> $HOME/.gtk4bash-ipc
+	fi
+    done < $CFG
+fi
+# Declare global variables
+declare GTK NULL="NULL"
+unset CFG IPC LINE
+
+# Include the generated file to use embedded GTK functions
+. ${HOME}/.gtk4bash-ipc
+
+#---------------------------------------------------------- Global inits
+
+# Assignment function
+function define() { $2 $3 $4 $5 $6 $7 $8 $9; eval $1="$GTK"; }
+
+#---------------------------------------------------------- GUI realization
+
+# Set GUI definition
+GUI="<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
+<!DOCTYPE glade-interface SYSTEM \"glade-2.0.dtd\">
+<!--Generated with glade3 3.4.0 on Fri Jan 11 20:13:32 2008 -->
+<glade-interface>
+  <widget class=\"GtkWindow\" id=\"window\">
+    <property name=\"width_request\">250</property>
+    <property name=\"height_request\">225</property>
+    <property name=\"visible\">True</property>
+    <property name=\"title\" translatable=\"yes\">BASH Calculator IPC</property>
+    <property name=\"resizable\">False</property>
+    <property name=\"window_position\">GTK_WIN_POS_CENTER</property>
+    <property name=\"default_width\">264</property>
+    <property name=\"default_height\">248</property>
+    <property name=\"icon_name\">calc</property>
+    <child>
+      <widget class=\"GtkTable\" id=\"table1\">
+        <property name=\"visible\">True</property>
+        <property name=\"n_rows\">5</property>
+        <property name=\"n_columns\">5</property>
+        <property name=\"homogeneous\">True</property>
+        <child>
+          <widget class=\"GtkButton\" id=\"buttonMemadd\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">M+</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">3</property>
+            <property name=\"right_attach\">4</property>
+            <property name=\"top_attach\">4</property>
+            <property name=\"bottom_attach\">5</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkEntry\" id=\"entry\">
+            <property name=\"visible\">True</property>
+            <property name=\"sensitive\">False</property>
+            <property name=\"editable\">False</property>
+            <property name=\"xalign\">1</property>
+          </widget>
+          <packing>
+            <property name=\"right_attach\">5</property>
+            <property name=\"x_padding\">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"button1\">
+            <property name=\"width_request\">0</property>
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">1</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"top_attach\">1</property>
+            <property name=\"bottom_attach\">2</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"button3\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">3</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">2</property>
+            <property name=\"right_attach\">3</property>
+            <property name=\"top_attach\">1</property>
+            <property name=\"bottom_attach\">2</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"buttonC\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">C</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">3</property>
+            <property name=\"right_attach\">4</property>
+            <property name=\"top_attach\">1</property>
+            <property name=\"bottom_attach\">2</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"buttonCE\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">CE</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">4</property>
+            <property name=\"right_attach\">5</property>
+            <property name=\"top_attach\">1</property>
+            <property name=\"bottom_attach\">2</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"button4\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">4</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"top_attach\">2</property>
+            <property name=\"bottom_attach\">3</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"button5\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">5</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">1</property>
+            <property name=\"right_attach\">2</property>
+            <property name=\"top_attach\">2</property>
+            <property name=\"bottom_attach\">3</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"button6\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">6</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">2</property>
+            <property name=\"right_attach\">3</property>
+            <property name=\"top_attach\">2</property>
+            <property name=\"bottom_attach\">3</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"buttonAdd\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">+</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">3</property>
+            <property name=\"right_attach\">4</property>
+            <property name=\"top_attach\">2</property>
+            <property name=\"bottom_attach\">3</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"buttonMinus\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">-</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">4</property>
+            <property name=\"right_attach\">5</property>
+            <property name=\"top_attach\">2</property>
+            <property name=\"bottom_attach\">3</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"button7\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">7</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"top_attach\">3</property>
+            <property name=\"bottom_attach\">4</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"button8\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">8</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">1</property>
+            <property name=\"right_attach\">2</property>
+            <property name=\"top_attach\">3</property>
+            <property name=\"bottom_attach\">4</property>
+            <property name=\"x_padding\">5</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"button9\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">9</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">2</property>
+            <property name=\"right_attach\">3</property>
+            <property name=\"top_attach\">3</property>
+            <property name=\"bottom_attach\">4</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"buttonMul\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">*</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">3</property>
+            <property name=\"right_attach\">4</property>
+            <property name=\"top_attach\">3</property>
+            <property name=\"bottom_attach\">4</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"buttonDiv\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">/</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">4</property>
+            <property name=\"right_attach\">5</property>
+            <property name=\"top_attach\">3</property>
+            <property name=\"bottom_attach\">4</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"button0\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">0</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"top_attach\">4</property>
+            <property name=\"bottom_attach\">5</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"buttonMemread\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">MR</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">4</property>
+            <property name=\"right_attach\">5</property>
+            <property name=\"top_attach\">4</property>
+            <property name=\"bottom_attach\">5</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"buttonEq\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">=</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">1</property>
+            <property name=\"right_attach\">3</property>
+            <property name=\"top_attach\">4</property>
+            <property name=\"bottom_attach\">5</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+        <child>
+          <widget class=\"GtkButton\" id=\"button2\">
+            <property name=\"visible\">True</property>
+            <property name=\"label\" translatable=\"yes\">2</property>
+            <property name=\"response_id\">0</property>
+          </widget>
+          <packing>
+            <property name=\"left_attach\">1</property>
+            <property name=\"right_attach\">2</property>
+            <property name=\"top_attach\">1</property>
+            <property name=\"bottom_attach\">2</property>
+            <property name=\"x_padding\">4</property>
+            <property name=\"y_padding\">8</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
+</glade-interface>"
+
+# Initialize libs
+gtk_init
+glade_init
+
+define XML glade_xml_new_from_buffer "'$GUI'" ${#GUI} $NULL $NULL
+glade_xml_signal_autoconnect $XML
+
+# Get main window ID and connect signal
+glade_xml_get_widget $XML "window"
+gtk_server_connect "$GTK delete-event window"
+
+# Get button ID's and connect signals
+glade_xml_get_widget $XML "button0"
+gtk_server_connect "$GTK clicked button0"
+glade_xml_get_widget $XML "button1"
+gtk_server_connect "$GTK clicked button1"
+glade_xml_get_widget $XML "button2"
+gtk_server_connect "$GTK clicked button2"
+glade_xml_get_widget $XML "button3"
+gtk_server_connect "$GTK clicked button3"
+glade_xml_get_widget $XML "button4"
+gtk_server_connect "$GTK clicked button4"
+glade_xml_get_widget $XML "button5"
+gtk_server_connect "$GTK clicked button5"
+glade_xml_get_widget $XML "button6"
+gtk_server_connect "$GTK clicked button6"
+glade_xml_get_widget $XML "button7"
+gtk_server_connect "$GTK clicked button7"
+glade_xml_get_widget $XML "button8"
+gtk_server_connect "$GTK clicked button8"
+glade_xml_get_widget $XML "button9"
+gtk_server_connect "$GTK clicked button9"
+# Operators
+glade_xml_get_widget $XML "buttonC"
+gtk_server_connect "$GTK clicked buttonC"
+glade_xml_get_widget $XML "buttonCE"
+gtk_server_connect "$GTK clicked buttonCE"
+glade_xml_get_widget $XML "buttonAdd"
+gtk_server_connect "$GTK clicked buttonAdd"
+glade_xml_get_widget $XML "buttonMinus"
+gtk_server_connect "$GTK clicked buttonMinus"
+glade_xml_get_widget $XML "buttonMul"
+gtk_server_connect "$GTK clicked buttonMul"
+glade_xml_get_widget $XML "buttonDiv"
+gtk_server_connect "$GTK clicked buttonDiv"
+glade_xml_get_widget $XML "buttonEq"
+gtk_server_connect "$GTK clicked buttonEq"
+# Memory buttons
+glade_xml_get_widget $XML "buttonMemadd"
+gtk_server_connect "$GTK clicked buttonMemadd"
+glade_xml_get_widget $XML "buttonMemread"
+gtk_server_connect "$GTK clicked buttonMemread"
+# Get entry ID
+define ENTRY glade_xml_get_widget $XML "entry"
+# Calculator starts with 0
+gtk_entry_set_text $ENTRY 0
+
+#---------------------------------------------------------- Init variables
+
+# Initialize calculator state
+declare STATE=0
+# Initialize temp calculator cache
+declare CACHE=0
+# Initialize last calculator action
+declare ACTION=0
+# Initiliaze calculator total result
+declare TOTAL=0
+# Initialize MEM function
+declare MEM=0
+
+#---------------------------------------------------------- Functions
+
+# Define action when +, -, *, or / is pressed
+function operator()
+{
+if [[ $STATE -eq 0 ]]
+then
+    case $ACTION in
+	1)
+	    gtk_entry_get_text $ENTRY
+	    let CACHE=$CACHE+$GTK
+	    gtk_entry_set_text $ENTRY $CACHE;;
+	2)
+	    gtk_entry_get_text $ENTRY
+	    let CACHE=$CACHE-$GTK
+	    gtk_entry_set_text $ENTRY $CACHE;;
+	3)
+	    gtk_entry_get_text $ENTRY
+	    let CACHE=$CACHE*$GTK
+	    gtk_entry_set_text $ENTRY $CACHE;;
+	4)
+	    gtk_entry_get_text $ENTRY
+	    if [[ $GTK -eq 0 ]]
+	    then
+		gtk_entry_set_text $ENTRY "ERROR"
+	    else
+		let CACHE=$CACHE/$GTK
+		gtk_entry_set_text $ENTRY $CACHE
+	    fi;;
+    esac
+fi
+}
+
+# Define action when 0 1 2 3 4 5 6 7 8 9 is pressed; requires argument
+function number()
+{
+gtk_entry_get_text $ENTRY
+if [[ $GTK -eq 0 || $STATE -gt 0 ]]
+then
+    define CACHE gtk_entry_get_text $ENTRY
+    gtk_entry_set_text $ENTRY $1
+else
+    gtk_entry_set_text $ENTRY $GTK$1
+fi
+STATE=0
+}
+
+#---------------------------------------------------------- Mainloop
+
+until [[ $EVENT = "window" ]]
+do
+    define EVENT gtk_server_callback "wait"
+
+    case $EVENT in
+	"buttonMemread")
+	    STATE=0
+	    define CACHE gtk_entry_get_text $ENTRY
+	    gtk_entry_set_text $ENTRY $MEM;;
+	"buttonMemadd")
+	    define MEM gtk_entry_get_text $ENTRY;;
+	"buttonC")
+	    gtk_entry_set_text $ENTRY 0;;
+	"buttonCE")
+	    TOTAL=0
+	    STATE=0
+	    ACTION=0
+	    CACHE=0
+	    MEM=0
+	    gtk_entry_set_text $ENTRY 0;;
+	"buttonAdd")
+	    operator
+	    ACTION=1
+	    ((STATE+=1));;
+	"buttonMinus")
+	    operator
+	    ACTION=2
+	    ((STATE+=1));;
+	"buttonMul")
+	    operator
+	    ACTION=3
+	    ((STATE+=1));;
+	"buttonDiv")
+	    operator
+	    ACTION=4
+	    ((STATE+=1));;
+	"buttonEq")
+	    operator
+	    ACTION=0
+	    ((STATE+=1));;
+	"button0")
+	    number 0;;
+	"button1")
+	    number 1;;
+	"button2")
+	    number 2;;
+	"button3")
+	    number 3;;
+	"button4")
+	    number 4;;
+	"button5")
+	    number 5;;
+	"button6")
+	    number 6;;
+	"button7")
+	    number 7;;
+	"button8")
+	    number 8;;
+	"button9")
+	    number 9;;
+    esac
+done
+
+# Exit GTK
+gtk_server_exit

@@ -1,0 +1,35 @@
+-------------
+Howto compile
+-------------
+
+1) Start the GTK-server configure script as follows:
+
+./configure --enable-scriptbasic --sysconfdir=/etc --enable-sb-source=/home/account/mysource/scriptbasic/ --libdir=/usr/local/lib/scriba --includedir=/usr/share/scriba/include
+
+
+Explanation of the options:
+
+'--enable-scriptbasic'
+    enables support for Scriptbasic
+
+'--sysconfdir=/etc'
+    install the GTK-server configfile into the '/etc' directory
+
+'--enable-sb-source=/home/account/mysource/scriptbasic'
+    points to the sourcetree of your Scriptbasic installation, if left empty the current subdirectory 'scriptbasic' will be used
+
+'--libdir=/usr/local/lib/scriba'
+    points to the directory where the resulting module must be installed
+
+'--includedir=/usr/share/scriba/include'
+    points to the directory where the Scriptbasic includefile 'gtk.bas' must be installed
+
+Change the directory arguments to the situation of your system.
+
+
+2) Start compilation of the GTK-server with the command 'make'. After that, as user 'root', perform a 'make install'.
+
+3) Run the testprograms 'dictionary.sb' or 'demo.sb' or 'embedded.sb'.
+
+
+The resulting module is tested with Scriptbasic 2.0 for Unix.

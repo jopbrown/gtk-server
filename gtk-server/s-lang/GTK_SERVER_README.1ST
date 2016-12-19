@@ -1,0 +1,14 @@
+
+Howto compile
+-------------
+
+1) Compile and install S-Lang and the S-Lang libraries first.
+
+2) Start the GTK-server configure script as follows: ./configure --enable-slang
+
+3) Start compilation of the GTK-server with the command 'make'. After that 'make install'.
+
+4) Run the testprogram in the s-lang subdirectory: 'demo-lib.sl'.
+
+
+The resulting module is tested with S-Lang 2.0.5.

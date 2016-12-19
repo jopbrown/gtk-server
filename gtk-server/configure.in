@@ -1,0 +1,490 @@
+# Process this file with autoconf to produce a configure script.
+AC_PREREQ(2.57)
+AC_INIT(gtk-server, 2.4, peter AT gtk-server DOT org)
+AC_CONFIG_SRCDIR([gtk-server.c])
+AC_CONFIG_HEADER([config.h])
+
+# Checks for programs.
+AC_PROG_CC
+AC_PROG_INSTALL
+
+# Check platform
+AC_CANONICAL_HOST
+case $host in
+    *mingw* )	AC_DEFINE_UNQUOTED(GTK_SERVER_WIN32)
+		LDFLAGS="-lws2_32 -ladvapi32 -lshlwapi -mwindows"
+		win32=yes
+		;;
+    *bsd* )	AC_DEFINE_UNQUOTED(GTK_SERVER_UNIX)
+		AC_DEFINE_UNQUOTED(GTK_SERVER_BSD)
+		LDFLAGS="-lpthread"
+		unix=yes
+		bsd=yes
+		;;
+    *solaris* )	AC_DEFINE_UNQUOTED(GTK_SERVER_UNIX)
+		AC_DEFINE_UNQUOTED(GTK_SERVER_SOLARIS)
+		LDFLAGS="-lsocket -lnsl"
+		unix=yes
+		solaris=yes
+		;;
+    *x86_64* )	AC_DEFINE_UNQUOTED(GTK_SERVER_UNIX)
+		AC_DEFINE_UNQUOTED(GTK_SERVER_X86_64)
+		unix=yes
+		x86_64=yes
+		;;
+    *darwin* )	AC_DEFINE_UNQUOTED(GTK_SERVER_UNIX)
+		AC_DEFINE_UNQUOTED(GTK_SERVER_DARWIN)
+		unix=yes
+		darwin=yes
+		;;
+    *osf* )	AC_DEFINE_UNQUOTED(GTK_SERVER_UNIX)
+		AC_DEFINE_UNQUOTED(GTK_SERVER_TRU64)
+		unix=yes
+		osf=yes
+		;;
+    * )		AC_DEFINE_UNQUOTED(GTK_SERVER_UNIX)
+		unix=yes
+		;;
+esac
+
+# Checks for typedefs, structures, and compiler characteristics.
+#to be done: AC_C_CONST
+
+# Checks for library functions.
+#to be done: AC_FUNC_FORK
+#to be done: AC_FUNC_MALLOC
+AC_CHECK_FUNCS(memset, [], [AC_MSG_ERROR(Cannot compile - missing function: memset)])
+AC_CHECK_FUNCS(setlocale, [], [AC_MSG_ERROR(Cannot compile - missing function: setlocale)])
+AC_CHECK_FUNCS(strstr, [], [AC_MSG_ERROR(Cannot compile - missing function: strstr)])
+AC_CHECK_FUNCS(snprintf, [], [AC_DEFINE_UNQUOTED(GTK_SERVER_NOSNPRINTF)])
+if test "$unix" = yes
+then
+    AC_CHECK_FUNCS(gethostbyname, [], [AC_MSG_ERROR(Cannot compile - missing function: gethostbyname)])
+    AC_CHECK_FUNCS(mkfifo, [], [AC_MSG_ERROR(Cannot compile - missing function: mkfifo)])
+    AC_CHECK_FUNCS(socket, [], [AC_MSG_ERROR(Cannot compile - missing function: socket)])
+    AC_CHECK_FUNCS(atexit, [], [AC_MSG_ERROR(Cannot compile - missing function: atexit)])
+    AC_CHECK_FUNCS(inet_ntoa, [], [AC_MSG_ERROR(Cannot compile - missing function: inet_ntoa)])
+fi
+
+# Check parameter: force compilation for GTK1?
+AC_ARG_WITH(gtk1,
+    [AC_HELP_STRING([--with-gtk1], [force compilation with GTK1.x (default: GUESS)])],
+	[LIBS="`pkg-config --libs gtk+`"
+	CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes gtk2x=no gtk3x=no xf=no console=no])
+
+# Check parameter: force compilation for GTK2?
+AC_ARG_WITH(gtk2,
+    [AC_HELP_STRING([--with-gtk2], [force compilation with GTK2.x (default: GUESS)])],
+	[LIBS="`pkg-config --libs gtk+-2.0`"
+	 CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk1x=no gtk2x=yes gtk3x=no xf=no console=no])
+
+# Check parameter: force compilation for GTK3?
+AC_ARG_WITH(gtk3,
+    [AC_HELP_STRING([--with-gtk3], [force compilation with GTK3.x (default: GUESS)])],
+	[LIBS="`pkg-config --libs gtk+-3.0`"
+	 CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk1x=no gtk2x=no gtk3x=yes xf=no console=no])
+
+# Check parameter: force compilation for XForms?
+AC_ARG_WITH(xforms,
+    [AC_HELP_STRING([--with-xforms], [force compilation with XForms (default: GUESS)])],
+	[LIBS="-L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lforms -lm"
+	    CFLAGS="-I/usr/X11R6/include/X11" gtk1x=no gtk2x=no gtk3x=no xf=yes console=no])
+
+# Check parameter: force compilation for console?
+AC_ARG_WITH(console,
+    [AC_HELP_STRING([--with-console], [force compilation for console (default: GUESS)])],
+	    [CFLAGS="" gtk1x=no gtk2x=no gtk3x=no xf=no console=yes])
+
+# No parameter given, guess toolkit.
+if test "$console" != yes; then
+
+if test "$xf" != yes; then
+    if test "$gtk1x" != yes; then
+	if test "$gtk2x" != yes; then
+	    if test "$gtk3x" != yes; then
+		AC_CHECK_LIB([gtk-3], [gtk_init],
+		[LIBS="`pkg-config --libs gtk+-3.0`"
+		CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk3x=yes], [], [])
+	    fi
+	    if test "$gtk3x" != yes ; then
+		AC_CHECK_LIB([gtk-x11-2.0], [gtk_init],
+		[LIBS="`pkg-config --libs gtk+-2.0`"
+		CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk2x=yes], [], [])
+	    fi
+	    if test "$gtk3x" != yes -a "$gtk2x" != yes ; then
+		AC_CHECK_LIB([gtk], [gtk_init],
+		[LIBS="`pkg-config --libs gtk+`"
+		CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes], [],
+		[-L/usr/X11R6/lib -lgdk -lXext -lX11 -lm -lglib])
+	    fi
+	    if test "$gtk3x" != yes -a "$gtk2x" != yes -a "$gtk1x" != yes; then
+		AC_CHECK_LIB([forms], [fl_initialize],
+		[LIBS="-L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lforms -lm"
+		CFLAGS="-I/usr/X11R6/include/X11" xf=yes], [], [])
+	    fi
+	fi
+    fi
+fi
+
+fi
+
+# No GUI? Compile for console
+if test "$gtk3x" != yes -a "$gtk2x" != yes -a "$gtk1x" != yes -a "$xf" != yes; then
+    CFLAGS=""
+    console=yes
+fi
+
+# Check if we compile static or shared (default)
+AC_ARG_ENABLE(static, [AC_HELP_STRING([--enable-static], [compile static binary - Gtk1/Xforms (default: NO)])], [static=yes])
+
+# Static only for GTK1 or XForms
+if test "$static" = yes; then
+    if test "$xf" = yes; then
+	LIBS="-Wl,-whole-archive /usr/lib/libforms.a /usr/lib/libformsGL.a /usr/lib/libflimage.a /usr/lib/libjpeg.a -Wl,-no-whole-archive -L/usr/X11R6/lib -L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lm -ldl"
+    elif test "$gtk1x" = yes; then
+	LIBS="-Wl,-whole-archive /usr/local/lib/libgtk.a /usr/local/lib/libgdk.a /usr/local/lib/libglib.a /usr/local/lib/libgmodule.a -Wl,-no-whole-archive -L/usr/X11R6/lib -lXext -lX11 -lm -lpthread -ldl"
+    fi
+fi
+
+# Check for pkgconfig
+if test "$gtk1x" = yes || test "$gtk2x" = yes || test "$gtk3x" = yes; then
+    if test "$xf" != yes; then
+	AC_PATH_PROG(PKGCONFIG_CONFIG, pkg-config,no)
+	if test "PKGCONFIG_CONFIG" = "no"; then
+	    AC_MSG_ERROR(Cannot compile - please install the pkg-config package from http://www.freedesktop.org/software/pkgconfig/)
+	fi
+    fi
+fi
+
+# Unquote the correct stuff
+if test "$gtk1x" = yes; then
+    AC_DEFINE_UNQUOTED(GTK_SERVER_GTK1x)
+    BACKEND="GTK1"
+    AC_SUBST(BACKEND)
+fi
+if test "$gtk2x" = yes; then
+    AC_DEFINE_UNQUOTED(GTK_SERVER_GTK2x)
+    BACKEND="GTK2"
+    AC_SUBST(BACKEND)
+fi
+if test "$gtk3x" = yes; then
+    AC_DEFINE_UNQUOTED(GTK_SERVER_GTK3x)
+    BACKEND="GTK3"
+    AC_SUBST(BACKEND)
+fi
+if test "$xf" = yes; then
+    AC_DEFINE_UNQUOTED(GTK_SERVER_XF)
+    BACKEND="XF"
+    AC_SUBST(BACKEND)
+fi
+if test "$console" = yes; then
+    BACKEND="CONSOLE"
+    AC_SUBST(BACKEND)
+fi
+
+# By default compile GTK-server binary
+if test "$win32" = yes; then
+    TARGET="gtk-server.exe"
+else
+    TARGET="gtk-server"
+fi
+DEFAULT="1"
+
+# Add compileflags for MacOSX
+if test "$darwin" = yes; then
+    CFLAGS="$CFLAGS -fno-common"
+fi
+
+# Add compileflags for Tru64Unix
+if test "$osf" = yes; then
+    CFLAGS="$CFLAGS -D_POSIX_PII_SOCKET -I/usr/local/include"
+    AC_DEFINE_UNQUOTED(GTK_SERVER_SOCK_LONG)
+fi
+
+# Check parameter: force compile as generic shared object?
+AC_ARG_ENABLE(library, [AC_HELP_STRING([--enable-library], [compilation as standard shared library (default: NO)])],
+	[AC_DEFINE_UNQUOTED(GTK_SERVER_LIBRARY)
+	 library=yes])
+
+if test "$library" = yes; then
+    if test "$darwin" = yes; then
+	TARGET="libgtk-server.dylib"
+	LIBS="$LIBS -dynamiclib"
+    else
+	TARGET="libgtk-server.so"
+	LIBS="$LIBS -shared"
+    fi
+    DEFAULT="2"
+fi
+
+# Check if we are on 64bit
+if test "$x86_64" = yes; then
+    CFLAGS="$CFLAGS -fPIC"
+    LIBS="$LIBS -L/usr/lib64"
+fi
+if test "$solaris" = yes; then
+    CFLAGS="$CFLAGS -fPIC"
+fi
+
+# Check parameter: support for S-Lang module?
+AC_ARG_ENABLE(slang,
+    [AC_HELP_STRING([--enable-slang], [add support to library for S-Lang (default: NO)])],
+	[AC_DEFINE_UNQUOTED(GTK_SERVER_SLANG)
+	AC_DEFINE_UNQUOTED(GTK_SERVER_LIBRARY)
+	LIBS="$LIBS -shared"
+	library=yes
+	 slang=yes])
+
+if test "$slang" = yes; then
+    if test "$darwin" = yes; then
+	TARGET="libgtk-server.dylib"
+    else
+	TARGET="libgtk-server.so"
+    fi
+    DEFAULT="3"
+fi
+
+# Check parameter: support for ScriptBasic module?
+AC_ARG_ENABLE(scriptbasic,
+    [AC_HELP_STRING([--enable-scriptbasic], [add support to library for ScriptBasic (default: NO)])],
+	[AC_DEFINE_UNQUOTED(GTK_SERVER_SCRIPTBASIC)
+	AC_DEFINE_UNQUOTED(GTK_SERVER_LIBRARY)
+	LIBS="$LIBS -shared"
+	library=yes
+	 scriptbasic=yes])
+
+if test "$scriptbasic" = yes; then
+    if test "$darwin" = yes; then
+	TARGET="libgtk-server.dylib"
+    else
+	TARGET="libgtk-server.so"
+    fi
+    DEFAULT="4"
+fi
+
+# Check parameter: where is the Scriptbasic source directory?
+AC_ARG_ENABLE(sb-source,
+    [AC_HELP_STRING([--enable-sb-source], [Scriptbasic source directory (default: scriptbasic)])],
+	[if test "$enableval" = "yes" ; then
+	    sbsrc="scriptbasic"
+	else
+	    sbsrc=$enableval
+	fi
+	 CFLAGS="$CFLAGS -I$sbsrc"])
+
+# Check parameter: support for KSH93 module?
+AC_ARG_ENABLE(ksh93,
+    [AC_HELP_STRING([--enable-ksh93], [add support to library for Kornshell93 (default: NO)])],
+	[AC_DEFINE_UNQUOTED(GTK_SERVER_KSH93)
+	AC_DEFINE_UNQUOTED(GTK_SERVER_LIBRARY)
+	CFLAGS="$CFLAGS -Iksh93"
+	LIBS="$LIBS -shared -Lksh93 -lshell -ldll -lcmd -last"
+	library=yes
+	 ksh93=yes])
+
+if test "$ksh93" = yes; then
+    if test "$darwin" = yes; then
+	TARGET="libgtk-server.dylib"
+    else
+	TARGET="libgtk-server.so"
+    fi
+    DEFAULT="2"
+fi
+
+# Check parameter: where is the Kornshell source directory?
+AC_ARG_ENABLE(ksh93-source,
+    [AC_HELP_STRING([--enable-ksh93-source], [Kornshell93 KDK directory (default: ksh93)])],
+	[if test "$enableval" = "yes" ; then
+	    kshsrc="ksh93"
+	else
+	    kshsrc=$enableval
+	fi
+	 CFLAGS="$CFLAGS -I$kshsrc"])
+
+if test "$library" != yes; then
+    # Check parameter: force compilation with SSL (for -sock standalone only)
+    AC_ARG_WITH(ssl, [AC_HELP_STRING([--with-ssl], [force support for SSL (default: GUESS)])], [ssl=yes])
+
+    # Check if OpenSSL is vailable on the system
+    AC_CHECK_LIB([ssl], [SSL_library_init], [ssl=yes], [], [])
+
+    if test "$ssl" = yes; then
+	LIBS="$LIBS -lcrypto -lssl"
+	AC_DEFINE_UNQUOTED(GTK_SERVER_USE_SSL)
+    fi
+fi
+
+# Always export local symbols
+if test "$CC" = gcc; then
+    if test "$darwin" = yes || test "$solaris" = yes || test "$bsd" = yes; then
+	LDFLAGS="--export-dynamic $LDFLAGS"
+    else
+	LDFLAGS="-export-dynamic $LDFLAGS"
+    fi
+fi
+
+# Checks for header files.
+AC_CHECK_HEADER(locale.h, [], [AC_MSG_ERROR(Cannot compile - missing header: locale.h)])
+AC_CHECK_HEADER(stdlib.h, [], [AC_MSG_ERROR(Cannot compile - missing header: stdlib.h)])
+AC_CHECK_HEADER(string.h, [], [AC_MSG_ERROR(Cannot compile - missing header: string.h)])
+AC_CHECK_HEADER(ffi.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_FFI) LDFLAGS="$LDFLAGS -lffi -ldl"] ffi=yes,
+    [AC_CHECK_HEADER(avcall.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_FFCALL) LDFLAGS="$LDFLAGS -lavcall -ldl"]	ffcall=yes,
+	[AC_CHECK_HEADER(cinvoke.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_CINV) LDFLAGS="$LDFLAGS -lcinvoke -ldl"] cinv=yes,
+	    [AC_CHECK_HEADER(dyncall.h,	[AC_DEFINE_UNQUOTED(GTK_SERVER_DYNCALL) LDFLAGS="$LDFLAGS -ldynload_s -ldyncall_s -ldl"] dyncall=yes,
+		    [AC_MSG_ERROR(Cannot compile - no foreign function headers found! Please check 'README.1ST' for details.)]) ]) ]) ])
+
+if test "$unix" = yes
+then
+    AC_CHECK_HEADER(fcntl.h, [], [AC_MSG_ERROR(Cannot compile - missing header: fcntl.h)])
+    AC_CHECK_HEADER(netdb.h, [], [AC_MSG_ERROR(Cannot compile - missing header: netdb.h)])
+    AC_CHECK_HEADER(sys/socket.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/socket.h)])
+    AC_CHECK_HEADER(sys/wait.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/wait.h)])
+    AC_CHECK_HEADER(arpa/inet.h, [], [AC_MSG_ERROR(Cannot compile - missing header: arpa/inet.h)])
+    AC_CHECK_HEADER(unistd.h, [], [AC_MSG_ERROR(Cannot compile - missing header: unistd.h)])
+fi
+
+# Check CC, options for GCC/TCC
+if test "$CC" = tcc
+then
+    CFLAGS="-DHASH_FUNCTION=HASH_JEN $CFLAGS"
+    STRIP=touch
+else
+    CFLAGS="-pedantic $CFLAGS"
+    STRIP=strip
+fi
+
+# Substitute variables in Makefile
+AC_SUBST(TARGET)
+AC_SUBST(DEFAULT)
+AC_SUBST(STRIP)
+# Define variable for MacOSX
+if test "$darwin" = yes; then
+    MACOSX="yes"
+    AC_SUBST(MACOSX)
+else
+    MACOSX="no"
+    AC_SUBST(MACOSX)
+fi
+
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+
+# Print results
+echo
+echo "---------------------------------"
+echo "Configured options for GTK-server"
+echo "---------------------------------"
+echo
+
+if test "$gtk1x" = yes
+then
+    echo " - Use GTK 1.x backend: YES"
+else
+    echo " - Use GTK 1.x backend: NO"
+fi
+
+if test "$gtk2x" = yes
+then
+    echo " - Use GTK 2.x backend: YES"
+else
+    echo " - Use GTK 2.x backend: NO"
+fi
+
+if test "$gtk3x" = yes
+then
+    echo " - Use GTK 3.x backend: YES"
+else
+    echo " - Use GTK 3.x backend: NO"
+fi
+
+if test "$xf" = yes
+then
+    echo " - Use XForms backend: YES"
+else
+    echo " - Use XForms backend: NO"
+fi
+
+if test "$console" = yes
+then
+    echo " - Use console backend: YES"
+else
+    echo " - Use console backend: NO"
+fi
+
+if test "$scriptbasic" = yes
+then
+    echo " - Library support for Scriptbasic: YES"
+else
+    echo " - Library support for Scriptbasic: NO"
+fi
+
+if test "$slang" = yes
+then
+    echo " - Library support for S-Lang: YES"
+else
+    echo " - Library support for S-Lang: NO"
+fi
+
+if test "$ksh93" = yes
+then
+    echo " - Library support for Kornshell93: YES"
+else
+    echo " - Library support for Kornshell93: NO"
+fi
+
+if test "$static" = yes
+then
+    echo " - Statically link: YES"
+else
+    echo " - Statically link: NO"
+fi
+
+if test "$ssl" = yes
+then
+    echo " - Support for SSL: YES"
+else
+    echo " - Support for SSL: NO"
+fi
+
+echo
+
+if test "$library" = yes
+then
+    if test "$ffi" = yes
+    then
+	echo "The GTK-server will be built with $CC as a shared object using the Foreign Function Interface (FFI)."
+    fi
+    if test "$ffcall" = yes
+    then
+	echo "The GTK-server will be built with $CC as a shared object using Foreign Function Calls (FFCALL)."
+    fi
+    if test "$cinv" = yes
+    then
+	echo "The GTK-server will be built with $CC as a shared object using C/Invoke (CINV)."
+    fi
+    if test "$dyncall" = yes
+    then
+	echo "The GTK-server will be built with $CC as a shared object using DynCall (DYNCALL)."
+    fi
+else
+    if test "$ffi" = yes
+    then
+	echo "The GTK-server will be built with $CC as a standalone executable using the Foreign Function Interface (FFI)."
+    fi
+    if test "$ffcall" = yes
+    then
+	echo "The GTK-server will be built with $CC as a standalone executable using Foreign Function Calls (FFCALL)."
+    fi
+    if test "$cinv" = yes
+    then
+	echo "The GTK-server will be built with $CC as a standalone executable using C/Invoke (CINV)."
+    fi
+    if test "$dyncall" = yes
+    then
+	echo "The GTK-server will be built with $CC as a standalone executable using DynCall (DYNCALL)."
+    fi
+fi
+
+echo
+echo "Now run 'make' and 'make install' to build and install the GTK-server."
+echo

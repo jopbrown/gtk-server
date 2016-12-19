@@ -1,0 +1,74 @@
+.TH stop\-gtk\-server 1
+.SH "NAME"
+stop\-gtk\-server \- Remove GTK\-server processes from the processlist.
+.SH "SYNOPSIS" 
+.B stop\-gtk\-server
+.I <[-]stdin> |
+.I <[-]tcp> |
+.I <[-]udp> |
+.I <[-]fifo> |
+.I <[-]ipc> |
+.I <[-]all> |
+.I <[-]show>
+.SH "DESCRIPTION"
+.P
+If the client program does not exit GTK properly, the GTK\-server may
+remain in the processlist, waiting for new GTK commands. With this
+script the available GTK\-server processes can be removed from the processlist.
+.SH "ARGUMENTS"
+.PP
+The command must be started with one of the following arguments:
+.TP
+.B [-]stdin
+Remove all GTK\-server processes listening to STDIN from the processlist.
+.TP
+.B [-]fifo
+Remove all GTK\-server processes listening to FIFO pipes from the processlist. Also
+created named pipes will be removed from disk.
+.TP
+.B [-]tcp
+Remove all GTK\-server processes listening to TCP connections from the processlist.
+.TP
+.B [-]udp
+Remove all GTK\-server processes listening to UDP connections from the processlist.
+.TP
+.B [-]ipc
+Remove all GTK\-server processes listening to IPC communication channels from the processlist. Also the
+created message queues will be removed from memory.
+.TP
+.B [-]all
+Remove all GTK\-server processes from the processlist. If there are created named
+pipes or created message queues then these also will be removed.
+.TP
+.B [-]show
+Show all GTK\-server processes currently in the processlist.
+.SH "EXAMPLES"
+To remove all GTK\-server processes listening to a TCP connection, run:
+.B stop-gtk-server tcp
+.P
+To remove all GTK\-server processes, run:
+.B stop-gtk-server all
+.SH "LICENSE"
+GPL License.
+
+This program is free software; you can redistribute it and/or modify 
+it under the terms of the GNU General Public License as published 
+by the Free Software Foundation; either version 2 of the License, 
+or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, 
+but WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License 
+along with this program; if not, write to the Free Software 
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, 
+MA 02111-1307 USA.
+.SH "SEE ALSO"
+gtk-server(1), gtk-server.cfg(1)
+.SH "AUTHORS"
+Orignal concept, design and implementation by Peter van Eerten, e\-mail : peter@gtk-server.org
+
+Current version of the GTK-server was created with help of many others - see the CREDITS file in
+the sourcepackage for credits.

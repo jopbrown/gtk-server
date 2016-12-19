@@ -1,0 +1,240 @@
+#!/usr/bin/scriba
+REM ************************************************************************
+REM
+REM DICT client to lookup words
+REM Using the HTML widgets of the Scriptbasic wrapper
+REM
+REM Expand the GTK namespace if you feel necessary!
+REM Feb. 10, 2006 - PvE.
+REM
+REM ************************************************************************
+
+REM Import GTK definition first
+IMPORT gtk.bas
+
+GLOBAL CONST nl = "\n"
+GLOBAL CONST title = "Thesaurus!"
+
+GTK::logging(1)
+REM Create main window
+mainwin = GTK::window(title, 500, 450)
+
+REM Create droplist part
+frame1 = GTK::frame(" Servers ", 255, 65)
+GTK::attach(frame1, mainwin, 10, 10)
+servers[0] = "dict.org"
+servers[1] = "dict.aioe.org"
+servers[2] = "dict.tugraz.at"
+servers[3] = "mova.org"
+servers[4] = "dict.tu-chemnitz.de"
+servers[5] = "test.dict.org"
+servers[6] = "dict.trit.org"
+servers[7] = "dict.die.net"
+servers[8] = "www.lojban.org"
+servers[9] = "dict.arabeyes.org"
+servers[10] = "muktaka.dyndns.org"
+servers[11] = "dict.saugus.net"
+servers[12] = "dictionary.bishopston.net"
+servers[13] = "la-sorciere.de"
+servers[14] = "es.dict.org"
+servers[15] = "lividict.org"
+servers[16] = "mali.geekcorps.org"
+servers[17] = "dione.zcu.cz"
+servers[18] = "dict.kurtwerks.com"
+servers[19] = "madison.onespeeddave.com"
+drop = GTK::droplist(servers, 165, 35)
+GTK::attach(drop, mainwin, 20, 30)
+fetch = GTK::button("Fetch", 60, 35)
+GTK::attach(fetch, mainwin, 195, 30)
+
+REM Create control panel
+frame2 = GTK::frame(" Control ", 210, 65)
+GTK::attach(frame2, mainwin, 275, 10)
+about = GTK::button("About", 60, 35)
+GTK::attach(about, mainwin, 285, 30)
+clear = GTK::button("Clear", 60, 35)
+GTK::attach(clear, mainwin, 350, 30)
+exbut = GTK::button("Exit", 60, 35)
+GTK::attach(exbut, mainwin, 415, 30)
+
+REM Create dictionary panel
+frame3 = GTK::frame(" Dictionaries ", 480, 125)
+GTK::attach(frame3, mainwin, 10, 85)
+dat[0] = ""
+list = GTK::list(dat, 460, 90)
+GTK::attach(list, mainwin, 20, 110)
+GTK::bg_color(list, 49152, 49152, 49152)
+
+REM Create text part
+frame4 = GTK::frame(" Translation ", 480, 190)
+GTK::attach(frame4, mainwin, 10, 220)
+text = GTK::text(460, 155)
+GTK::attach(text, mainwin, 20, 245)
+GTK::disable(text)
+GTK::bg_color(text, 49152, 49152, 49152)
+
+REM Create entry and lookup button
+entry = GTK::entry(360, 25)
+GTK::attach(entry, mainwin, 10, 420)
+utf8 = GTK::check("UTF-8", 60, 30)
+GTK::attach(utf8, mainwin, 430, 415)
+dflt = GTK::check("All", 40, 30)
+GTK::attach(dflt, mainwin, 380, 415)
+
+REM Create about window
+aboutwin = GTK::window("About", 300, 120)
+GTK::hide(aboutwin)
+label1 = GTK::label("Demo program with the GTK module.", 280, 20)
+GTK::attach(label1, aboutwin, 10, 5)
+GTK::fg_color(label1, 32768, 0, 0)
+label2 = GTK::label("Using " & GTK::version() & " with Scriptbasic.", 280, 20)
+GTK::attach(label2, aboutwin, 10, 25)
+GTK::fg_color(label2, 0, 0, 32768)
+label3 = GTK::label("(C) Peter van Eerten - February 6, 2006", 280, 20)
+GTK::attach(label3, aboutwin, 10, 45)
+GTK::fg_color(label3, 0, 32768, 0)
+okbut = GTK::button("OK", 60, 35)
+GTK::attach(okbut, aboutwin, 120, 80)
+
+REM Mainloop
+REPEAT
+	REM Put focus to entry
+	GTK::focus(entry)
+	REM Wait for event
+	action = GTK::event()
+	REM Get all dictionaries of server
+	IF action = fetch THEN CALL Get_Dicts
+	REM Get meaning of word
+	IF action = entry THEN CALL Lookup_Word
+	REM Clear all widgets
+	IF action = clear THEN CALL Clear_All
+	REM Show about window
+	IF action = about THEN GTK::show(aboutwin)
+	REM Hide about window
+	IF action = okbut OR action = aboutwin THEN GTK::hide(aboutwin)
+
+UNTIL action = mainwin OR action = exbut
+
+END
+
+REM ************************************************************************
+
+SUB Get_Dicts
+
+LOCAL dat$, total, count
+
+ON ERROR GOTO G_NetError
+
+OPEN GTK::get_text(drop) & ":2628" FOR socket AS 1
+
+PRINT#1,"SHOW DB\n"
+
+LINE INPUT#1, dat$
+LINE INPUT#1, dat$
+
+count = 0
+WHILE LEFT(dat$, 1) <> "."
+	LINE INPUT#1, dat$
+	dat$ = REPLACE(dat$, CHR$(34), CHR$(92) & CHR$(34))
+	IF LEFT$(dat$, 1) <> "." THEN total[count] = TRIM(dat$)
+	count+=1
+WEND
+PRINT#1,"QUIT\n"
+CLOSE 1
+
+GTK::fg_color(list, 0, 0, 65535)
+GTK::set_text(list, total)
+
+EXIT SUB
+
+G_NetError:
+	dat$[0] = "Server not available!"
+	GTK::fg_color(list, 65535, 0, 0)
+	GTK::set_text(list, dat$)
+
+END SUB
+
+REM ************************************************************************
+
+SUB Lookup_Word
+
+LOCAL dict$, dat$, total$, info$
+
+GTK::set_text(mainwin, title & " - \\\"" & GTK::get_text(entry) & "\\\"")
+GTK::fg_color(text, 0, 32768, 0)
+GTK::set_text(text, "Fetching....")
+GTK::async()
+
+ON ERROR GOTO L_NetError
+
+dict$ = LEFT(GTK::get_text(list), INSTR(GTK::get_text(list), " "))
+
+OPEN GTK::get_text(drop) & ":2628" FOR socket AS 1
+
+IF GTK::get_value(dflt) THEN
+	PRINT#1,"DEFINE * " & GTK::get_text(entry) & "\n"
+ELSE
+	PRINT#1,"DEFINE " & dict$ & " " & GTK::get_text(entry) & "\n"
+END IF
+
+REPEAT
+	LINE INPUT#1, dat$
+	dat$ = REPLACE(dat$, CHR$(34), CHR$(92) & CHR$(34))
+	IF LEFT(dat$, 3) = "151" THEN
+		total$ &= "------------------------------\n"
+		total$ &= RIGHT(dat$, LEN(dat$) - LEN(GTK::get_text(entry)) - 9)
+		total$ &= "------------------------------\n"
+		REPEAT
+			LINE INPUT#1, info$
+			info$ = REPLACE(info$, CHR$(34), CHR$(92) & CHR$(34))
+			IF LEFT(info$, 1) <> "." THEN total$ &= TRIM(info$) & nl
+		UNTIL LEFT(info$, 1) = "."
+		total$ &= "\n"
+	END IF
+UNTIL LEFT(dat$, 3) = "250" OR VAL(LEFT(dat$, 3)) > 499
+
+PRINT#1,"QUIT\n"
+CLOSE 1
+
+IF LEFT(dat$, 3) = "552" THEN
+	total$ = "No match found."
+	GTK::fg_color(text, 65535, 0, 0)
+ELSE IF LEFT(dat$, 3) = "501" THEN
+	total$ = "Select a dictionary first!"
+	GTK::fg_color(text, 65535, 0, 0)
+ELSE IF LEFT(dat$, 3) = "550" THEN
+	total$ = "Invalid database!"
+	GTK::fg_color(text, 65535, 0, 0)
+ELSE
+	GTK::fg_color(text, 0, 0, 49152)
+END IF
+
+IF GTK::get_value(utf8) THEN
+	GTK::set_text(text, GTK::UTF8(total$))
+ELSE
+	GTK::set_text(text, total$)
+END IF
+GTK::set_value(text, 0)
+
+EXIT SUB
+
+L_NetError:
+	dat$[0] = "Could not lookup word!"
+	GTK::fg_color(list, 65535, 0, 0)
+	GTK::set_text(list, dat$)
+
+END SUB
+
+REM ************************************************************************
+
+SUB Clear_All
+
+LOCAL ar$
+
+ar$[0] = ""
+GTK::set_text(list, ar$)
+GTK::set_text(text, "")
+
+END SUB
+
+REM ************************************************************************

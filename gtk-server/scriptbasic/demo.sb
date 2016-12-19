@@ -1,0 +1,123 @@
+#!/usr/bin/scriba
+
+REM *************************************************************************************
+REM
+REM Demo program using the GTK context
+REM
+REM *************************************************************************************
+
+IMPORT gtk.bas
+
+CONST nl = "\n"
+
+GTK::logging(1)
+
+REM	Window prototype: window(title, xsize, ysize) -> returns windowID
+REM
+win = GTK::window("Hello world!", 400, 250)
+
+REM Button prototype: button(label, xsize, ysize -> returns buttonID
+REM
+exit_but = GTK::button("Exit", 100, 50)
+
+REM Foreground/background color prototype: fg_color(widget, r, g, b) -> no returnvalue
+REM
+GTK::fg_color(exit_but, 0, 65535, 0)
+GTK::bg_color(exit_but, 10240, 32768, 10240)
+
+REM Attach widget to parent prototype: attach(widget, parent, xpos, ypos) -> no returnvalue
+REM
+GTK::attach(exit_but, win, 290, 190)
+
+print_but = GTK::button("Print text", 100, 50)
+GTK::attach(print_but, win, 10, 190)
+
+REM Frame prototype: frame(text, xsize, ysize) -> returns frameID
+REM
+fr = GTK::frame(" Frame ", 120, 50)
+GTK::attach(fr, win, 150, 190)
+GTK::fg_color(fr, 65535, 0, 0)
+
+REM Separator widget prototype: separator(length) -> returns separatorID
+REM
+sep = GTK::separator(400)
+GTK::attach(sep, win, 0, 180)
+GTK::bg_color(sep, 65535, 65535, 0)
+
+REM Entry/password prototype: entry(xsize, ysize)  - or -  password(xsize, ysize) -> returns entryID
+REM
+entry = GTK::entry(200, 25)
+GTK::attach(entry, win, 10, 10)
+GTK::bg_color(entry, 65535, 65535, 0)
+
+REM Label prototype: label(text, xsize, ysize) -> returns labelID
+REM
+lab = GTK::label("This is a demo", 90, 20)
+GTK::attach(lab, win, 10, 50)
+GTK::fg_color(lab, 49152, 0, 49152)
+
+REM Check button prototype: check(text, xsize, ysize) -> returns checkbuttonID
+REM
+c_but = GTK::check("Option here", 100, 20)
+GTK::attach(c_but, win, 10, 80)
+GTK::fg_color(c_but, 0, 0, 65535)
+
+REM Set value of check/option button: select(button) -> no returnvalue
+GTK::set_value(c_but)
+
+REM Radio button prototype: radio(text, xsize, ysize, group) -> returns radiobuttonID
+REM (First radiobutton should be attached to group "NULL")
+REM
+r1_but = GTK::radio("Selection 1", 110, 20, "NULL")
+GTK::attach(r1_but, win, 120, 50)
+GTK::bg_color(r1_but, 65535, 0, 0)
+r2_but = GTK::radio("Selection 2", 110, 20, r1_but)
+GTK::attach(r2_but, win, 120, 70)
+r3_but = GTK::radio("Selection 3", 110, 20, r1_but)
+GTK::attach(r3_but, win, 120, 90)
+GTK::disable(r3_but)
+
+REM Droplist prototype: droplist(array, xsize, ysize) -> returns droplistID
+REM
+a[1] = "value one"
+a[2] = "value two"
+a[3] = "value three"
+drop = GTK::droplist(a, 200, 30)
+GTK::attach(drop, win, 10, 130)
+b[1] = "peter"
+b[2] = "van"
+b[3] = "eerten surname"
+GTK::set_text(drop, b)
+GTK::set_value(drop, 2)
+GTK::bg_color(drop, 0,0,65535)
+
+REM Multiline textedit prototype: text(xsize, ysize) -> returns textID
+REM
+rem txt = GTK::text(150, 150)
+rem GTK::attach(txt, win, 240, 10)
+rem GTK::fg_color(txt, 65535, 0, 0)
+rem GTK::disable(txt)
+
+list = GTK::list(b, 150, 150)
+GTK::attach(list, win, 240, 10)
+GTK::bg_color(list, 0,65535,0)
+GTK::fg_color(list, 0,0,65535)
+GTK::set_value(list, 0)
+
+REM Focus prototype: focus(widget) -> no returnvalue
+REM
+GTK::focus(entry)
+
+REPEAT
+	REM Event prototype: event() -> returns widgetID on which event occured
+	REM
+	action = GTK::event()
+	IF action = print_but THEN PRINT GTK::get_text(list), nl
+
+	REM Selected prototype: get_value(widget) -> returns 0 or 1 depending on state
+	REM
+	IF GTK::get_value(r2_but) THEN PRINT "Button 2 selected!", nl
+
+UNTIL action = exit_but OR action = win
+
+END
