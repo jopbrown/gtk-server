@@ -3,22 +3,22 @@
 # Demo with XForms
 # Tested with GTK-server 2.1.3 compiled for XForms and BASH 3.1
 # PvE - January 2007
+# Tested with GTK-server 2.4 in december 2016 - PvE.
 # -----------------------------------------------------------------
+
+# Define PIPE file
+PIPE=/tmp/demo.bash.$$
 
 # Communication function; $1 contains the string to be send
 xf()
 {
-echo $1 > /tmp/demo.bash
-read RESULT < /tmp/demo.bash
+echo $1 > $PIPE
+read RESULT < $PIPE
 }
 
-# Setup environment
-export LC_ALL=nl_NL
-export LD_LIBRARY_PATH=/usr/lib
-
 # Start GTK-server in STDIN mode
-gtk-server -fifo=/tmp/demo.bash -log=/tmp/$0.log &
-while [ ! -p $PI ]; do continue; done
+gtk-server -fifo=$PIPE -log=/tmp/$0.log &
+while [ ! -p $PIPE ]; do continue; done
 
 xf "fl_bgn_form FL_BORDER_BOX 320 240"
 WINDOW=$RESULT
@@ -37,7 +37,7 @@ xf "fl_end_form"
 
 xf "fl_show_form $WINDOW FL_PLACE_CENTER FL_FULLBORDER Question"
 
-until [[ $EVENT = $YBUT ]]
+until [[ $EVENT = $YBUT || $EVENT = $WINDOW ]]
 do
     xf "gtk_server_callback wait"
     EVENT=$RESULT
@@ -57,3 +57,5 @@ xf "fl_finish"
 
 # Make sure GTK-server cleans up the pipefile
 xf "gtk_server_exit"
+
+exit 0
