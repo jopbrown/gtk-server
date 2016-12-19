@@ -458,6 +458,7 @@
 #endif
 
 #ifdef GTK_SERVER_XF
+#include <X11/XKBlib.h>
 #include <forms.h>
 #endif
 
@@ -1363,7 +1364,8 @@ XEvent *ev;
 
 /* Check if key was pressed */
 ev = (XEvent*)xevent;
-Current_Object.key = XKeycodeToKeysym(fl_display, ev->xkey.keycode, 0);
+Current_Object.key = XkbKeycodeToKeysym(fl_display, ev->xkey.keycode, 0, 0);
+
 Current_Object.key_state = 0;
 
 fl_get_form_mouse(form, &Current_Object.mousex, &Current_Object.mousey, &Current_Object.button);
