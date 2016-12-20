@@ -2,13 +2,17 @@
 #
 # Demo with XForms
 # Tested with GTK-server 2.1.1 compiled for XForms and PDKSH 5.2.14
+# Tested with GTK-server 2.4 in december 2016 - PvE.
 # -----------------------------------------------------------------
+
+# Make sure to exit properly when window is closed
+trap 'exit' SIGCHLD
 
 # Communication function; $1 contains the string to be send
 function xf
 {
-print -p $1
-read -p RESULT
+    print -p $1
+    read -p RESULT
 }
 
 # Start GTK-server in STDIN mode
@@ -45,7 +49,6 @@ do
 
 	$NBUT)
 	    echo "NO button clicked";;
-
     esac
 done
 

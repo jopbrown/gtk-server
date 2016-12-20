@@ -2,8 +2,11 @@
 #
 # Demo with XForms and the predefined CLOCK widget
 # (c) PvE, august 2008 - GPL
-#
+# Tested with GTK-server 2.4 in december 2016 - PvE.
 #----------------------------------------------------------------------
+
+# Make sure to exit properly when window is closed
+trap 'exit' SIGCHLD
 
 # Communication function; assignment function
 function xf { print -p $1; read -p XF; }

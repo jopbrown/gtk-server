@@ -12,8 +12,8 @@ PIPE=/tmp/demo.bash.$$
 # Communication function; $1 contains the string to be send
 xf()
 {
-echo $1 > $PIPE
-read RESULT < $PIPE
+    echo $1 > $PIPE
+    read RESULT < $PIPE
 }
 
 # Start GTK-server in STDIN mode
@@ -37,7 +37,7 @@ xf "fl_end_form"
 
 xf "fl_show_form $WINDOW FL_PLACE_CENTER FL_FULLBORDER Question"
 
-until [[ $EVENT = $YBUT || $EVENT = $WINDOW ]]
+until [[ $EVENT = $YBUT ]]
 do
     xf "gtk_server_callback wait"
     EVENT=$RESULT
@@ -51,6 +51,12 @@ do
 	    echo "NO button clicked";;
     esac
 
+    # In case of exit via window
+    if [[ ! -p $PIPE ]]
+    then
+	rm -f $PIPE
+	exit
+    fi
 done
 
 xf "fl_finish"

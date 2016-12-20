@@ -432,6 +432,10 @@
 *		. The ALIAS_NAME option now can alias macro names also
 *		. Enlarged memory for 'gtk_server_opaque'
 *
+* CHANGES GTK-SERVER 2.4.1
+* ------------------------
+*		. Fixed compile warning for Xforms
+*
 *************************************************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
@@ -543,7 +547,7 @@
 #define GTK_SERVER_NONE 0
 
 /* Define GTK-server version - macro 'VERSION' also used by FFI on some platforms */
-#define GTK_SERVER_VERSION "2.4"
+#define GTK_SERVER_VERSION "2.4.1 beta"
 
 /* Define backlog for tcp-connections */
 #define BACKLOG 4

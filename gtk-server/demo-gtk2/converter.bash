@@ -4,8 +4,10 @@
 #
 #----------------------------------------------------------- Setup embedded GTK
 
+rm -f $HOME/.gtk4bash
+
 # Pipe filename must be unique for your application
-PIPE="/tmp/gtk.bash.\$$"
+PIPE="/tmp/gtk.bash.$$"
 
 # Find GTK-server configfile first
 if [[ -f gtk-server.cfg ]]; then
@@ -21,7 +23,7 @@ fi
 # Now create global functionnames from GTK API
 if [[ ! -f $HOME/.gtk4bash || $CFG -nt $HOME/.gtk4bash ]]; then
     echo "#!/bin/bash" > $HOME/.gtk4bash
-    echo "gtk-server -fifo=$PIPE &" >> $HOME/.gtk4bash
+    echo "gtk-server -fifo=$PIPE -log=/tmp/gtk-server.log &" >> $HOME/.gtk4bash
     echo "while [ ! -p $PIPE ]; do continue; done" >> $HOME/.gtk4bash
     while read LINE
     do
@@ -36,15 +38,15 @@ if [[ ! -f $HOME/.gtk4bash || $CFG -nt $HOME/.gtk4bash ]]; then
 fi
 # Declare global variables
 declare GTK NULL="NULL"
-unset CFG PIPE LINE
+unset CFG LINE
 
 # Include the generated file to use embedded GTK functions
 . ${HOME}/.gtk4bash
 
-#---------------------------------------------------------- Global inits
-
 # GTK-server must go after an error in the script
 trap 'echo "gtk_server_exit" > $PIPE' ERR
+
+#---------------------------------------------------------- Global inits
 
 # Assignment function
 function define() { $2 $3 $4 $5 $6 $7 $8 $9; eval $1="$GTK"; }
@@ -52,7 +54,11 @@ function define() { $2 $3 $4 $5 $6 $7 $8 $9; eval $1="$GTK"; }
 #---------------------------------------------------------- GUI realization
 
 # Save my directory
-MYDIR=${0%/*}
+MYDIR="."
+if [[ $0 = +(*/*) ]]
+then
+    MYDIR=${0%/*}
+fi
 
 # Initialize libs
 gtk_init

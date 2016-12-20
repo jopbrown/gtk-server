@@ -6,7 +6,11 @@
 # Tested with GTK-server 2.2.7 compiled with XForms, and Kornshell93
 #
 # PvE - August 2008
+# Tested with GTK-server 2.4 in december 2016 - PvE.
 # --------------------------------------------------------------------
+
+# Make sure to exit properly when window is closed
+trap 'exit' SIGCHLD
 
 #---------------------------------------------------------------------
 # Communication function; assignment function
@@ -65,58 +69,57 @@ done
 
 function expose
 {
-# Define the drawing area
-xf "fl_activate_glcanvas $CANVAS"
+    # Define the drawing area
+    xf "fl_activate_glcanvas $CANVAS"
 
-# Define clearing color
-xf "glClearColor 0.5 1 1 0"
-# Clear screen
-((FLAG=$GL_COLOR_BUFFER_BIT|$GL_DEPTH_BUFFER_BIT))
-xf "glClear $FLAG"
-# Enable shading, depth and lighting
-xf "glShadeModel $GL_SMOOTH"
-xf "glEnable $GL_DEPTH_TEST"
-xf "glEnable $GL_LIGHTING"
-xf "glEnable $GL_LIGHT0"
-# Setup lighting
-xf "glLightfv $GL_LIGHT0 $GL_POSITION AAAAQAAAAEAAAADBAAAAAA=="
-xf "glLightfv $GL_LIGHT0 $GL_DIFFUSE AACAPwAAgD8AAIA/AACAPw=="
-xf "glLightfv $GL_LIGHT0 $GL_AMBIENT mpkZPpqZGT6amRk+"
-xf "glLightfv $GL_LIGHT0 $GL_SPECULAR AACAPwAAgD8AAIA/AACAPw=="
-# Setup reflected color of object
-xf "glMaterialfv $GL_FRONT $GL_AMBIENT_AND_DIFFUSE zczMPTMzMz/NzMw9AAAAPw=="
-# Make sure we see the model
-xf "glMatrixMode $GL_MODELVIEW"
-# Save current matrix
-xf "glPushMatrix"
-# Rotate
-xf "glRotatef $ROTX 0 1 0"
-xf "glRotatef $ROTY 1 0 0"
-# Dump rotated image
-xf "glutSolidTeapot $SIZE"
-# Undo the last rotation
-xf "glLoadIdentity"
-# Setup reflected color of font
-xf "glMaterialfv $GL_FRONT $GL_AMBIENT_AND_DIFFUSE AACAP83MzD4AAIA/AAAAAA=="
-# Determine position of bitmapped text
-xf "glRasterPos2f 0 -0.8"
-# Draw some bitmapped text
-bitmap_text
-# Setup reflected color of font
-xf "glMaterialfv $GL_FRONT $GL_AMBIENT_AND_DIFFUSE AAAAAAAAAAAAAIA/AAAAAA=="
-# Determine position of STROKED text -> drawed so translate
-xf "glTranslatef -0.9 0.8 0.0"
-# Setup scaling -> stroked characters are large, make smaller
-xf "glScalef 0.0005 0.0006 0"
-# Draw some stroked text
-stroke_text
-# Now put back the matrix
-xf "glPopMatrix"
+    # Define clearing color
+    xf "glClearColor 0.5 1 1 0"
+    # Clear screen
+    ((FLAG=$GL_COLOR_BUFFER_BIT|$GL_DEPTH_BUFFER_BIT))
+    xf "glClear $FLAG"
+    # Enable shading, depth and lighting
+    xf "glShadeModel $GL_SMOOTH"
+    xf "glEnable $GL_DEPTH_TEST"
+    xf "glEnable $GL_LIGHTING"
+    xf "glEnable $GL_LIGHT0"
+    # Setup lighting
+    xf "glLightfv $GL_LIGHT0 $GL_POSITION AAAAQAAAAEAAAADBAAAAAA=="
+    xf "glLightfv $GL_LIGHT0 $GL_DIFFUSE AACAPwAAgD8AAIA/AACAPw=="
+    xf "glLightfv $GL_LIGHT0 $GL_AMBIENT mpkZPpqZGT6amRk+"
+    xf "glLightfv $GL_LIGHT0 $GL_SPECULAR AACAPwAAgD8AAIA/AACAPw=="
+    # Setup reflected color of object
+    xf "glMaterialfv $GL_FRONT $GL_AMBIENT_AND_DIFFUSE zczMPTMzMz/NzMw9AAAAPw=="
+    # Make sure we see the model
+    xf "glMatrixMode $GL_MODELVIEW"
+    # Save current matrix
+    xf "glPushMatrix"
+    # Rotate
+    xf "glRotatef $ROTX 0 1 0"
+    xf "glRotatef $ROTY 1 0 0"
+    # Dump rotated image
+    xf "glutSolidTeapot $SIZE"
+    # Undo the last rotation
+    xf "glLoadIdentity"
+    # Setup reflected color of font
+    xf "glMaterialfv $GL_FRONT $GL_AMBIENT_AND_DIFFUSE AACAP83MzD4AAIA/AAAAAA=="
+    # Determine position of bitmapped text
+    xf "glRasterPos2f 0 -0.8"
+    # Draw some bitmapped text
+    bitmap_text
+    # Setup reflected color of font
+    xf "glMaterialfv $GL_FRONT $GL_AMBIENT_AND_DIFFUSE AAAAAAAAAAAAAIA/AAAAAA=="
+    # Determine position of STROKED text -> drawed so translate
+    xf "glTranslatef -0.9 0.8 0.0"
+    # Setup scaling -> stroked characters are large, make smaller
+    xf "glScalef 0.00065 0.0009 0"
+    # Draw some stroked text
+    stroke_text
+    # Now put back the matrix
+    xf "glPopMatrix"
 
-# Now swap buffers and draw
-define DISPLAY xf "fl_winget"
-define ID xf "fl_get_canvas_id $CANVAS"
-xf "glXSwapBuffers $DISPLAY $ID"
+    # Now swap buffers and draw
+    define ID xf "fl_get_canvas_id $CANVAS"
+    xf "glXSwapBuffers $DISPLAY $ID"
 }
 
 # Start GTK-server in STDIN mode
@@ -159,6 +162,7 @@ MSG1=(79 112 101 110 71 76 32 100 101 109 111 32 119 105 116 104 32 75 83 72)
 MSG2=(85 115 105 110 103 32 71 84 75 45 115 101 114 118 101 114 32 119 105 116 104 32 88 70 111 114 109 115 32 102 108 95 103 108 99 97 110 118 97 115)
 
 # Main program
+define DISPLAY xf "fl_initialize NULL NULL 'FormDemo' 0 0"
 define WINDOW xf "fl_bgn_form FL_BORDER_BOX 640 480"
 define ABOUT xf "fl_add_button FL_NORMAL_BUTTON 10 430 80 40 About"
 define EXIT xf "fl_add_button FL_NORMAL_BUTTON 550 430 80 40 Exit"
@@ -191,7 +195,7 @@ define GLUT_BITMAP_HELVETICA_18 xf "glutBitmapHelvetica18"
 define GLUT_STROKE_ROMAN xf "glutStrokeRoman"
 
 # Mainloop
-until [[ $EVENT = $EXIT || $EVENT = *gtk_server_callback* ]]
+until [[ $EVENT = $EXIT ]]
 do
     define EVENT xf "gtk_server_callback wait"
 
@@ -226,11 +230,9 @@ do
 
     	$TIMER)
 	    xf "fl_set_timer $TIMER 0.1";;
-
     esac
 
     expose
-
 done
 
 # Make sure GTK-server cleans up the pipefile

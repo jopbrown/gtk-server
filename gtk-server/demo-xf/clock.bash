@@ -2,7 +2,7 @@
 #
 # Demo with XForms and the predefined CLOCK widget
 # (c) PvE, august 2008 - GPL
-#
+# Tested with GTK-server 2.4 in december 2016 - PvE.
 #----------------------------------------------------------------------
 
 # Name of the PIPE file
@@ -50,6 +50,13 @@ do
     if [[ $EVENT = $ABOUT ]]
     then
 	xf "fl_show_message 'Demo with XForms and the CLOCK widget!\n' 'Created with Kornshell and GTK-server' ''"
+    fi
+
+    # In case of exit via window
+    if [[ ! -p $PI ]]
+    then
+	rm -f $PI
+	exit
     fi
 done
 

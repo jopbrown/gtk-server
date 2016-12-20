@@ -2,7 +2,8 @@
 #
 # Demo with XForms
 # Tested with GTK-server 2.1.2 compiled for XForms and newLisp 8.9.0
-# ------------------------------------------------------------------
+# Tested with GTK-server 2.4 compiled for XForms and newLisp 10.7.0 in december 2016 - PvE.
+# ------------------------------------------------------------------------------------------
 
 # Setup gtk-server
 (import "libgtk-server.so" "xf")
