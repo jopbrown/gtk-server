@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # HEX/DEC/BIN converter - PvE, Oct. 10, 2008
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #
 #----------------------------------------------------------- Setup embedded GTK
 

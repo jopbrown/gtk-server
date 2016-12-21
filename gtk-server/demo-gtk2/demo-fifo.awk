@@ -9,6 +9,7 @@
 # Revised for GTK-server 1.3 December 5, 2004
 # Revised for GTK-server 2.0.6 at december 17, 2005
 # Revised for GTK-server 2.0.8 at january 7, 2006
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #-------------------------------------------
 
 function pause(seconds, l_now)

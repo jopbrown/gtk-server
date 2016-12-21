@@ -7,7 +7,10 @@
 #
 # Created with GTK-server 2.1.4 by Peter van Eerten / august 17, 2007 (GPL)
 # Beautification for assigning returnvalues to vars at april 26, 2008 - PvE.
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #-------------------------------------------------------------------------------------------------
+
+rm $HOME/.gtk4bash
 
 # Pipe filename must be unique for your application
 PIPE="/tmp/gtk.bash.\$$"

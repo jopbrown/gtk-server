@@ -12,10 +12,14 @@
 #
 # Changed to prove unlimited input for FIFO at october 24, 2008 - PvE.
 #
+# Tested with GTK-server 2.4 in december 2016 - PvE
+#
 # Notes: use external '/bin/echo' to the PIPE file. Bash' internal 'echo' does
 # not flush correctly.
 #
 #----------------------------------------------------------- Setup embedded GTK
+
+rm $HOME/.gtk4bash
 
 # Pipe filename must be unique for your application
 PIPE="/tmp/gtk.bash.\$$"

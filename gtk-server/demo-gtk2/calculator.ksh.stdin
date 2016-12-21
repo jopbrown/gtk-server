@@ -5,6 +5,8 @@
 # Tested with GTK-server 2.3.1 on SLAMD12 and Kornshell93
 # October 28, 2008 (c) Peter van Eerten - GPL license.
 #
+# Tested with GTK-server 2.4 in december 2016 - PvE
+#
 # Adapted from the BASH version to test the unlimited STDIN interface.
 #
 #----------------------------------------------------------- Setup embedded GTK

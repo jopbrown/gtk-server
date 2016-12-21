@@ -6,6 +6,7 @@
 # Demo with Public Domain Kornshell (PDKSH)
 #
 # Created with GTK-server 2.1.4 by Peter van Eerten / august 17, 2007 (GPL)
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #-------------------------------------------------------------------------------------------------
 
 # Find GTK-server configfile first

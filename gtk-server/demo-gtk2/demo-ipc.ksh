@@ -4,6 +4,8 @@
 #
 # November 12, 2005 - (c) Peter van Eerten
 #
+# Tested with GTK-server 2.4 in december 2016 - PvE
+#
 # As unique communication channel the current PID
 # number '$$' is used.
 #----------------------------------------------------------------

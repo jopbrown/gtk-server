@@ -10,6 +10,7 @@
 # Revised for GTK-server 2.0.6 at december 17, 2005
 # Revised for GTK-server 2.0.8 at january 7, 2006
 # Revision at january 15, 2007
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #------------------------------------------------
 
 # Define SIGUSR1 in configfile to catch the signal

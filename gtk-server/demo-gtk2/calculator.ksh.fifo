@@ -5,9 +5,13 @@
 # Tested with GTK-server 2.2.9 on Zenwalk 5.2 and Korn93.
 # October 23, 2008 (c) Peter van Eerten - GPL license.
 #
+# Tested with GTK-server 2.4 in december 2016 - PvE
+#
 # Proving unlimited input for FIFO.
 #
 #----------------------------------------------------------- Setup embedded GTK
+
+rm $HOME/.gtk4bash
 
 # Pipe filename must be unique for your application
 PIPE="/tmp/gtk.bash.\$$"

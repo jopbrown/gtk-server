@@ -5,6 +5,7 @@
 #
 # March 14, 2004 by Peter van Eerten
 # Improved coding syntax at May 13, 2008
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #------------------------------------------------
 
 # Define communication function

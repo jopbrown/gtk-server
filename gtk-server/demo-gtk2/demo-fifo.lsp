@@ -12,6 +12,7 @@
 # Revised for GTK-server 2.0.8 at january 7, 2006
 # Revision at january 15, 2007 - PvE.
 # Revised for newLisp 10 at december 21, 2008 - PvE.
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #------------------------------------------------
 
 (constant 'PIPE "/tmp/newlisp.gtk")
