@@ -46,7 +46,7 @@ gtk "m_attach $WIN $CANVAS 10 20"
 gtk "m_circle #FF0000 100 100 100 100 1"
 gtk "m_square #FFFF00 200 50 60 60 1"
 gtk "m_line #0000FF 10 180 60 60"
-# gtk "m_font $CANVAS \"'Arial Italic 18'\""
+gtk "m_font $CANVAS \"'Arial Italic 18'\""
 gtk "m_out \"'Hello cruel world'\" #0000FF #e0e000 10 10"
 
 # Mainloop
