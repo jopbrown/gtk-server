@@ -3359,7 +3359,7 @@ if (inputdata != NULL) {
 	    }
 	    else
 	    {
-		Print_Error ("%s", 1, "\nERROR: Unknown signal for XForms widget!");
+		Print_Error("\nERROR: Cannot find signal '%s' in GTK_SERVER_CONNECT!", 1, signal);
 	    }
 	}
 	else
