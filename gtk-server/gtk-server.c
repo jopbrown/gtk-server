@@ -427,7 +427,7 @@
 *		. Added support for GTK3
 *		. Linking could fail because '-ldl' was missing from linker flags
 *		. Added support for querying state keys from keyboard - 'gtk_server_state'
-*		. Fixed issue with dispaying correct version in Windows
+*		. Fixed issue with displaying correct version in Windows
 *		. Upgraded to uthash 2.0.1 (https://troydhanson.github.io)
 *		. The ALIAS_NAME option now can alias macro names also
 *		. Enlarged memory for 'gtk_server_opaque'
