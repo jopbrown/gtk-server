@@ -435,6 +435,7 @@
 * CHANGES GTK-SERVER 2.4.1
 * ------------------------
 *		. Fixed compile warning for Xforms
+*		. XForms can use enumerations in callback definition
 *
 *************************************************************************************************************************************************/
 
@@ -479,6 +480,7 @@
 #include <errno.h>
 #include <locale.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <sys/stat.h>
 #include "uthash.h"
 
@@ -2866,7 +2868,7 @@ return TRUE;
 char *Call_Realize (char *inputdata, void* cinv_ctx)
 {
 char *gtk_api_call;
-char *arg;			/* Temporary argument holders */
+char *arg = NULL;			/* Temporary argument holders */
 PARSED *list;			/* This will contain the list with individual arguments */
 int i;
 BODY *macro;			/* Points to the body of an individual macro */
@@ -3348,7 +3350,22 @@ if (inputdata != NULL) {
 	List_Sigs->data = strdup(arg);
 	#endif
 	#ifdef GTK_SERVER_XF
-	fl_register_raw_callback((FL_FORM*)(atol(widget)), atoi(signal), xforms_callback);
+	if(isalpha(signal[0]))
+	{
+	    HASH_FIND_STR(enum_protos, signal, Enum_Found);
+	    if (Enum_Found != NULL)
+	    {
+		fl_register_raw_callback((FL_FORM*)(atol(widget)), Enum_Found->value, xforms_callback);
+	    }
+	    else
+	    {
+		Print_Error ("%s", 1, "\nERROR: Unknown signal for XForms widget!");
+	    }
+	}
+	else
+	{
+	    fl_register_raw_callback((FL_FORM*)(atol(widget)), atoi(signal), xforms_callback);
+	}
 	/* This function was greatly improved by Wolfgang Oertl */
 	#elif GTK_SERVER_GTK1x
 	if(!strncmp(Trim_String(signal), "button-press-event", 18) || !strncmp(Trim_String(signal), "button_press_event", 18) ||
