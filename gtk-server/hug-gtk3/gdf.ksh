@@ -88,7 +88,7 @@ do
     gtk "m_square #00FF11 $XPOS $YPOS $WIDTH1 $HEIGHT 1"
     gtk "m_square #000000 $XPOS $YPOS $WIDTH1 $HEIGHT 0"
     # Draw amount
-    ((YPOS-=15))
+    ((YPOS-=20))
     gtk "m_out ${SIZES[$IDX]} #007700 #FFFFFF $XPOS $YPOS"
     # Draw usage
     ((XPOS+=5))
@@ -97,7 +97,7 @@ do
     gtk "m_square #FF1100 $XPOS $YPOS $WIDTH2 $HEIGHT 1"
     gtk "m_square #000000 $XPOS $YPOS $WIDTH2 $HEIGHT 0"
     # Draw text
-    let YPOS=355
+    let YPOS=345
     gtk "m_out \"'${NAMES[$IDX]}'\" #0000FF #FFFFFF $XPOS $YPOS"
     let XPOS=$XPOS+$WIDTH1+$MARGE-5
     # Next column

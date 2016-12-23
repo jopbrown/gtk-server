@@ -78,7 +78,7 @@ gtk "m_bgcolor $FRAME #FFFFFF"
 gtk "m_frame_text $FRAME \"' Disk Usage Graph '\""
 gtk "m_attach $WIN $FRAME 5 5"
 # Setup the drawing canvas, draw stuff
-define CANVAS gtk "m_canvas $CANVASW 365 #ffff00"
+define CANVAS gtk "m_canvas $CANVASW 365"
 gtk "m_attach $WIN $CANVAS 10 25"
 # Draw axis
 gtk "m_line #000000 20 340 $LINEW 340"
@@ -92,7 +92,7 @@ do
     gtk "m_square #00FF11 $XPOS $YPOS $WIDTH1 $HEIGHT 1"
     gtk "m_square #000000 $XPOS $YPOS $WIDTH1 $HEIGHT 0"
     # Draw amount
-    ((YPOS-=15))
+    ((YPOS-=20))
     gtk "m_out ${SIZES[$IDX]} #007700 #FFFFFF $XPOS $YPOS"
     # Draw usage
     ((XPOS+=5))
@@ -101,7 +101,7 @@ do
     gtk "m_square #FF1100 $XPOS $YPOS $WIDTH2 $HEIGHT 1"
     gtk "m_square #000000 $XPOS $YPOS $WIDTH2 $HEIGHT 0"
     # Draw text
-    let YPOS=355
+    let YPOS=345
     gtk "m_out \"'${NAMES[$IDX]}'\" #0000FF #FFFFFF $XPOS $YPOS"
     let XPOS=$XPOS+$WIDTH1+$MARGE-5
     # Next column
