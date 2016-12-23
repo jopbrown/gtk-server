@@ -64,10 +64,10 @@ m_image "file"					: Load a picture from a file into a canvas
 # Methods (setting and getting properties)
 #==========================================================================================================================================================================================
 
-m_bgcolor widget state [state] ...		: Set background color of widget for a state. Color example: "#00FF00" or "Red". States are NORMAL, ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
-m_fgcolor widget state [state] ...		: Set foreground color of widget for a state. Color example: "#00FFA0" or "Yellow". States are NORMAL, ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
-m_textcolor widget state [state] ...		: Set textcolor of widget for a state. Color example "#BB0000" or "Blue". States are NORMAL, ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
-m_basecolor widget state [state] ...		: Set baseground color of widget for a state. Color example "#12EE11" or "Green". States are NORMAL, ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
+m_bgcolor widget color [state] ...		: Set background color of widget for a state. Color example: "#00FF00" or "Red". States are NORMAL (default), ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
+m_fgcolor widget color [state] ...		: Set foreground color of widget for a state. Color example: "#00FFA0" or "Yellow". States are NORMAL (default), ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
+m_textcolor widget color [state] ...		: Set textcolor of widget for a state. Color example "#BB0000" or "Blue". States are NORMAL (default), ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
+m_basecolor widget color [state] ...		: Set baseground color of widget for a state. Color example "#12EE11" or "Green". States are NORMAL (default), ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
 
 m_button_text widget text			: Set text into button
 m_radio_text widget text			: Set text into radiobutton
