@@ -5125,7 +5125,7 @@ while (fgets (line, MAX_LEN, configfile) != NULL){
 		/* Check if this is not a duplicate */
 		HASH_FIND_STR(gtk_protos, api_name, Gtk_Api_Config);
 		if (Gtk_Api_Config != NULL) {
-		    Print_Error("%s%d", 2, "\nERROR: duplicate function name in configfile at line: ", count_line);
+		    Print_Error("%s%d", 2, "\nERROR: Duplicate function name in configfile at line: ", count_line);
 		}
 		/* Claim memory */
 		Gtk_Api_Config = (CONFIG*)malloc(sizeof(CONFIG));
@@ -5137,11 +5137,11 @@ while (fgets (line, MAX_LEN, configfile) != NULL){
 		else Gtk_Api_Config->callbacktype = strdup(Trim_String(cache));
 		/* Get next term: return value */
 		cache = strtok(NULL, ",");
-		if (cache == NULL) Print_Error("%s%d", 2, "\nERROR: Missing returnvalue in configfile at line: ", count_line);
+		if (cache == NULL) Print_Error("%s%d", 2, "\nERROR: Missing return value in configfile at line: ", count_line);
 		else Gtk_Api_Config->returnvalue = strdup(Trim_String(cache));
 		/* Get next term: amount of arguments */
 		cache = strtok(NULL, ",");
-		if (cache == NULL) Print_Error("%s%d", 2, "\nERROR: Missing argumentamount in configfile at line: ", count_line);
+		if (cache == NULL) Print_Error("%s%d", 2, "\nERROR: Missing argument amount in configfile at line: ", count_line);
 		else Gtk_Api_Config->argamount = strdup(Trim_String(cache));
 		if (atoi(Gtk_Api_Config->argamount) > MAX_ARGS) Print_Error("%s%d%s%d", 4, "\nERROR: GTK definition cannot have more than ", MAX_ARGS, " arguments!\n\nError in configfile at line: ", count_line);
 		/* Arguments to NULL, then get the separate arguments */
