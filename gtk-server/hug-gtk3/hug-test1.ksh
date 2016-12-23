@@ -43,7 +43,7 @@ gtk "m_attach $WIN $CHECK 100 255"
 # Setup the drawing canvas, draw stuff
 define CANVAS gtk "m_canvas 380 225"
 gtk "m_attach $WIN $CANVAS 10 20"
-gtk "m_circle #FF0000 100 100 100 100 1"
+gtk "m_circle #FF0000 100 100 100 50 1"
 gtk "m_square #FFFF00 200 50 60 60 1"
 gtk "m_line #0000FF 10 180 60 60"
 gtk "m_font $CANVAS \"'Arial Italic 18'\""
