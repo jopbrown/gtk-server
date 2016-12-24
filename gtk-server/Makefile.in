@@ -59,7 +59,7 @@ install : $(TARGET)
 		/# LIB_NAME = libgtk.so, libgdk.so, libglib.so, libglade.so/ {print "LIB_NAME = libgtk.so, libgdk.so, libglib.so, libglade.so"} \
 		/# LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so/ {print "LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so"} \
 		/# LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so/ {print "LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so"} \
-		/# LIB_NAME = libm.so, libc.so.6/ {print "LIB_NAME = libm.so, libc.so.6"} \
+		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
 	    echo "Done."; \
@@ -75,7 +75,7 @@ install : $(TARGET)
 		/# LIB_NAME = libgtkembedmoz.so/ {print "LIB_NAME = libgtkembedmoz.so"} \
 		/# LIB_NAME = libpoppler-glib.so/ {print "LIB_NAME = libpoppler-glib.so"} \
 		/# LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so/ {print "LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so"} \
-		/# LIB_NAME = libm.so, libc.so.6/ {print "LIB_NAME = libm.so, libc.so.6"} \
+		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
 	    echo "Done."; \
@@ -83,7 +83,7 @@ install : $(TARGET)
 	@if [ $(BACKEND) = "GTK3" -a $(MACOSX) = "no" ]; then \
 	    echo "Creating configfile..."; \
 	    awk ' \
-		/# LIB_NAME = libgtk-3.0.so, libgdk-3.0.so/ {print "LIB_NAME = libgtk-3.0.so, libgdk-3.0.so"} \
+		/# LIB_NAME = libgtk-3.so, libgdk-3.so/ {print "LIB_NAME = libgtk-3.so, libgdk-3.so"} \
 		/# LIB_NAME = libatk-1.0.so, libpango-1.0.so, libgdk_pixbuf_xlib-2.0.so, libglib-2.0.so, libgobject-2.0.so, libcairo.so/ {print "LIB_NAME = libatk-1.0.so, libpango-1.0.so, libgdk_pixbuf_xlib-2.0.so, libglib-2.0.so, libgobject-2.0.so, libcairo.so"} \
 		/# LIB_NAME = libglade-2.0.so/ {print "LIB_NAME = libglade-2.0.so"} \
 		/# LIB_NAME = libgtkgl-2.0.so, libgtkglext-x11-1.0.so, libgdkglext-x11-1.0.so/ {print "LIB_NAME = libgtkgl-2.0.so, libgtkglext-x11-1.0.so, libgdkglext-x11-1.0.so"} \
@@ -91,7 +91,7 @@ install : $(TARGET)
 		/# LIB_NAME = libgtkembedmoz.so/ {print "LIB_NAME = libgtkembedmoz.so"} \
 		/# LIB_NAME = libpoppler-glib.so/ {print "LIB_NAME = libpoppler-glib.so"} \
 		/# LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so/ {print "LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so"} \
-		/# LIB_NAME = libm.so, libc.so.6/ {print "LIB_NAME = libm.so, libc.so.6"} \
+		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
 	    echo "Done."; \
@@ -120,7 +120,7 @@ install : $(TARGET)
 		/# LIB_NAME = libforms.so, libflimage.so, libformsGL.so/ {print "LIB_NAME = libforms.so, libflimage.so, libformsGL.so"} \
 		/# LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so/ {print "LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so"} \
 		/# LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so/ {print "LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so"} \
-		/# LIB_NAME = libm.so, libc.so.6/ {print "LIB_NAME = libm.so, libc.so.6"} \
+		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
 	    echo "Done."; \
@@ -129,7 +129,7 @@ install : $(TARGET)
 	    echo "Creating configfile..."; \
 	    awk ' \
 		/# LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so/ {print "LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so"} \
-		/# LIB_NAME = libm.so, libc.so.6/ {print "LIB_NAME = libm.so, libc.so.6"} \
+		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
 	    echo "Done."; \

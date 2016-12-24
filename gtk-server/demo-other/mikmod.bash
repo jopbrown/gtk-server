@@ -30,16 +30,12 @@ gtk-server -fifo=$PI &
 while [ ! -p $PI ]; do continue; done
 
 # Open MikMod library
-define MM mikmod "gtk_server_require libmikmod.so.2"
+define MM mikmod "gtk_server_require libmikmod.so"
 if [[ $MM != "ok" ]]
 then
-    define MM mikmod "gtk_server_require libmikmod.so.3"
-    if [[ $MM != "ok" ]]
-    then
-        echo "No MikMod found on this system! Please install from http://mikmod.raphnet.net/. Exiting..."
-	mikmod "gtk_server_exit"
-	exit 1
-    fi
+    echo "No MikMod found on this system! Please install from http://mikmod.raphnet.net/. Exiting..."
+    mikmod "gtk_server_exit"
+    exit 1
 fi
 
 # Define some mikmod calls

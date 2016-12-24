@@ -436,6 +436,7 @@
 * ------------------------
 *		. Fixed compile warning for Xforms
 *		. XForms can use enumerations in callback definition
+*		. More intelligence in searching and opening defined libraries
 *
 *************************************************************************************************************************************************/
 
@@ -1003,6 +1004,72 @@ if (*stream == '\0') return NULL;
 
 /* Else return rest of the stream */
 return ++stream;
+}
+
+/*************************************************************************************************/
+/* If the library is not found, add a numeric suffix from 0-99 behind the soname. A larger range */
+/* slows down the GTK-server significantly. PvE. */
+
+#if GTK_SERVER_CINV
+CInvLibrary *search_and_open_lib(char *name, CInvContext *cinv_ctx)
+{
+    CInvLibrary* handle = NULL;
+#elif GTK_SERVER_FFI || GTK_SERVER_FFCALL || GTK_SERVER_DYNCALL
+void *search_and_open_lib(char *name)
+{
+    void* handle = NULL;
+#endif
+    int len, j;
+    char *buf;
+    char suffix[5];
+
+    if(name != NULL) {
+
+	/* Attempt to open current library name first */
+	#if GTK_SERVER_FFI || GTK_SERVER_FFCALL
+	handle = dlopen(name, RTLD_LAZY);
+	#elif GTK_SERVER_CINV
+	handle = cinv_library_create(cinv_ctx, name);
+	#elif GTK_SERVER_DYNCALL
+	handle = dlLoadLibrary(name);
+	#endif
+
+        /* Opening fails, now start search */
+	if(handle == NULL){
+
+	   /* Unlikely but you never know */    
+	    len = strlen(name);
+	    if(len > MAX_LEN-5) {
+		return(NULL);
+	    }
+
+	    /* Leave space for numeric suffix */
+	    buf = calloc(MAX_LEN, sizeof(char));
+	    strncpy(buf, name, MAX_LEN-5);
+
+	    /* Loop through library suffix numbers */
+	    for(j = 0; j < 100; j++) {
+
+		buf[len] = '\0';
+		snprintf(suffix, 5, ".%d", j);
+
+		strncat(buf, suffix, 5);
+
+		#if GTK_SERVER_FFI || GTK_SERVER_FFCALL
+		handle = dlopen(buf, RTLD_LAZY);
+		#elif GTK_SERVER_CINV
+		handle = cinv_library_create(cinv_ctx, buf);
+		#elif GTK_SERVER_DYNCALL
+		handle = dlLoadLibrary(buf);
+		#endif
+		if (handle != NULL) {
+		    break;
+		}
+	    }
+	    free(buf);
+	}
+    }
+    return(handle);
 }
 
 /*************************************************************************************************/
@@ -3301,15 +3368,15 @@ if (inputdata != NULL) {
 	    libs[i] = strdup(arg);
 	    #if GTK_SERVER_FFCALL || GTK_SERVER_FFI
 		#ifdef GTK_SERVER_UNIX
-		handle[i] = dlopen(arg, RTLD_LAZY);
+		handle[i] = search_and_open_lib(arg);
 		#elif GTK_SERVER_WIN32
 		handle[i] = LoadLibrary(arg);
 		#endif
 	    #elif GTK_SERVER_CINV
 		if ((cinv_ctx = cinv_context_create()) == NULL) Print_Error("%s", 1, "\nERROR: Cannot create C/Invoke context!\n");
-		handle[i] = cinv_library_create(cinv_ctx, arg);
+		handle[i] = search_and_open_lib(arg, cinv_ctx);
 	    #elif GTK_SERVER_DYNCALL
-		handle[i] = dlLoadLibrary(arg);
+		handle[i] = search_and_open_lib(arg);
 	    #endif
 	    #ifdef GTK_SERVER_WIN32
 	    if(handle[i] == NULL) retstr = Print_Result("%s%sGetLastError: %d%s", 4, gtkserver.pre, gtkserver.handle, (unsigned int)GetLastError(), gtkserver.post);
@@ -4617,7 +4684,7 @@ long count_line;
 char *api_name;
 char *enum_name;
 char *alias_name;
-/* Define temp variable for loops */
+/* Define temp variables for loops */
 int i;
 #ifdef GTK_SERVER_WIN32
 /* Needed for finding the configfile */
@@ -5327,7 +5394,7 @@ if (gtkserver.LogDir != NULL){
 
 	i = 1;
 	while(libs[i] != NULL && i < MAX_LIBS){
-	    handle[i] = dlopen(libs[i], RTLD_LAZY);
+	    handle[i] = search_and_open_lib(libs[i]);
 	    i++;
 	}
 
@@ -5354,7 +5421,7 @@ if (gtkserver.LogDir != NULL){
 
     i = 1;
     while(libs[i] != NULL && i < MAX_LIBS){
-	handle[i] = cinv_library_create(cinv_ctx,libs[i]);
+	handle[i] = search_and_open_lib(libs[i], cinv_ctx);
 	i++;
     }
 
@@ -5364,7 +5431,7 @@ if (gtkserver.LogDir != NULL){
 
     i = 1;
     while(libs[i] != NULL && i < MAX_LIBS){
-	handle[i] = dlLoadLibrary(libs[i]);
+	handle[i] = search_and_open_lib(libs[i]);
 	i++;
     }
 

@@ -37,7 +37,7 @@ MACRO ncurses
 $ncurses : gtk_server_require libncurses.dylib
 $ncurses COMPARE ok
 $z EMPTY 6
-$ncurses : gtk_server_require libncurses.so.5
+$ncurses : gtk_server_require libncurses.so
 $ncurses COMPARE ok
 $z EMPTY 3
 printf "'No NCurses library found on this system! Exiting...\n'"

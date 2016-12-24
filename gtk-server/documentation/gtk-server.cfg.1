@@ -30,6 +30,9 @@ The following keywords are recognized by the GTK\-server:
 \fBLIB_NAME = <library name 1, library name 2, ...>\fP
 Describes the name of the libraries (.so or .dll) to open.
 This keyword may occur multiple times in the configfile. At a maximum 32 libraries can be opened simultanously.
+The library name should end with the plain 'so' suffix. If the GTK-server cannot find the library, it automatically
+will append a numeric suffix to the original name varying from 0 to 99 and attempt to open these library names also,
+until the correct numeric suffix was found.
 .br
 
 Example:

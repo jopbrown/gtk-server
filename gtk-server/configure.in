@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.57)
-AC_INIT(gtk-server, 2.4, peter AT gtk-server DOT org)
+AC_INIT(gtk-server, 2.4.1, peter AT gtk-server DOT org)
 AC_CONFIG_SRCDIR([gtk-server.c])
 AC_CONFIG_HEADER([config.h])
 
@@ -65,6 +65,23 @@ then
     AC_CHECK_FUNCS(atexit, [], [AC_MSG_ERROR(Cannot compile - missing function: atexit)])
     AC_CHECK_FUNCS(inet_ntoa, [], [AC_MSG_ERROR(Cannot compile - missing function: inet_ntoa)])
 fi
+
+# Check parameter: force compilation for which Foreign Func Interface?
+AC_ARG_WITH(ffi,
+    [AC_HELP_STRING([--with-ffi], [force compilation with libffi (default: GUESS)])],
+	[AC_DEFINE_UNQUOTED(GTK_SERVER_FFI) LDFLAGS="$LDFLAGS -lffi -ldl" ffi=yes ffcall=no cinv=no dyncall=no])
+
+AC_ARG_WITH(ffcall,
+    [AC_HELP_STRING([--with-ffcall], [force compilation with libffcall (default: GUESS)])],
+	[AC_DEFINE_UNQUOTED(GTK_SERVER_FFCALL) LDFLAGS="$LDFLAGS -lavcall -ldl" ffi=no ffcall=yes cinv=no dyncall=no])
+
+AC_ARG_WITH(cinv,
+    [AC_HELP_STRING([--with-cinv], [force compilation with c/invoke (default: GUESS)])],
+	[AC_DEFINE_UNQUOTED(GTK_SERVER_CINV) LDFLAGS="$LDFLAGS -lcinvoke -ldl" ffi=no ffcall=no cinv=yes dyncall=no])
+
+AC_ARG_WITH(dyncall,
+    [AC_HELP_STRING([--with-dyncall], [force compilation with dyncall (default: GUESS)])],
+	[AC_DEFINE_UNQUOTED(GTK_SERVER_DYNCALL) LDFLAGS="$LDFLAGS -ldynload_s -ldyncall_s -ldl" ffi=no ffcall=no cinv=no dyncall=yes])
 
 # Check parameter: force compilation for GTK1?
 AC_ARG_WITH(gtk1,
@@ -327,11 +344,16 @@ fi
 AC_CHECK_HEADER(locale.h, [], [AC_MSG_ERROR(Cannot compile - missing header: locale.h)])
 AC_CHECK_HEADER(stdlib.h, [], [AC_MSG_ERROR(Cannot compile - missing header: stdlib.h)])
 AC_CHECK_HEADER(string.h, [], [AC_MSG_ERROR(Cannot compile - missing header: string.h)])
+
+# Autodetect FFI if none was given
+if test "$ffi" != yes -a "$ffcall" != yes -a "$cinv" != yes -a "$dyncall" != yes
+then
 AC_CHECK_HEADER(ffi.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_FFI) LDFLAGS="$LDFLAGS -lffi -ldl"] ffi=yes,
     [AC_CHECK_HEADER(avcall.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_FFCALL) LDFLAGS="$LDFLAGS -lavcall -ldl"]	ffcall=yes,
 	[AC_CHECK_HEADER(cinvoke.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_CINV) LDFLAGS="$LDFLAGS -lcinvoke -ldl"] cinv=yes,
 	    [AC_CHECK_HEADER(dyncall.h,	[AC_DEFINE_UNQUOTED(GTK_SERVER_DYNCALL) LDFLAGS="$LDFLAGS -ldynload_s -ldyncall_s -ldl"] dyncall=yes,
 		    [AC_MSG_ERROR(Cannot compile - no foreign function headers found! Please check 'README.1ST' for details.)]) ]) ]) ])
+fi
 
 if test "$unix" = yes
 then
