@@ -52,6 +52,9 @@ The following keywords are recognized by the GTK-server:
 <DT><B>LIB_NAME = &lt;library name 1, library name 2, ...&gt;</B><DD>
 Describes the name of the libraries (.so or .dll) to open.
 This keyword may occur multiple times in the configfile. At a maximum 32 libraries can be opened simultanously.
+The library name should end with the plain 'so' suffix. If the GTK-server cannot find the library, it automatically
+will append a numeric suffix to the original name varying from 0 to 99 and attempt to open these library names also,
+until the correct numeric suffix was found.
 <BR>
 
 <P>
@@ -80,7 +83,7 @@ base64 encoded binary data to the GTK-server. The POINTER type can be used for g
 libraries. The ENUM type is used to define an enumeration name (see below).
 <P>
 The MACRO type can be used in case a user function needs to be registered. In case GTK must execute a user
-function, the described macro will be used. A MACRO type always needs an DATA type, in which additional data
+function, the described macro will be used. A MACRO type always needs a DATA type, in which additional data
 can be specified. Macros are explained in the MACRO section of this manpage.
 <P>
 The 'gtk-server.cfg' file may not contain duplicate function definitions. This is verified
@@ -330,6 +333,6 @@ the sourcepackage for credits.
 This document was created by
 <A HREF="/cgi-bin/man/man2html">man2html</A>,
 using the manual pages.<BR>
-Time: 12:35:32 GMT, December 17, 2016
+Time: 21:23:47 GMT, December 24, 2016
 </BODY>
 </HTML>
