@@ -53,8 +53,8 @@ install : $(TARGET)
 	fi;
 	$(INSTALL) stop-gtk-server $(BINDIR)
 	mkdir -p $(SYSCONFIG)
+	@echo -n "Creating configfile... ";
 	@if [ $(BACKEND) = "GTK1" ]; then \
-	    echo "Creating configfile..."; \
 	    awk ' \
 		/# LIB_NAME = libgtk.so, libgdk.so, libglib.so, libglade.so/ {print "LIB_NAME = libgtk.so, libgdk.so, libglib.so, libglade.so"} \
 		/# LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so/ {print "LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so"} \
@@ -62,10 +62,8 @@ install : $(TARGET)
 		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
-	    echo "Done."; \
 	fi;
 	@if [ $(BACKEND) = "GTK2" -a $(MACOSX) = "no" ]; then \
-	    echo "Creating configfile..."; \
 	    awk ' \
 		/# LIB_NAME = libgtk-x11-2.0.so, libgdk-x11-2.0.so/ {print "LIB_NAME = libgtk-x11-2.0.so, libgdk-x11-2.0.so"} \
 		/# LIB_NAME = libatk-1.0.so, libpango-1.0.so, libgdk_pixbuf_xlib-2.0.so, libglib-2.0.so, libgobject-2.0.so, libcairo.so/ {print "LIB_NAME = libatk-1.0.so, libpango-1.0.so, libgdk_pixbuf_xlib-2.0.so libglib-2.0.so, libgobject-2.0.so, libcairo.so"} \
@@ -78,10 +76,8 @@ install : $(TARGET)
 		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
-	    echo "Done."; \
 	fi;
 	@if [ $(BACKEND) = "GTK3" -a $(MACOSX) = "no" ]; then \
-	    echo "Creating configfile..."; \
 	    awk ' \
 		/# LIB_NAME = libgtk-3.so, libgdk-3.so/ {print "LIB_NAME = libgtk-3.so, libgdk-3.so"} \
 		/# LIB_NAME = libatk-1.0.so, libpango-1.0.so, libgdk_pixbuf_xlib-2.0.so, libglib-2.0.so, libgobject-2.0.so, libcairo.so/ {print "LIB_NAME = libatk-1.0.so, libpango-1.0.so, libgdk_pixbuf_xlib-2.0.so, libglib-2.0.so, libgobject-2.0.so, libcairo.so"} \
@@ -94,10 +90,8 @@ install : $(TARGET)
 		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
-	    echo "Done."; \
 	fi;
 	@if [ $(BACKEND) = "GTK2" -a $(MACOSX) = "yes" ]; then \
-	    echo "Creating configfile..."; \
 	    awk ' \
 		/# LIB_NAME = \/Library\/Frameworks\/Gtk.framework\/Libraries\/libgtk-quartz-2.0.0.dylib/ {print "LIB_NAME = /Library/Frameworks/Gtk.framework/Libraries/libgtk-quartz-2.0.0.dylib"} \
 		/# LIB_NAME = \/Library\/Frameworks\/Gtk.framework\/Libraries\/libgdk-quartz-2.0.0.dylib/ {print "LIB_NAME = /Library/Frameworks/Gtk.framework/Libraries/libgdk-quartz-2.0.0.dylib"} \
@@ -112,10 +106,8 @@ install : $(TARGET)
 		/# LIB_NAME = libm.dylib, libc.dylib/ {print "LIB_NAME = libm.dylib, libc.dylib"} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
-	    echo "Done."; \
 	fi;
 	@if [ $(BACKEND) = "XF" ]; then \
-	    echo "Creating configfile..."; \
 	    awk ' \
 		/# LIB_NAME = libforms.so, libflimage.so, libformsGL.so/ {print "LIB_NAME = libforms.so, libflimage.so, libformsGL.so"} \
 		/# LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so/ {print "LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so"} \
@@ -123,26 +115,22 @@ install : $(TARGET)
 		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
-	    echo "Done."; \
 	fi;
 	@if [ $(BACKEND) = "CONSOLE" -a $(MACOSX) = "no" ]; then \
-	    echo "Creating configfile..."; \
 	    awk ' \
 		/# LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so/ {print "LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so"} \
 		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
-	    echo "Done."; \
 	fi;
 	@if [ $(BACKEND) = "CONSOLE" -a $(MACOSX) = "yes" ]; then \
-	    echo "Creating configfile..."; \
 	    awk ' \
 		/# LIB_NAME = libcurses.dylib, libform.dylib, libpanel.dylib, libmenu.dylib/ {print "LIB_NAME = libcurses.dylib, libform.dylib, libpanel.dylib, libmenu.dylib"} \
 		/# LIB_NAME = libm.dylib, libc.dylib/ {print "LIB_NAME = libm.dylib, libc.dylib"} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
-	    echo "Done."; \
 	fi;
+	@echo "done.";
 	mkdir -p $(MANDIR)/man1
 	$(INSTALL) -m 644 documentation/gtk-server.1 $(MANDIR)/man1
 	$(INSTALL) -m 644 documentation/gtk-server.cfg.1 $(MANDIR)/man1
