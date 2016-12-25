@@ -45,7 +45,7 @@ com "gtk_server_define webkit_web_view_load_uri NONE NONE 2 WIDGET STRING"
 com "gtk_init NULL NULL"
 WIN=$(gtk "gtk_window_new GTK_WINDOW_TOPLEVEL")
 com "gtk_window_set_title $WIN 'Minimal Web Browser with BASH and GTK-server'"
-com "gtk_window_set_default_size $WIN 1280 800"
+com "gtk_window_set_default_size $WIN 1024 600"
 BOX=$(gtk "gtk_vbox_new 0 0")
 # Create entry to enter URL
 URL=$(gtk "gtk_entry_new")

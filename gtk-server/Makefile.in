@@ -8,125 +8,99 @@ datarootdir =	@datarootdir@
 MANDIR =	@mandir@
 CC =		@CC@
 STRIP =		@STRIP@
-CFLAGS =	-Wall @CFLAGS@ @CPPFLAGS@ @DEFS@ -DLOCALCFG=\"$(SYSCONFIG)/gtk-server.cfg\"
-LDFLAGS =	@LDFLAGS@ @LIBS@
-OBJS =		gtk-server.o @LIBOBJS@
+CFLAGS =	-Wall @CFLAGS@ @DEFS@ -DLOCALCFG=\"$(SYSCONFIG)/gtk-server.cfg\"
+LDFLAGS =	@LDFLAGS@
+OBJS =		gtk-server.o
 INSTALL = 	@INSTALL@
 TARGET =	@TARGET@
+SOTARGET =	@SOTARGET@
 DEFAULT = 	@DEFAULT@
-BACKEND =	@BACKEND@
 MACOSX =	@MACOSX@
+GTK3_CFLAGS =   @GTK3_CFLAGS@
+GTK2_CFLAGS =   @GTK2_CFLAGS@
+GTK1_CFLAGS =   @GTK1_CFLAGS@
+XF_CFLAGS =     @XF_CFLAGS@
+GTK3_LIBS =     @GTK3_LIBS@
+GTK2_LIBS =     @GTK2_LIBS@
+GTK1_LIBS =     @GTK1_LIBS@
+XF_LIBS =       @XF_LIBS@
+SSLFLAGS =      @SSLFLAGS@
+LINK =          @LINK@
+SOLINK =        @SOLINK@
 
-all : clean $(TARGET)
+all : clean $(SOTARGET) $(TARGET)
 
-gtk-server : $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LDFLAGS)
+gtk-server-gtk3 : gtk-server.c
+	$(CC) -DGTK_SERVER_GTK3x $(CFLAGS) $(GTK3_CFLAGS) -o $@ gtk-server.c $(GTK3_LIBS) $(SSLFLAGS) $(LDFLAGS)
 	$(STRIP) $@
+
+libgtk-server-gtk3.so : gtk-server.c
+	$(CC) -DGTK_SERVER_GTK3x -DGTK_SERVER_LIBRARY -shared $(CFLAGS) $(GTK3_CFLAGS) -o $@ gtk-server.c $(GTK3_LIBS) $(LDFLAGS)
+
+gtk-server-gtk2 : gtk-server.c
+	$(CC) -DGTK_SERVER_GTK2x $(CFLAGS) $(GTK2_CFLAGS) -o $@ gtk-server.c $(GTK2_LIBS) $(SSLFLAGS) $(LDFLAGS)
+	$(STRIP) $@
+
+libgtk-server-gtk2.so : gtk-server.c
+	$(CC) -DGTK_SERVER_GTK2x -DGTK_SERVER_LIBRARY -shared $(CFLAGS) $(GTK2_CFLAGS) -o $@ gtk-server.c $(GTK2_LIBS) $(LDFLAGS)
+
+gtk-server-gtk1 : gtk-server.c
+	$(CC) -DGTK_SERVER_GTK1x $(CFLAGS) $(GTK1_CFLAGS) -o $@ gtk-server.c $(GTK1_LIBS) $(SSLFLAGS) $(LDFLAGS)
+	$(STRIP) $@
+
+libgtk-server-gtk1.so : gtk-server.c
+	$(CC) -DGTK_SERVER_GTK1x -DGTK_SERVER_LIBRARY -shared $(CFLAGS) $(GTK1_CFLAGS) -o $@ gtk-server.c $(GTK1_LIBS) $(LDFLAGS)
+
+gtk-server-xf : gtk-server.c
+	$(CC) -DGTK_SERVER_XF $(CFLAGS) $(XF_CFLAGS) -o $@ gtk-server.c $(XF_LIBS) $(SSLFLAGS) $(LDFLAGS)
+	$(STRIP) $@
+
+libgtk-server-xf.so : gtk-server.c
+	$(CC) -DGTK_SERVER_XF -DGTK_SERVER_LIBRARY -shared $(CFLAGS) $(XF_CFLAGS) -o $@ gtk-server.c $(XF_LIBS) $(LDFLAGS)
+ 
+gtk-server-console : gtk-server.c
+	$(CC) $(CFLAGS) -o $@ gtk-server.c $(SSLFLAGS) $(LDFLAGS)
+	$(STRIP) $@
+
+libgtk-server-console.so : gtk-server.c
+	$(CC) -shared $(CFLAGS) -o $@ gtk-server.c $(LDFLAGS)
 
 gtk-server.exe : $(OBJS)
 	$(CC) -o $@ $(OBJS) $(LDFLAGS)
 	$(STRIP) $@
 
-libgtk-server.so : $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LDFLAGS)
-	$(STRIP) $@
-	ar -r libgtk-server.a $(OBJS)
-	ranlib libgtk-server.a
-
-libgtk-server.dylib : $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LDFLAGS)
-	ar -r libgtk-server.a $(OBJS)
-	ranlib libgtk-server.a
-
-install : $(TARGET)
+install : $(TARGET) $(SOTARGET)
 	@if [ $(DEFAULT) -eq "1" ]; then \
 	    mkdir -p $(BINDIR); \
 	    $(INSTALL) $(TARGET) $(BINDIR); \
 	    echo "mkdir -p $(BINDIR)"; \
 	    echo "$(INSTALL) $(TARGET) $(BINDIR)"; \
-	fi;
-	@if [ $(DEFAULT) -eq "2" ]; then \
 	    mkdir -p $(LIBDIR); \
-	    $(INSTALL) $(TARGET) $(LIBDIR); \
+	    $(INSTALL) $(SOTARGET) $(LIBDIR); \
 	    echo "mkdir -p $(LIBDIR)"; \
-	    echo "$(INSTALL) $(TARGET) $(LIBDIR)"; \
+	    echo "$(INSTALL) $(SOTARGET) $(LIBDIR)"; \
 	fi;
+	@ln -sf $(BINDIR)/$(LINK) $(BINDIR)/gtk-server
+	@ln -sf $(LIBDIR)/$(SOLINK) $(LIBDIR)/libgtk-server.so
 	$(INSTALL) stop-gtk-server $(BINDIR)
+	@awk ' \
+            /BINDIR=/ {print "BINDIR=$(BINDIR)"} \
+            /LIBDIR=/ {print "LIBDIR=$(LIBDIR)"} \
+            !/BINDIR=|LIBDIR=/ {print} \
+	    ' select-gtk-server > $(BINDIR)/select-gtk-server;
+	@chmod 755 $(BINDIR)/select-gtk-server;
 	mkdir -p $(SYSCONFIG)
 	@echo -n "Creating configfile... ";
-	@if [ $(BACKEND) = "GTK1" ]; then \
+	@echo > $(SYSCONFIG)/gtk-server.cfg;
+	@if [ $(MACOSX) = "no" ]; then \
 	    awk ' \
-		/# LIB_NAME = libgtk.so, libgdk.so, libglib.so, libglade.so/ {print "LIB_NAME = libgtk.so, libgdk.so, libglib.so, libglade.so"} \
-		/# LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so/ {print "LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so"} \
-		/# LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so/ {print "LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so"} \
-		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
+		/LIB_NAME.*so/ {print substr($$0, 3)} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
 	fi;
-	@if [ $(BACKEND) = "GTK2" -a $(MACOSX) = "no" ]; then \
+	@if [ $(MACOSX) = "yes" ]; then \
 	    awk ' \
-		/# LIB_NAME = libgtk-x11-2.0.so, libgdk-x11-2.0.so/ {print "LIB_NAME = libgtk-x11-2.0.so, libgdk-x11-2.0.so"} \
-		/# LIB_NAME = libatk-1.0.so, libpango-1.0.so, libgdk_pixbuf_xlib-2.0.so, libglib-2.0.so, libgobject-2.0.so, libcairo.so/ {print "LIB_NAME = libatk-1.0.so, libpango-1.0.so, libgdk_pixbuf_xlib-2.0.so libglib-2.0.so, libgobject-2.0.so, libcairo.so"} \
-		/# LIB_NAME = libglade-2.0.so/ {print "LIB_NAME = libglade-2.0.so"} \
-		/# LIB_NAME = libgtkgl-2.0.so, libgtkglext-x11-1.0.so, libgdkglext-x11-1.0.so/ {print "LIB_NAME = libgtkgl-2.0.so, libgtkglext-x11-1.0.so, libgdkglext-x11-1.0.so"} \
-		/# LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so/ {print "LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so"} \
-		/# LIB_NAME = libgtkembedmoz.so/ {print "LIB_NAME = libgtkembedmoz.so"} \
-		/# LIB_NAME = libpoppler-glib.so/ {print "LIB_NAME = libpoppler-glib.so"} \
-		/# LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so/ {print "LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so"} \
-		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
-		!/LIB_NAME/ {print} \
-	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
-	fi;
-	@if [ $(BACKEND) = "GTK3" -a $(MACOSX) = "no" ]; then \
-	    awk ' \
-		/# LIB_NAME = libgtk-3.so, libgdk-3.so/ {print "LIB_NAME = libgtk-3.so, libgdk-3.so"} \
-		/# LIB_NAME = libatk-1.0.so, libpango-1.0.so, libgdk_pixbuf_xlib-2.0.so, libglib-2.0.so, libgobject-2.0.so, libcairo.so/ {print "LIB_NAME = libatk-1.0.so, libpango-1.0.so, libgdk_pixbuf_xlib-2.0.so, libglib-2.0.so, libgobject-2.0.so, libcairo.so"} \
-		/# LIB_NAME = libglade-2.0.so/ {print "LIB_NAME = libglade-2.0.so"} \
-		/# LIB_NAME = libgtkgl-2.0.so, libgtkglext-x11-1.0.so, libgdkglext-x11-1.0.so/ {print "LIB_NAME = libgtkgl-2.0.so, libgtkglext-x11-1.0.so, libgdkglext-x11-1.0.so"} \
-		/# LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so/ {print "LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so"} \
-		/# LIB_NAME = libgtkembedmoz.so/ {print "LIB_NAME = libgtkembedmoz.so"} \
-		/# LIB_NAME = libpoppler-glib.so/ {print "LIB_NAME = libpoppler-glib.so"} \
-		/# LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so/ {print "LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so"} \
-		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
-		!/LIB_NAME/ {print} \
-	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
-	fi;
-	@if [ $(BACKEND) = "GTK2" -a $(MACOSX) = "yes" ]; then \
-	    awk ' \
-		/# LIB_NAME = \/Library\/Frameworks\/Gtk.framework\/Libraries\/libgtk-quartz-2.0.0.dylib/ {print "LIB_NAME = /Library/Frameworks/Gtk.framework/Libraries/libgtk-quartz-2.0.0.dylib"} \
-		/# LIB_NAME = \/Library\/Frameworks\/Gtk.framework\/Libraries\/libgdk-quartz-2.0.0.dylib/ {print "LIB_NAME = /Library/Frameworks/Gtk.framework/Libraries/libgdk-quartz-2.0.0.dylib"} \
-		/# LIB_NAME = \/Library\/Frameworks\/GLib.framework\/Libraries\/libglib-2.0.0.dylib/ {print "LIB_NAME = /Library/Frameworks/GLib.framework/Libraries/libglib-2.0.0.dylib"} \
-		/# LIB_NAME = \/Library\/Frameworks\/GLib.framework\/Libraries\/libgobject-2.0.0.dylib/ {print "LIB_NAME = /Library/Frameworks/GLib.framework/Libraries/libgobject-2.0.0.dylib"} \
-		/# LIB_NAME = \/Library\/Frameworks\/Gtk.framework\/Libraries\/libatk-1.0.0.dylib/ {print "LIB_NAME = /Library/Frameworks/Gtk.framework/Libraries/libatk-1.0.0.dylib"} \
-		/# LIB_NAME = \/Library\/Frameworks\/Gtk.framework\/Libraries\/libpango-1.0.0.dylib/ {print "LIB_NAME = /Library/Frameworks/Gtk.framework/Libraries/libpango-1.0.0.dylib"} \
-		/# LIB_NAME = \/Library\/Frameworks\/Gtk.framework\/Libraries\/libgdk-pixbuf-2.0.0.dylib/ {print "LIB_NAME = /Library/Frameworks/Gtk.framework/Libraries/libgdk-pixbuf-2.0.0.dylib"} \
-		/# LIB_NAME = libcurses.dylib, libform.dylib, libpanel.dylib, libmenu.dylib/ {print "LIB_NAME = libcurses.dylib, libform.dylib, libpanel.dylib, libmenu.dylib"} \
-		/# LIB_NAME = \/System\/Library\/Frameworks\/OpenGL.Framework\/libraries\/libGL.dylib/ {print "LIB_NAME = /System/Library/Frameworks/OpenGL.Framework/libraries/libGL.dylib"} \
-		/# LIB_NAME = \/System\/Library\/Frameworks\/GLUT.Framework\/GLUT/ {print "LIB_NAME = /System/Library/Frameworks/GLUT.Framework/GLUT"} \
-		/# LIB_NAME = libm.dylib, libc.dylib/ {print "LIB_NAME = libm.dylib, libc.dylib"} \
-		!/LIB_NAME/ {print} \
-	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
-	fi;
-	@if [ $(BACKEND) = "XF" ]; then \
-	    awk ' \
-		/# LIB_NAME = libforms.so, libflimage.so, libformsGL.so/ {print "LIB_NAME = libforms.so, libflimage.so, libformsGL.so"} \
-		/# LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so/ {print "LIB_NAME = libX11.so, libglut.so, libGLU.so, libGL.so"} \
-		/# LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so/ {print "LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so"} \
-		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
-		!/LIB_NAME/ {print} \
-	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
-	fi;
-	@if [ $(BACKEND) = "CONSOLE" -a $(MACOSX) = "no" ]; then \
-	    awk ' \
-		/# LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so/ {print "LIB_NAME = libncurses.so, libform.so, libpanel.so, libmenu.so"} \
-		/# LIB_NAME = libm.so, libc.so/ {print "LIB_NAME = libm.so, libc.so"} \
-		!/LIB_NAME/ {print} \
-	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
-	fi;
-	@if [ $(BACKEND) = "CONSOLE" -a $(MACOSX) = "yes" ]; then \
-	    awk ' \
-		/# LIB_NAME = libcurses.dylib, libform.dylib, libpanel.dylib, libmenu.dylib/ {print "LIB_NAME = libcurses.dylib, libform.dylib, libpanel.dylib, libmenu.dylib"} \
-		/# LIB_NAME = libm.dylib, libc.dylib/ {print "LIB_NAME = libm.dylib, libc.dylib"} \
+		/LIB_NAME.*dylib/ {print substr($$0, 3)} \
 		!/LIB_NAME/ {print} \
 	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
 	fi;
@@ -135,6 +109,13 @@ install : $(TARGET)
 	$(INSTALL) -m 644 documentation/gtk-server.1 $(MANDIR)/man1
 	$(INSTALL) -m 644 documentation/gtk-server.cfg.1 $(MANDIR)/man1
 	$(INSTALL) -m 644 documentation/stop-gtk-server.1 $(MANDIR)/man1
+	@if [ $(DEFAULT) -eq "2" ]; then \
+	    echo "Installing Kornshell module..."; \
+	    mkdir -p $(LIBDIR); \
+	    $(INSTALL) $(SOTARGET) $(LIBDIR); \
+	    echo "mkdir -p $(LIBDIR)"; \
+	    echo "$(INSTALL) $(SOTARGET) $(LIBDIR)"; \
+	fi;
 	@if [ $(DEFAULT) -eq "3" ]; then \
 		echo "Installing S-Lang module..."; \
 		mv libgtk-server.so /usr/lib/gtk-module.so; \
@@ -152,8 +133,14 @@ install : $(TARGET)
 
 uninstall:
 	@if [ $(DEFAULT) -eq "1" ]; then \
-		rm -f $(BINDIR)/$(TARGET); \
-		echo "rm -f $(BINDIR)/$(TARGET)"; \
+                cd $(BINDIR); \
+		rm -f $(TARGET); \
+                echo "cd $(BINDIR);" \
+		echo "rm -f $(TARGET)"; \
+                cd $(LIBDIR); \
+		rm -f $(SOTARGET); \
+                echo "cd $(LIBDIR);" \
+		echo "rm -f $(LIBDIR)/$(SOTARGET)"; \
 	fi;
 	@if [ $(DEFAULT) -eq "2" ]; then \
 		rm -f $(LIBDIR)/$(TARGET); \
@@ -161,6 +148,9 @@ uninstall:
 	fi;
 	rm -f $(SYSCONFIG)/gtk-server.cfg
 	rm -f $(BINDIR)/stop-gtk-server
+	rm -f $(BINDIR)/select-gtk-server
+	rm -f $(BINDIR)/gtk-server
+	rm -f $(LIBDIR)/libgtk-server.so
 	rm -f $(MANDIR)/man1/gtk-server.1
 	rm -f $(MANDIR)/man1/gtk-server.cfg.1
 	rm -f $(MANDIR)/man1/stop-gtk-server.1
@@ -178,8 +168,8 @@ uninstall:
 	fi
 
 clean:
-	rm -f $(TARGET) *.a *.o *.log so_locations
+	rm -f $(TARGET) $(SOTARGET) *.a *.o *.log so_locations
 
 delete:
 	rm -rf autom4te.cache/
-	rm -f $(TARGET) *.a *.o *.log so_locations config.status config.h Makefile
+	rm -f $(TARGET) $(SOTARGET) *.a *.o *.log so_locations config.status config.h Makefile

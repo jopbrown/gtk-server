@@ -627,11 +627,22 @@ LIBOBJS
 MACOSX
 STRIP
 DEFAULT
+SOTARGET
 TARGET
 EGREP
 GREP
 CPP
-BACKEND
+SSLFLAGS
+SOLINK
+LINK
+GTK3_LIBS
+GTK3_CFLAGS
+GTK2_LIBS
+GTK2_CFLAGS
+GTK1_LIBS
+GTK1_CFLAGS
+XF_LIBS
+XF_CFLAGS
 PKGCONFIG_CONFIG
 host_os
 host_vendor
@@ -670,7 +681,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -697,13 +707,6 @@ with_ffi
 with_ffcall
 with_cinv
 with_dyncall
-with_gtk1
-with_gtk2
-with_gtk3
-with_xforms
-with_console
-enable_static
-enable_library
 enable_slang
 enable_scriptbasic
 enable_sb_source
@@ -758,7 +761,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1011,15 +1013,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1157,7 +1150,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1310,7 +1303,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1344,8 +1336,6 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-static         compile static binary - Gtk1/Xforms (default: NO)
-  --enable-library        compilation as standard shared library (default: NO)
   --enable-slang          add support to library for S-Lang (default: NO)
   --enable-scriptbasic    add support to library for ScriptBasic (default: NO)
   --enable-sb-source      Scriptbasic source directory (default: scriptbasic)
@@ -1359,11 +1349,6 @@ Optional Packages:
   --with-ffcall           force compilation with libffcall (default: GUESS)
   --with-cinv             force compilation with c/invoke (default: GUESS)
   --with-dyncall          force compilation with dyncall (default: GUESS)
-  --with-gtk1             force compilation with GTK1.x (default: GUESS)
-  --with-gtk2             force compilation with GTK2.x (default: GUESS)
-  --with-gtk3             force compilation with GTK3.x (default: GUESS)
-  --with-xforms           force compilation with XForms (default: GUESS)
-  --with-console          force compilation for console (default: GUESS)
   --with-ssl              force support for SSL (default: GUESS)
 
 Some influential environment variables:
@@ -3221,6 +3206,31 @@ _ACEOF
 		;;
 esac
 
+# OS dependent settings - add compileflags for MacOSX
+if test "$darwin" = yes; then
+    CFLAGS="-fno-common"
+fi
+
+# OS dependent settings - add compileflags for Tru64Unix
+if test "$osf" = yes; then
+    CFLAGS="-D_POSIX_PII_SOCKET -I/usr/local/include"
+    cat >>confdefs.h <<_ACEOF
+#define GTK_SERVER_SOCK_LONG 1
+_ACEOF
+
+fi
+
+# OS dependent settings - check if we are on 64bit
+if test "$x86_64" = yes; then
+    CFLAGS="-fPIC"
+    LDFLAGS="$LDFLAGS -L/usr/lib64"
+fi
+
+# OS dependent settings - add compileflags for Solaris
+if test "$solaris" = yes; then
+    CFLAGS="-fPIC"
+fi
+
 # Checks for typedefs, structures, and compiler characteristics.
 #to be done: AC_C_CONST
 
@@ -3283,6 +3293,8 @@ _ACEOF
 fi
 done
 
+
+# Check for crucial libc functions
 if test "$unix" = yes
 then
     for ac_func in gethostbyname
@@ -3352,6 +3364,270 @@ done
 
 fi
 
+# Check for pkgconfig
+# Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKGCONFIG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKGCONFIG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKGCONFIG_CONFIG="$PKGCONFIG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKGCONFIG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKGCONFIG_CONFIG" && ac_cv_path_PKGCONFIG_CONFIG="no"
+  ;;
+esac
+fi
+PKGCONFIG_CONFIG=$ac_cv_path_PKGCONFIG_CONFIG
+if test -n "$PKGCONFIG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKGCONFIG_CONFIG" >&5
+$as_echo "$PKGCONFIG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "PKGCONFIG_CONFIG" = "no"; then
+    as_fn_error $? "Cannot compile - please install the pkg-config package from http://www.freedesktop.org/software/pkgconfig/" "$LINENO" 5
+fi
+
+# Guess all toolkits.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk-3" >&5
+$as_echo_n "checking for gtk_init in -lgtk-3... " >&6; }
+if ${ac_cv_lib_gtk_3_gtk_init+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgtk-3  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gtk_init ();
+int
+main ()
+{
+return gtk_init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gtk_3_gtk_init=yes
+else
+  ac_cv_lib_gtk_3_gtk_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gtk_3_gtk_init" >&5
+$as_echo "$ac_cv_lib_gtk_3_gtk_init" >&6; }
+if test "x$ac_cv_lib_gtk_3_gtk_init" = xyes; then :
+  GTK3_LIBS="`pkg-config --libs gtk+-3.0`"
+    GTK3_CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk3x=yes
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk-x11-2.0" >&5
+$as_echo_n "checking for gtk_init in -lgtk-x11-2.0... " >&6; }
+if ${ac_cv_lib_gtk_x11_2_0_gtk_init+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgtk-x11-2.0  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gtk_init ();
+int
+main ()
+{
+return gtk_init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gtk_x11_2_0_gtk_init=yes
+else
+  ac_cv_lib_gtk_x11_2_0_gtk_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gtk_x11_2_0_gtk_init" >&5
+$as_echo "$ac_cv_lib_gtk_x11_2_0_gtk_init" >&6; }
+if test "x$ac_cv_lib_gtk_x11_2_0_gtk_init" = xyes; then :
+  GTK2_LIBS="`pkg-config --libs gtk+-2.0`"
+    GTK2_CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk2x=yes
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk" >&5
+$as_echo_n "checking for gtk_init in -lgtk... " >&6; }
+if ${ac_cv_lib_gtk_gtk_init+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgtk -L/usr/X11R6/lib -lgdk -lXext -lX11 -lm -lglib $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gtk_init ();
+int
+main ()
+{
+return gtk_init ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gtk_gtk_init=yes
+else
+  ac_cv_lib_gtk_gtk_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gtk_gtk_init" >&5
+$as_echo "$ac_cv_lib_gtk_gtk_init" >&6; }
+if test "x$ac_cv_lib_gtk_gtk_init" = xyes; then :
+  GTK1_LIBS="`pkg-config --libs gtk+`"
+    GTK1_CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for fl_initialize in -lforms" >&5
+$as_echo_n "checking for fl_initialize in -lforms... " >&6; }
+if ${ac_cv_lib_forms_fl_initialize+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lforms  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char fl_initialize ();
+int
+main ()
+{
+return fl_initialize ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_forms_fl_initialize=yes
+else
+  ac_cv_lib_forms_fl_initialize=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_forms_fl_initialize" >&5
+$as_echo "$ac_cv_lib_forms_fl_initialize" >&6; }
+if test "x$ac_cv_lib_forms_fl_initialize" = xyes; then :
+  XF_LIBS="-L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lforms -lm"
+    XF_CFLAGS="-I/usr/X11R6/include/X11" xf=yes
+fi
+
+
+console=yes
+
+# Unquote the correct stuff
+if test "$console" = yes; then
+    TARGET="${TARGET} gtk-server-console"
+    SOTARGET="${SOTARGET} libgtk-server-console.so"
+    LINK="gtk-server-console"
+    SOLINK="libgtk-server-console.so"
+fi
+if test "$xf" = yes; then
+
+
+    TARGET="${TARGET} gtk-server-xf"
+    SOTARGET="${SOTARGET} libgtk-server-xf.so"
+    LINK="gtk-server-xf"
+    SOLINK="libgtk-server-xf.so"
+fi
+if test "$gtk1x" = yes; then
+
+
+    TARGET="${TARGET} gtk-server-gtk1"
+    SOTARGET="${SOTARGET} libgtk-server-gtk1.so"
+    LINK="gtk-server-gtk1"
+    SOLINK="libgtk-server-gtk1.so"
+fi
+if test "$gtk2x" = yes; then
+
+
+    TARGET="${TARGET} gtk-server-gtk2"
+    SOTARGET="${SOTARGET} libgtk-server-gtk2.so"
+    LINK="gtk-server-gtk2"
+    SOLINK="libgtk-server-gtk2.so"
+fi
+if test "$gtk3x" = yes; then
+
+
+    TARGET="${TARGET} gtk-server-gtk3"
+    SOTARGET="${SOTARGET} libgtk-server-gtk3.so"
+    LINK="gtk-server-gtk3"
+    SOLINK="libgtk-server-gtk3.so"
+fi
+
+
+
+# By default compile GTK-server binary
+if test "$win32" = yes; then
+    TARGET="gtk-server.exe"
+fi
+
 # Check parameter: force compilation for which Foreign Func Interface?
 
 # Check whether --with-ffi was given.
@@ -3393,396 +3669,18 @@ _ACEOF
 fi
 
 
-# Check parameter: force compilation for GTK1?
-
-# Check whether --with-gtk1 was given.
-if test "${with_gtk1+set}" = set; then :
-  withval=$with_gtk1; LIBS="`pkg-config --libs gtk+`"
-	CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes gtk2x=no gtk3x=no xf=no console=no
-fi
-
-
-# Check parameter: force compilation for GTK2?
-
-# Check whether --with-gtk2 was given.
-if test "${with_gtk2+set}" = set; then :
-  withval=$with_gtk2; LIBS="`pkg-config --libs gtk+-2.0`"
-	 CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk1x=no gtk2x=yes gtk3x=no xf=no console=no
-fi
-
-
-# Check parameter: force compilation for GTK3?
-
-# Check whether --with-gtk3 was given.
-if test "${with_gtk3+set}" = set; then :
-  withval=$with_gtk3; LIBS="`pkg-config --libs gtk+-3.0`"
-	 CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk1x=no gtk2x=no gtk3x=yes xf=no console=no
-fi
-
-
-# Check parameter: force compilation for XForms?
-
-# Check whether --with-xforms was given.
-if test "${with_xforms+set}" = set; then :
-  withval=$with_xforms; LIBS="-L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lforms -lm"
-	    CFLAGS="-I/usr/X11R6/include/X11" gtk1x=no gtk2x=no gtk3x=no xf=yes console=no
-fi
-
-
-# Check parameter: force compilation for console?
-
-# Check whether --with-console was given.
-if test "${with_console+set}" = set; then :
-  withval=$with_console; CFLAGS="" gtk1x=no gtk2x=no gtk3x=no xf=no console=yes
-fi
-
-
-# No parameter given, guess toolkit.
-if test "$console" != yes; then
-
-if test "$xf" != yes; then
-    if test "$gtk1x" != yes; then
-	if test "$gtk2x" != yes; then
-	    if test "$gtk3x" != yes; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk-3" >&5
-$as_echo_n "checking for gtk_init in -lgtk-3... " >&6; }
-if ${ac_cv_lib_gtk_3_gtk_init+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgtk-3  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char gtk_init ();
-int
-main ()
-{
-return gtk_init ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_gtk_3_gtk_init=yes
-else
-  ac_cv_lib_gtk_3_gtk_init=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gtk_3_gtk_init" >&5
-$as_echo "$ac_cv_lib_gtk_3_gtk_init" >&6; }
-if test "x$ac_cv_lib_gtk_3_gtk_init" = xyes; then :
-  LIBS="`pkg-config --libs gtk+-3.0`"
-		CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk3x=yes
-fi
-
-	    fi
-	    if test "$gtk3x" != yes ; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk-x11-2.0" >&5
-$as_echo_n "checking for gtk_init in -lgtk-x11-2.0... " >&6; }
-if ${ac_cv_lib_gtk_x11_2_0_gtk_init+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgtk-x11-2.0  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char gtk_init ();
-int
-main ()
-{
-return gtk_init ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_gtk_x11_2_0_gtk_init=yes
-else
-  ac_cv_lib_gtk_x11_2_0_gtk_init=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gtk_x11_2_0_gtk_init" >&5
-$as_echo "$ac_cv_lib_gtk_x11_2_0_gtk_init" >&6; }
-if test "x$ac_cv_lib_gtk_x11_2_0_gtk_init" = xyes; then :
-  LIBS="`pkg-config --libs gtk+-2.0`"
-		CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk2x=yes
-fi
-
-	    fi
-	    if test "$gtk3x" != yes -a "$gtk2x" != yes ; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk" >&5
-$as_echo_n "checking for gtk_init in -lgtk... " >&6; }
-if ${ac_cv_lib_gtk_gtk_init+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgtk -L/usr/X11R6/lib -lgdk -lXext -lX11 -lm -lglib $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char gtk_init ();
-int
-main ()
-{
-return gtk_init ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_gtk_gtk_init=yes
-else
-  ac_cv_lib_gtk_gtk_init=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gtk_gtk_init" >&5
-$as_echo "$ac_cv_lib_gtk_gtk_init" >&6; }
-if test "x$ac_cv_lib_gtk_gtk_init" = xyes; then :
-  LIBS="`pkg-config --libs gtk+`"
-		CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes
-fi
-
-	    fi
-	    if test "$gtk3x" != yes -a "$gtk2x" != yes -a "$gtk1x" != yes; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for fl_initialize in -lforms" >&5
-$as_echo_n "checking for fl_initialize in -lforms... " >&6; }
-if ${ac_cv_lib_forms_fl_initialize+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lforms  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char fl_initialize ();
-int
-main ()
-{
-return fl_initialize ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_forms_fl_initialize=yes
-else
-  ac_cv_lib_forms_fl_initialize=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_forms_fl_initialize" >&5
-$as_echo "$ac_cv_lib_forms_fl_initialize" >&6; }
-if test "x$ac_cv_lib_forms_fl_initialize" = xyes; then :
-  LIBS="-L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lforms -lm"
-		CFLAGS="-I/usr/X11R6/include/X11" xf=yes
-fi
-
-	    fi
-	fi
-    fi
-fi
-
-fi
-
-# No GUI? Compile for console
-if test "$gtk3x" != yes -a "$gtk2x" != yes -a "$gtk1x" != yes -a "$xf" != yes; then
-    CFLAGS=""
-    console=yes
-fi
-
-# Check if we compile static or shared (default)
-# Check whether --enable-static was given.
-if test "${enable_static+set}" = set; then :
-  enableval=$enable_static; static=yes
-fi
-
-
-# Static only for GTK1 or XForms
-if test "$static" = yes; then
-    if test "$xf" = yes; then
-	LIBS="-Wl,-whole-archive /usr/lib/libforms.a /usr/lib/libformsGL.a /usr/lib/libflimage.a /usr/lib/libjpeg.a -Wl,-no-whole-archive -L/usr/X11R6/lib -L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lm -ldl"
-    elif test "$gtk1x" = yes; then
-	LIBS="-Wl,-whole-archive /usr/local/lib/libgtk.a /usr/local/lib/libgdk.a /usr/local/lib/libglib.a /usr/local/lib/libgmodule.a -Wl,-no-whole-archive -L/usr/X11R6/lib -lXext -lX11 -lm -lpthread -ldl"
-    fi
-fi
-
-# Check for pkgconfig
-if test "$gtk1x" = yes || test "$gtk2x" = yes || test "$gtk3x" = yes; then
-    if test "$xf" != yes; then
-	# Extract the first word of "pkg-config", so it can be a program name with args.
-set dummy pkg-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_PKGCONFIG_CONFIG+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $PKGCONFIG_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_PKGCONFIG_CONFIG="$PKGCONFIG_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_PKGCONFIG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_PKGCONFIG_CONFIG" && ac_cv_path_PKGCONFIG_CONFIG="no"
-  ;;
-esac
-fi
-PKGCONFIG_CONFIG=$ac_cv_path_PKGCONFIG_CONFIG
-if test -n "$PKGCONFIG_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKGCONFIG_CONFIG" >&5
-$as_echo "$PKGCONFIG_CONFIG" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-	if test "PKGCONFIG_CONFIG" = "no"; then
-	    as_fn_error $? "Cannot compile - please install the pkg-config package from http://www.freedesktop.org/software/pkgconfig/" "$LINENO" 5
-	fi
-    fi
-fi
-
-# Unquote the correct stuff
-if test "$gtk1x" = yes; then
-    cat >>confdefs.h <<_ACEOF
-#define GTK_SERVER_GTK1x 1
-_ACEOF
-
-    BACKEND="GTK1"
-
-fi
-if test "$gtk2x" = yes; then
-    cat >>confdefs.h <<_ACEOF
-#define GTK_SERVER_GTK2x 1
-_ACEOF
-
-    BACKEND="GTK2"
-
-fi
-if test "$gtk3x" = yes; then
-    cat >>confdefs.h <<_ACEOF
-#define GTK_SERVER_GTK3x 1
-_ACEOF
-
-    BACKEND="GTK3"
-
-fi
-if test "$xf" = yes; then
-    cat >>confdefs.h <<_ACEOF
-#define GTK_SERVER_XF 1
-_ACEOF
-
-    BACKEND="XF"
-
-fi
-if test "$console" = yes; then
-    BACKEND="CONSOLE"
-
-fi
-
-# By default compile GTK-server binary
-if test "$win32" = yes; then
-    TARGET="gtk-server.exe"
-else
-    TARGET="gtk-server"
-fi
-DEFAULT="1"
-
-# Add compileflags for MacOSX
-if test "$darwin" = yes; then
-    CFLAGS="$CFLAGS -fno-common"
-fi
-
-# Add compileflags for Tru64Unix
-if test "$osf" = yes; then
-    CFLAGS="$CFLAGS -D_POSIX_PII_SOCKET -I/usr/local/include"
-    cat >>confdefs.h <<_ACEOF
-#define GTK_SERVER_SOCK_LONG 1
-_ACEOF
-
-fi
-
-# Check parameter: force compile as generic shared object?
-# Check whether --enable-library was given.
-if test "${enable_library+set}" = set; then :
-  enableval=$enable_library; cat >>confdefs.h <<_ACEOF
-#define GTK_SERVER_LIBRARY 1
-_ACEOF
-
-	 library=yes
-fi
-
+# GTK-server as generic shared object
+library=yes
 
 if test "$library" = yes; then
     if test "$darwin" = yes; then
-	TARGET="libgtk-server.dylib"
-	LIBS="$LIBS -dynamiclib"
-    else
-	TARGET="libgtk-server.so"
-	LIBS="$LIBS -shared"
+	SOTARGET="libgtk-server.dylib"
+	LDFLAGS="$LDFLAGS -dynamiclib"
     fi
-    DEFAULT="2"
 fi
 
-# Check if we are on 64bit
-if test "$x86_64" = yes; then
-    CFLAGS="$CFLAGS -fPIC"
-    LIBS="$LIBS -L/usr/lib64"
-fi
-if test "$solaris" = yes; then
-    CFLAGS="$CFLAGS -fPIC"
-fi
+# Default Unix installation
+DEFAULT="1"
 
 # Check parameter: support for S-Lang module?
 # Check whether --enable-slang was given.
@@ -3795,7 +3693,7 @@ _ACEOF
 #define GTK_SERVER_LIBRARY 1
 _ACEOF
 
-	LIBS="$LIBS -shared"
+	LDFLAGS="$LDFLAGS -shared"
 	library=yes
 	 slang=yes
 fi
@@ -3803,9 +3701,9 @@ fi
 
 if test "$slang" = yes; then
     if test "$darwin" = yes; then
-	TARGET="libgtk-server.dylib"
+	SOTARGET="libgtk-server.dylib"
     else
-	TARGET="libgtk-server.so"
+	SOTARGET="libgtk-server.so"
     fi
     DEFAULT="3"
 fi
@@ -3821,7 +3719,7 @@ _ACEOF
 #define GTK_SERVER_LIBRARY 1
 _ACEOF
 
-	LIBS="$LIBS -shared"
+	LDFLAGS="$LDFLAGS -shared"
 	library=yes
 	 scriptbasic=yes
 fi
@@ -3829,9 +3727,9 @@ fi
 
 if test "$scriptbasic" = yes; then
     if test "$darwin" = yes; then
-	TARGET="libgtk-server.dylib"
+	SOTARGET="libgtk-server.dylib"
     else
-	TARGET="libgtk-server.so"
+	SOTARGET="libgtk-server.so"
     fi
     DEFAULT="4"
 fi
@@ -3855,12 +3753,8 @@ if test "${enable_ksh93+set}" = set; then :
 #define GTK_SERVER_KSH93 1
 _ACEOF
 
-	cat >>confdefs.h <<_ACEOF
-#define GTK_SERVER_LIBRARY 1
-_ACEOF
-
 	CFLAGS="$CFLAGS -Iksh93"
-	LIBS="$LIBS -shared -Lksh93 -lshell -ldll -lcmd -last"
+	LDFLAGS="$LDFLAGS -shared -Lksh93 -lshell -ldll -lcmd -last"
 	library=yes
 	 ksh93=yes
 fi
@@ -3868,9 +3762,9 @@ fi
 
 if test "$ksh93" = yes; then
     if test "$darwin" = yes; then
-	TARGET="libgtk-server.dylib"
+	SOTARGET="libgtk-server.dylib"
     else
-	TARGET="libgtk-server.so"
+	SOTARGET="libgtk-server.so"
     fi
     DEFAULT="2"
 fi
@@ -3887,8 +3781,7 @@ if test "${enable_ksh93_source+set}" = set; then :
 fi
 
 
-if test "$library" != yes; then
-    # Check parameter: force compilation with SSL (for -sock standalone only)
+# Check parameter: force compilation with SSL (for -sock standalone only)
 
 # Check whether --with-ssl was given.
 if test "${with_ssl+set}" = set; then :
@@ -3896,8 +3789,8 @@ if test "${with_ssl+set}" = set; then :
 fi
 
 
-    # Check if OpenSSL is vailable on the system
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SSL_library_init in -lssl" >&5
+# Check if OpenSSL is vailable on the system
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SSL_library_init in -lssl" >&5
 $as_echo_n "checking for SSL_library_init in -lssl... " >&6; }
 if ${ac_cv_lib_ssl_SSL_library_init+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -3937,14 +3830,13 @@ if test "x$ac_cv_lib_ssl_SSL_library_init" = xyes; then :
   ssl=yes
 fi
 
-
-    if test "$ssl" = yes; then
-	LIBS="$LIBS -lcrypto -lssl"
-	cat >>confdefs.h <<_ACEOF
+if test "$ssl" = yes; then
+    SSLFLAGS="-lcrypto -lssl"
+    cat >>confdefs.h <<_ACEOF
 #define GTK_SERVER_USE_SSL 1
 _ACEOF
 
-    fi
+
 fi
 
 # Always export local symbols
@@ -4491,14 +4383,15 @@ fi
 
 
 
+
+
 # Define variable for MacOSX
 if test "$darwin" = yes; then
     MACOSX="yes"
-
 else
     MACOSX="no"
-
 fi
+
 
 ac_config_files="$ac_config_files Makefile"
 

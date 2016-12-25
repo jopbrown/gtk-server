@@ -82,7 +82,7 @@ fi
 #-------------------------------------------------------------------------------------------------
 
 # Check availability of Poppler library first
-define AVAIL gtk_server_require "libpoppler-glib.so.8"
+define AVAIL gtk_server_require "libpoppler-glib.so"
 if [[ $AVAIL != "ok" ]]
 then
     echo "Install the poppler libraries from http://poppler.freedesktop.org first, then run this demo again."

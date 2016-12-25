@@ -538,7 +538,7 @@
 #define MAX_LEN 1024
 
 /* how many libs we may open and check */
-#define MAX_LIBS 32
+#define MAX_LIBS 64
 
 /* Define how many arguments may be used in a GTK function */
 #define MAX_ARGS 32
@@ -1052,7 +1052,6 @@ void *search_and_open_lib(char *name)
 
 		buf[len] = '\0';
 		snprintf(suffix, 5, ".%d", j);
-
 		strncat(buf, suffix, 5);
 
 		#if GTK_SERVER_FFI || GTK_SERVER_FFCALL

@@ -22,21 +22,6 @@
 /* Define NOSNPRINTF when 'snprintf' is not available */
 #undef GTK_SERVER_NOSNPRINTF 
 
-/* Define GTK1 when linking with GTK1.x */
-#undef GTK_SERVER_GTK1x
-
-/* Define GTK2 when linking with GTK2.x */
-#undef GTK_SERVER_GTK2x
-
-/* Define GTK3 when linking with GTK3.x */
-#undef GTK_SERVER_GTK3x
-
-/* Define XForms when using the XForms backend */
-#undef GTK_SERVER_XF
-
-/* Define LIBRARY when compiling as shared object */
-#undef GTK_SERVER_LIBRARY
-
 /* Define SLANG when compiling for S-Lang */
 #undef GTK_SERVER_SLANG
 
