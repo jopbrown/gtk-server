@@ -32,31 +32,31 @@ ps aux | grep -v stop-gtk-server > $PROCESS
 if [ $1 = "fifo" -o $1 = "-fifo" ]
 then
     # Determine FIFO processes
-    GTK=`awk '/gtk-server [-]*fifo/ {print $2}' $PROCESS`
+    GTK=`awk '/gtk-server.*fifo/ {print $2}' $PROCESS`
     # Determine pipe files
-    FILES=`awk '{gsub(/=/, " ")} /gtk-server [-]*fifo/ {print $13}' $PROCESS`
+    FILES=`awk '{gsub(/=/, " ")} /gtk-server.*fifo/ {print $13}' $PROCESS`
 
 # Check on TCP process
 elif [ $1 = "tcp" -o $1 = "-tcp" ]
 then
-    GTK=`awk '/gtk-server [-]*tcp/ {print $2}' $PROCESS`
+    GTK=`awk '/gtk-server.*tcp/ {print $2}' $PROCESS`
 
 # Check on UDP process
 elif [ $1 = "udp" -o $1 = "-udp" ]
 then
-    GTK=`awk '/gtk-server [-]*udp/ {print $2}' $PROCESS`
+    GTK=`awk '/gtk-server.*udp/ {print $2}' $PROCESS`
 
 # Check if we are going to kill STDIN gtk-server processes
 elif [ $1 = "stdin" -o $1 = "-stdin" ]
 then
-    GTK=`awk '/gtk-server [-]*stdin/ {print $2}' $PROCESS`
+    GTK=`awk '/gtk-server.*stdin/ {print $2}' $PROCESS`
 
 # Check if we are going to kill IPC gtk-server processes
 elif [ $1 = "ipc" -o $1 = "-ipc" ]
 then
-    GTK=`awk '/gtk-server [-]*ipc/ {print $2}' $PROCESS`
+    GTK=`awk '/gtk-server.*ipc/ {print $2}' $PROCESS`
     # Determine message queues
-    IPC=`awk '{gsub(/=/, " ")} /gtk-server [-]*ipc/ {print $13}' $PROCESS`
+    IPC=`awk '{gsub(/=/, " ")} /gtk-server.*ipc/ {print $13}' $PROCESS`
 
 # Check if we are going to kill ALL gtk-server processes
 elif [ $1 = "all" -o $1 = "-all" ]
@@ -64,9 +64,9 @@ then
     # Determine processes
     GTK=`awk '/gtk-server / {print $2}' $PROCESS`
     # Determine pipe files
-    FILES=`awk '{gsub(/=/, " ")} /gtk-server [-]*fifo/ {print $13}' $PROCESS`
+    FILES=`awk '{gsub(/=/, " ")} /gtk-server.*fifo/ {print $13}' $PROCESS`
     # Determine message queues
-    IPC=`awk '{gsub(/=/, " ")} /gtk-server [-]*ipc/ {print $13}' $PROCESS`
+    IPC=`awk '{gsub(/=/, " ")} /gtk-server.*ipc/ {print $13}' $PROCESS`
 
 # Check if we are going to kill ALL gtk-server processes
 elif [ $1 = "show" -o $1 = "-show" ]
