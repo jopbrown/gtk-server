@@ -88,6 +88,7 @@ install : $(TARGET) $(SOTARGET)
             /LIBDIR=/ {print "LIBDIR=$(LIBDIR)"} \
             !/BINDIR=|LIBDIR=/ {print} \
 	    ' select-gtk-server > $(BINDIR)/select-gtk-server;
+	@echo "$(INSTALL) select-gtk-server $(BINDIR)";
 	@chmod 755 $(BINDIR)/select-gtk-server;
 	mkdir -p $(SYSCONFIG)
 	@echo -n "Creating configfile... ";
