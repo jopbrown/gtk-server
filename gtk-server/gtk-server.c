@@ -5180,6 +5180,9 @@ while (fgets (line, MAX_LEN, configfile) != NULL){
 	    while((cache = strtok(NULL, ",")) != NULL && lib_counter < MAX_LIBS){
 		libs[lib_counter] = strdup(Trim_String(cache));
 		lib_counter++;
+                if(lib_counter >= MAX_LIBS){
+		    Print_Error("%s%d%s%d", 4, "\nERROR: Maximum amount of ", MAX_LIBS, " libraries reached at line: ", count_line);
+                }
 	    }
 	    libs[lib_counter] = NULL;
 	}
