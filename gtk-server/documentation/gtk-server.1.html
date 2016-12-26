@@ -501,6 +501,14 @@ For XForms it is necessary to connect at least the 'KeyPressMask' event mask to 
 the X header files. If the 'KeyPressMask' has a value of 1, it should be connected as follows:
 <P>
 gtk_server_connect &lt;formID&gt; 1
+<DT><B>gtk_server_cfg</B>
+
+<DD>
+When the GTK-server is compiled as a library, then this command can set the location of the log file and other options. Example:
+<P>
+<BR>
+
+gtk_server_cfg -log=/tm/gtk-server.log -post=.
 <DT><B>gtk_server_state</B>
 
 <DD>
@@ -583,6 +591,6 @@ the sourcepackage for credits.
 This document was created by
 <A HREF="/cgi-bin/man/man2html">man2html</A>,
 using the manual pages.<BR>
-Time: 21:23:33 GMT, December 24, 2016
+Time: 08:48:26 GMT, December 26, 2016
 </BODY>
 </HTML>
