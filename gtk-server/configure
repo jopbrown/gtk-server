@@ -681,6 +681,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -703,6 +704,11 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+with_gtk1
+with_gtk2
+with_gtk3
+with_xforms
+with_console
 with_ffi
 with_ffcall
 with_cinv
@@ -761,6 +767,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1013,6 +1020,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1150,7 +1166,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1303,6 +1319,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1345,6 +1362,11 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-gtk1             force compilation with GTK1.x (default: GUESS)
+  --with-gtk2             force compilation with GTK2.x (default: GUESS)
+  --with-gtk3             force compilation with GTK3.x (default: GUESS)
+  --with-xforms           force compilation with XForms (default: GUESS)
+  --with-console          force compilation for console (default: GUESS)
   --with-ffi              force compilation with libffi (default: GUESS)
   --with-ffcall           force compilation with libffcall (default: GUESS)
   --with-cinv             force compilation with c/invoke (default: GUESS)
@@ -3410,8 +3432,54 @@ if test "PKGCONFIG_CONFIG" = "no"; then
     as_fn_error $? "Cannot compile - please install the pkg-config package from http://www.freedesktop.org/software/pkgconfig/" "$LINENO" 5
 fi
 
-# Guess all toolkits.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk-3" >&5
+# Check parameter: force compilation for GTK1?
+
+# Check whether --with-gtk1 was given.
+if test "${with_gtk1+set}" = set; then :
+  withval=$with_gtk1; LIBS="`pkg-config --libs gtk+`"
+	CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes gtk2x=no gtk3x=no xf=no console=no
+fi
+
+
+# Check parameter: force compilation for GTK2?
+
+# Check whether --with-gtk2 was given.
+if test "${with_gtk2+set}" = set; then :
+  withval=$with_gtk2; LIBS="`pkg-config --libs gtk+-2.0`"
+	 CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk1x=no gtk2x=yes gtk3x=no xf=no console=no
+fi
+
+
+# Check parameter: force compilation for GTK3?
+
+# Check whether --with-gtk3 was given.
+if test "${with_gtk3+set}" = set; then :
+  withval=$with_gtk3; LIBS="`pkg-config --libs gtk+-3.0`"
+	 CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk1x=no gtk2x=no gtk3x=yes xf=no console=no
+fi
+
+
+# Check parameter: force compilation for XForms?
+
+# Check whether --with-xforms was given.
+if test "${with_xforms+set}" = set; then :
+  withval=$with_xforms; LIBS="-L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lforms -lm"
+	    CFLAGS="-I/usr/X11R6/include/X11" gtk1x=no gtk2x=no gtk3x=no xf=yes console=no
+fi
+
+
+# Check parameter: force compilation for console?
+
+# Check whether --with-console was given.
+if test "${with_console+set}" = set; then :
+  withval=$with_console; CFLAGS="" gtk1x=no gtk2x=no gtk3x=no xf=no console=yes
+fi
+
+
+# Guess all toolkits if none was provided
+if test "$console" != yes -a "$xf" != yes -a "$gtk1x" != yes -a "$gtk2x" != yes -a "$gtk3x" != yes
+then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk-3" >&5
 $as_echo_n "checking for gtk_init in -lgtk-3... " >&6; }
 if ${ac_cv_lib_gtk_3_gtk_init+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -3449,11 +3517,11 @@ fi
 $as_echo "$ac_cv_lib_gtk_3_gtk_init" >&6; }
 if test "x$ac_cv_lib_gtk_3_gtk_init" = xyes; then :
   GTK3_LIBS="`pkg-config --libs gtk+-3.0`"
-    GTK3_CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk3x=yes
+	GTK3_CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk3x=yes
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk-x11-2.0" >&5
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk-x11-2.0" >&5
 $as_echo_n "checking for gtk_init in -lgtk-x11-2.0... " >&6; }
 if ${ac_cv_lib_gtk_x11_2_0_gtk_init+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -3491,11 +3559,11 @@ fi
 $as_echo "$ac_cv_lib_gtk_x11_2_0_gtk_init" >&6; }
 if test "x$ac_cv_lib_gtk_x11_2_0_gtk_init" = xyes; then :
   GTK2_LIBS="`pkg-config --libs gtk+-2.0`"
-    GTK2_CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk2x=yes
+	GTK2_CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk2x=yes
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk" >&5
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk" >&5
 $as_echo_n "checking for gtk_init in -lgtk... " >&6; }
 if ${ac_cv_lib_gtk_gtk_init+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -3533,11 +3601,11 @@ fi
 $as_echo "$ac_cv_lib_gtk_gtk_init" >&6; }
 if test "x$ac_cv_lib_gtk_gtk_init" = xyes; then :
   GTK1_LIBS="`pkg-config --libs gtk+`"
-    GTK1_CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes
+        GTK1_CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for fl_initialize in -lforms" >&5
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for fl_initialize in -lforms" >&5
 $as_echo_n "checking for fl_initialize in -lforms... " >&6; }
 if ${ac_cv_lib_forms_fl_initialize+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -3575,11 +3643,11 @@ fi
 $as_echo "$ac_cv_lib_forms_fl_initialize" >&6; }
 if test "x$ac_cv_lib_forms_fl_initialize" = xyes; then :
   XF_LIBS="-L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lforms -lm"
-    XF_CFLAGS="-I/usr/X11R6/include/X11" xf=yes
+        XF_CFLAGS="-I/usr/X11R6/include/X11" xf=yes
 fi
 
-
-console=yes
+    console=yes
+fi
 
 # Unquote the correct stuff
 if test "$console" = yes; then
