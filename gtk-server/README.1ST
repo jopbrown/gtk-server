@@ -14,6 +14,8 @@ demonstration programs for details.
 Force compilation with GTK
 ----------------------------------------------------------
 
+To compile, change to the 'src' subdirectory first.
+
 If you have trouble detecting GTK3 with './configure', please try
 to run the './configure'-script with the following option:
 

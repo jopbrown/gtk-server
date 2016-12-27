@@ -107,9 +107,9 @@ install : $(TARGET) $(SOTARGET)
 	fi;
 	@echo "done.";
 	mkdir -p $(MANDIR)/man1
-	$(INSTALL) -m 644 documentation/gtk-server.1 $(MANDIR)/man1
-	$(INSTALL) -m 644 documentation/gtk-server.cfg.1 $(MANDIR)/man1
-	$(INSTALL) -m 644 documentation/stop-gtk-server.1 $(MANDIR)/man1
+	$(INSTALL) -m 644 ../documentation/gtk-server.1 $(MANDIR)/man1
+	$(INSTALL) -m 644 ../documentation/gtk-server.cfg.1 $(MANDIR)/man1
+	$(INSTALL) -m 644 ../documentation/stop-gtk-server.1 $(MANDIR)/man1
 	@if [ $(DEFAULT) -eq "2" ]; then \
 	    echo "Installing Kornshell module..."; \
 	    mkdir -p $(LIBDIR); \
