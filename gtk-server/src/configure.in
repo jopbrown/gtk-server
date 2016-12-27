@@ -99,31 +99,31 @@ fi
 # Check parameter: force compilation for GTK1?
 AC_ARG_WITH(gtk1,
     [AC_HELP_STRING([--with-gtk1], [force compilation with GTK1.x (default: GUESS)])],
-	[LIBS="`pkg-config --libs gtk+`"
-	CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes gtk2x=no gtk3x=no xf=no console=no])
+	[GTK1_LIBS="`pkg-config --libs gtk+`"
+	GTK1_CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes gtk2x=no gtk3x=no xf=no console=no])
 
 # Check parameter: force compilation for GTK2?
 AC_ARG_WITH(gtk2,
     [AC_HELP_STRING([--with-gtk2], [force compilation with GTK2.x (default: GUESS)])],
-	[LIBS="`pkg-config --libs gtk+-2.0`"
-	 CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk1x=no gtk2x=yes gtk3x=no xf=no console=no])
+	[GTK2_LIBS="`pkg-config --libs gtk+-2.0`"
+	 GTK2_CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk1x=no gtk2x=yes gtk3x=no xf=no console=no])
 
 # Check parameter: force compilation for GTK3?
 AC_ARG_WITH(gtk3,
     [AC_HELP_STRING([--with-gtk3], [force compilation with GTK3.x (default: GUESS)])],
-	[LIBS="`pkg-config --libs gtk+-3.0`"
-	 CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk1x=no gtk2x=no gtk3x=yes xf=no console=no])
+	[GTK3_LIBS="`pkg-config --libs gtk+-3.0`"
+	 GTK3_CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk1x=no gtk2x=no gtk3x=yes xf=no console=no])
 
 # Check parameter: force compilation for XForms?
 AC_ARG_WITH(xforms,
     [AC_HELP_STRING([--with-xforms], [force compilation with XForms (default: GUESS)])],
-	[LIBS="-L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lforms -lm"
-	    CFLAGS="-I/usr/X11R6/include/X11" gtk1x=no gtk2x=no gtk3x=no xf=yes console=no])
+	[XF_LIBS="-L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lforms -lm"
+	 XF_CFLAGS="-I/usr/X11R6/include/X11" gtk1x=no gtk2x=no gtk3x=no xf=yes console=no])
 
 # Check parameter: force compilation for console?
 AC_ARG_WITH(console,
     [AC_HELP_STRING([--with-console], [force compilation for console (default: GUESS)])],
-	    [CFLAGS="" gtk1x=no gtk2x=no gtk3x=no xf=no console=yes])
+    [CFLAGS="" gtk1x=no gtk2x=no gtk3x=no xf=no console=yes])
 
 # Guess all toolkits if none was provided
 if test "$console" != yes -a "$xf" != yes -a "$gtk1x" != yes -a "$gtk2x" != yes -a "$gtk3x" != yes

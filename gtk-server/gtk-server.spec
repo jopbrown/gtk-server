@@ -1,8 +1,8 @@
 Summary: the GTK-server - Interpreted GUI Programming
 Name: gtk-server
-Version: 2.4
+Version: 2.4.1
 Release: 1
-Source: gtk-server-2.4.tar.gz
+Source: gtk-server-2.4.1.tar.gz
 URL: http://www.gtk-server.org/
 Copyright: GPL
 Packager: Peter van Eerten <peter AT gtk-server DOT org>
@@ -20,20 +20,22 @@ languages.
 %setup
 
 %build
-./build
+cd
+./configure --with-gtk3
+make
 
 %install
 mkdir -p $RPM_BUILD_ROOT/usr/bin
-install -s -m 755 gtk-server $RPM_BUILD_ROOT/usr/bin/gtk-server
-install -m 755 stop-gtk-server $RPM_BUILD_ROOT/usr/bin/stop-gtk-server
+install -s -m 755 src/gtk-server-gtk3 $RPM_BUILD_ROOT/usr/bin/gtk-server
+install -m 755 src/stop-gtk-server $RPM_BUILD_ROOT/usr/bin/stop-gtk-server
 mkdir -p $RPM_BUILD_ROOT/usr/lib
-install -s -m 755 libgtk-server.so $RPM_BUILD_ROOT/usr/bin/libgtk-server.so
+install -s -m 755 src/libgtk-server-gtk3.so $RPM_BUILD_ROOT/usr/bin/libgtk-server.so
 mkdir -p $RPM_BUILD_ROOT/etc
-install -m 644 gtk-server.cfg $RPM_BUILD_ROOT/etc/gtk-server.cfg
+install -m 644 src/gtk-server.cfg $RPM_BUILD_ROOT/etc/gtk-server.cfg
 mkdir -p $RPM_BUILD_ROOT/usr/man/man1
-install -m 644 docs/gtk-server.1 $RPM_BUILD_ROOT/usr/man/man1/gtk-server.1
-install -m 644 docs/gtk-server.cfg.1 $RPM_BUILD_ROOT/usr/man/man1/gtk-server.cfg.1
-install -m 644 docs/stop-gtk-server.1 $RPM_BUILD_ROOT/usr/man/man1/stop-gtk-server.1
+install -m 644 documentation/gtk-server.1 $RPM_BUILD_ROOT/usr/man/man1/gtk-server.1
+install -m 644 documentation/gtk-server.cfg.1 $RPM_BUILD_ROOT/usr/man/man1/gtk-server.cfg.1
+install -m 644 documentation/stop-gtk-server.1 $RPM_BUILD_ROOT/usr/man/man1/stop-gtk-server.1
 rm -rf $RPM_BUILD_ROOT
 
 %post
@@ -43,7 +45,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc CREDITS README.1ST INSTALL demo/* docs/*
+%doc CREDITS README.1ST INSTALL documentation/*
 %config /etc/gtk-server.cfg
 
 /usr/bin/gtk-server
