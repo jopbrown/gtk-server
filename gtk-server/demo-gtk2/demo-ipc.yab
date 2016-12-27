@@ -19,7 +19,7 @@ END SUB
 REM ************* MAIN program starts here
 
 REM Start the GTK-server
-SYSTEM("gtk-server -ipc=1 &")
+SYSTEM("gtk-server -ipc=1 -detach")
 
 REM Setup GUI
 GTK$("gtk_init NULL NULL")

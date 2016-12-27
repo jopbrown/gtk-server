@@ -8,6 +8,7 @@
 # Revised for GTK-server 1.3 December 5, 2004
 # Revised for GTK-server 2.1.4 at April 22, 2007
 # Revised for newLisp 10 at december 21, 2008 - PvE.
+# Tested with GTK-server 2.4.1 in december 2016 - PvE
 #------------------------------------------------
 
 # Define communication function
@@ -17,8 +18,7 @@
     tmp)
 
 # Start the gtk-server
-(! "gtk-server -tcp=localhost:50001 &")
-(sleep 500)
+(! "gtk-server -tcp=localhost:50001 -detach")
 
 # Connect to the GTK-server
 (set 'socket (net-connect "localhost" 50001))

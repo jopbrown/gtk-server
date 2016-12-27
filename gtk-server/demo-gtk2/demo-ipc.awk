@@ -4,6 +4,7 @@
 # Tested with Gnu AWK 3.1.5 on Zenwalk Linux 4.2.
 #
 # March 19, 2007 by Peter van Eerten.
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #------------------------------------------------
 
 function GTK(str)
@@ -16,7 +17,7 @@ function GTK(str)
 
 BEGIN{
     # Start GTK-server in IPC mode, use PID as unique number
-    system("gtk-server ipc="PROCINFO["pid"])
+    system("gtk-server -detach -ipc="PROCINFO["pid"])
 
     # Design GUI
     GTK("gtk_init NULL NULL")

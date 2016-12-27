@@ -9,6 +9,7 @@
 # Revised for GTK-server 1.3 December 5, 2004 by PvE.
 # Revised for GTK-server 2.1.4 at April 22, 2007 - PvE.
 # Revised for newLisp 10 at december 21, 2008 - PvE.
+# Tested with GTK-server 2.4.1 and newLisp 10.7.0 in december 2016 - PvE
 #------------------------------------------------
 
 (context 'GTK)
@@ -23,8 +24,7 @@
 
 # Start the gtk-server
 (define (start)
-    (! "gtk-server -udp=localhost:50001 &")
-    (sleep 1000)
+    (! "gtk-server -udp=localhost:50001 -detach")
     (set 'socket (net-listen 50002 "localhost" "udp")))
 
 # Stop the GTK-server

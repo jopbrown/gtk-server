@@ -5,6 +5,7 @@
 #
 # January 7, 2007 - GTK program by Peter van Eerten.
 # Revised for newLisp 10 at december 21, 2008 - PvE.
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #------------------------------------------------------------------
 
 # Define communication function
@@ -14,7 +15,7 @@
 )
 
 # Setup gtk-server with IPC
-(! "gtk-server -ipc=1 -log=/tmp/gtk-server.log &")
+(! "gtk-server -ipc=1 -log=/tmp/gtk-server.log -detach")
 
 # Connect to the GTK-server
 (gtk "gtk_init NULL NULL")

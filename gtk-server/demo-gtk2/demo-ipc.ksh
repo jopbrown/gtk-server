@@ -6,19 +6,18 @@
 #
 # Tested with GTK-server 2.4 in december 2016 - PvE
 #
-# As unique communication channel the current PID
-# number '$$' is used.
+# As unique communication channel the current PID number '$$' is used.
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #----------------------------------------------------------------
 
 # Communication function; $@ contains the string to be sent
 function gtk
 {
-RESULT=`gtk-server msg=$$,"$@"`
+RESULT=$(gtk-server msg=$$,"$@")
 }
 
 # Start GTK-server in IPC mode
-gtk-server -ipc=$$ -log=/tmp/gtk-server.log &
-sleep 1
+gtk-server -detach -ipc=$$ -log=/tmp/gtk-server.log
 
 # Define GUI
 gtk "gtk_init NULL NULL"
@@ -57,4 +56,4 @@ do
 done
 
 # Exit GTK
-gtk "gtk_exit 0"
+gtk "gtk_server_exit"

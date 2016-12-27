@@ -11,6 +11,7 @@
 # Revised at january 15, 2007 - PvE.
 # Revised at april 22, 2008 - PvE.
 # Revised for newLisp 10 at december 21, 2008 - PvE.
+# Tested with GTK-server 2.4.1 in december 2016 - PvE
 #------------------------------------------------------------------
 
 # Define communication function
@@ -21,7 +22,7 @@
 # Setup gtk-server
 (map set '(myin gtkout) (pipe))
 (map set '(gtkin myout) (pipe))
-(process "/usr/bin/gtk-server -stdin" gtkin gtkout)
+(process "/usr/local/bin/gtk-server -stdin" gtkin gtkout)
 
 # Connect to the GTK-server
 (gtk "gtk_init NULL NULL")

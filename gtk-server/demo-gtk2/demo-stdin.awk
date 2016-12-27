@@ -6,6 +6,7 @@
 # September 27, 2003 by Peter van Eerten.
 # Revised for GTK-server 1.2 October 7, 2004
 # Revised for GTK-server 1.3 December 4, 2004
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #------------------------------------------------
 
 function GTK(str)

@@ -5,6 +5,7 @@
 # Tested with Tcl 8.4.6 on Slackware Linux 10.1
 #
 # Feb 27, 2005 - PvE.
+# Tested with GTK-server 2.4.1 in december 2016 - PvE
 #---------------------------------------------------
 
 # GTK communication function
@@ -44,7 +45,7 @@ while { $event != $but & $event != $win} {
 }
 
 # Exit GTK-server
-gtk "gtk_exit 0"
+gtk "gtk_server_exit"
 
 # Close pipe
 close $IO

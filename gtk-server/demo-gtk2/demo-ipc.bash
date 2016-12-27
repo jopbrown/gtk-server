@@ -4,22 +4,22 @@
 #
 # November 12, 2006 - (c) Peter van Eerten
 #
-# As unique communication channel the current PID
-# number '$$' is used.
+# As unique communication channel the current PID number '$$' is used.
+#
 # Adjusted with demonstrations for GTK-server 2.2.1
 #   at october 15, 2007 - PvE.
 # Optimized code at april 26, 2008 - PvE.
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #-------------------------------------------------
 
 # Communication function; assignment function
-function gtk() { GTK=`gtk-server msg=$$,"$@"`; }
+function gtk() { GTK=`gtk-server -msg=$$,"$@"`; }
 function define() { $2 "$3"; eval $1=$GTK; }
 
 #------------------------ Main starts here
 
 # Start gtk-server in IPC mode
-gtk-server -ipc=$$ -log=/tmp/$0.log &
-sleep 1
+gtk-server -detach -ipc=$$ -log=/tmp/$0.log
 
 # Setup GUI
 gtk "gtk_init NULL NULL"

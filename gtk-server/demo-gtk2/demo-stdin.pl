@@ -5,6 +5,7 @@
 # Reported by Scott Crittenden to work on Win32 as well (28/4/2005).
 #
 # February 23, 2005 by Peter van Eerten
+# Tested with GTK-server 2.4 in december 2016 - PvE
 #---------------------------------------
 
 # Communicate with GTK-server

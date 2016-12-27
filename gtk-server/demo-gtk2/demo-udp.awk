@@ -8,6 +8,7 @@
 # Revised for GTK-server 1.3 December 5, 2004 by PvE.
 # Revised for GTK-server 2.1.4 at April 22, 2007 - PvE.
 # Revised for GTK-server 2.3.1 to use handles at December 10, 2008 - PvE.
+# Tested with GTK-server 2.4.1 in december 2016 - PvE
 #
 #----------------------------------------------------------------------
 # 
@@ -20,6 +21,7 @@ HANDLE+=1
 
 do {
     print HANDLE, str |& UDP
+    if(str == "gtk_server_exit") exit
     UDP |& getline TMP
 } while (int(substr(TMP, 1, index(TMP, " "))) != HANDLE)
 
@@ -29,7 +31,7 @@ return substr(TMP, index(TMP, " ")+1)
 #----------------------------------------------------------------------
 
 BEGIN{
-system("gtk-server -udp=localhost:50002 -handle &")
+system("gtk-server -udp=localhost:50002 -handle -detach -log=/tmp/gtk-server.log")
 
 # Setup TCP socket to server
 UDP = "/inet/udp/0/localhost/50002"
@@ -72,6 +74,5 @@ do {
 } while (EVENT != BUTTON1)
 
 # Exit GTK
-print "gtk_server_exit" |& UDP
-close(UDP)
+GTK("gtk_server_exit")
 }

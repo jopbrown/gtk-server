@@ -7,10 +7,11 @@
 # Revised for GTK-server 1.2 October 7, 2004
 # Revised for GTK-server 1.3 December 5, 2004
 # Revised for GTK-server 2.1.4 at April 22, 2007
+# Tested with GTK-server 2.4.1 in december 2016 - PvE
 #------------------------------------------------
 
 BEGIN{
-system("gtk-server -tcp=localhost:50001 -log=/tmp/log.txt &")
+system("gtk-server -tcp=localhost:50001 -log=/tmp/log.txt -detach")
 # Setup TCP socket to server
 GTK = "/inet/tcp/0/localhost/50001"
 # Now define the GUI
