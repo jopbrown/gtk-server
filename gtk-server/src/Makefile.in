@@ -70,40 +70,34 @@ gtk-server.exe : $(OBJS)
 	$(STRIP) $@
 
 install : $(TARGET) $(SOTARGET)
-	@if [ $(DEFAULT) -eq "1" ]; then \
-	    mkdir -p $(BINDIR); \
-	    $(INSTALL) $(TARGET) $(BINDIR); \
-	    echo "mkdir -p $(BINDIR)"; \
-	    echo "$(INSTALL) $(TARGET) $(BINDIR)"; \
-	    mkdir -p $(LIBDIR); \
-	    $(INSTALL) $(SOTARGET) $(LIBDIR); \
-	    echo "mkdir -p $(LIBDIR)"; \
-	    echo "$(INSTALL) $(SOTARGET) $(LIBDIR)"; \
-	fi;
-	@ln -sf $(BINDIR)/$(LINK) $(BINDIR)/gtk-server
-	@ln -sf $(LIBDIR)/$(SOLINK) $(LIBDIR)/libgtk-server.so
+	mkdir -p $(BINDIR)
+	$(INSTALL) $(TARGET) $(BINDIR)
+	mkdir -p $(LIBDIR)
+	$(INSTALL) $(SOTARGET) $(LIBDIR)
+	ln -sf $(BINDIR)/$(LINK) $(BINDIR)/gtk-server
+	ln -sf $(LIBDIR)/$(SOLINK) $(LIBDIR)/libgtk-server.so
 	$(INSTALL) stop-gtk-server $(BINDIR)
 	@awk ' \
             /BINDIR=/ {print "BINDIR=$(BINDIR)"} \
             /LIBDIR=/ {print "LIBDIR=$(LIBDIR)"} \
             !/BINDIR=|LIBDIR=/ {print} \
-	    ' select-gtk-server > $(BINDIR)/select-gtk-server;
-	@echo "$(INSTALL) select-gtk-server $(BINDIR)";
-	@chmod 755 $(BINDIR)/select-gtk-server;
+	    ' select-gtk-server > $(BINDIR)/select-gtk-server
+	@echo "$(INSTALL) select-gtk-server $(BINDIR)"
+	@chmod 755 $(BINDIR)/select-gtk-server
 	mkdir -p $(SYSCONFIG)
-	@echo -n "Creating configfile... ";
-	@echo > $(SYSCONFIG)/gtk-server.cfg;
+	@echo -n "Creating GTK-server configfile... "
+	@echo > $(SYSCONFIG)/gtk-server.cfg
 	@if [ $(MACOSX) = "no" ]; then \
-	    awk ' \
+		awk ' \
 		/LIB_NAME.*so/ {print substr($$0, 3)} \
 		!/LIB_NAME/ {print} \
-	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
+		' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
 	fi;
 	@if [ $(MACOSX) = "yes" ]; then \
-	    awk ' \
+		awk ' \
 		/LIB_NAME.*dylib/ {print substr($$0, 3)} \
 		!/LIB_NAME/ {print} \
-	    ' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
+		' gtk-server.cfg > $(SYSCONFIG)/gtk-server.cfg; \
 	fi;
 	@echo "done.";
 	mkdir -p $(MANDIR)/man1
@@ -111,33 +105,23 @@ install : $(TARGET) $(SOTARGET)
 	$(INSTALL) -m 644 ../documentation/gtk-server.cfg.1 $(MANDIR)/man1
 	$(INSTALL) -m 644 ../documentation/stop-gtk-server.1 $(MANDIR)/man1
 	@if [ $(DEFAULT) -eq "3" ]; then \
-	    echo -n "Installing S-Lang module... "; \
-	    ln -sf $(LIBDIR)/$(SOLINK) $(LIBDIR)/gtk-module.so \
-	    echo "done.";
+		echo -n "Installing S-Lang module... "; \
+		ln -sf $(LIBDIR)/$(SOLINK) $(LIBDIR)/gtk-module.so \
+		echo "done."; \
 	fi;
 	@if [ $(DEFAULT) -eq "4" ]; then \
-	    echo -n "Installing Scriptbasic module... "; \
-	    ln -sf $(LIBDIR)/$(SOLINK) $(LIBDIR)/gtk-server.so; \
-	    mkdir -p $(INCL); \
-	    cp ../scriptbasic/gtk.bas $(INCL)/gtk.bas; \
-	    echo "done.";
+		echo -n "Installing Scriptbasic module... "; \
+		ln -sf $(LIBDIR)/$(SOLINK) $(LIBDIR)/gtk-server.so; \
+		mkdir -p $(INCL); \
+		cp ../scriptbasic/gtk.bas $(INCL)/gtk.bas; \
+		echo "done."; \
 	fi
 
 uninstall:
-	@if [ $(DEFAULT) -eq "1" ]; then \
-                cd $(BINDIR); \
-		rm -f $(TARGET); \
-                echo "cd $(BINDIR);" \
-		echo "rm -f $(TARGET)"; \
-                cd $(LIBDIR); \
-		rm -f $(SOTARGET); \
-                echo "cd $(LIBDIR);" \
-		echo "rm -f $(LIBDIR)/$(SOTARGET)"; \
-	fi;
-	@if [ $(DEFAULT) -eq "2" ]; then \
-		rm -f $(LIBDIR)/$(TARGET); \
-		echo "rm -f $(LIBDIR)/$(TARGET)"; \
-	fi;
+	cd $(BINDIR); \
+	rm -f $(TARGET)
+	cd $(LIBDIR); \
+	rm -f $(SOTARGET)
 	rm -f $(SYSCONFIG)/gtk-server.cfg
 	rm -f $(BINDIR)/stop-gtk-server
 	rm -f $(BINDIR)/select-gtk-server
