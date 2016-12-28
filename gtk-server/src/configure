@@ -3253,12 +3253,33 @@ if test "$solaris" = yes; then
     CFLAGS="-fPIC"
 fi
 
-# Checks for typedefs, structures, and compiler characteristics.
-#to be done: AC_C_CONST
-
 # Checks for library functions.
-#to be done: AC_FUNC_FORK
-#to be done: AC_FUNC_MALLOC
+
+for ac_func in malloc
+do :
+  ac_fn_c_check_func "$LINENO" "malloc" "ac_cv_func_malloc"
+if test "x$ac_cv_func_malloc" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MALLOC 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: malloc" "$LINENO" 5
+fi
+done
+
+for ac_func in memcpy
+do :
+  ac_fn_c_check_func "$LINENO" "memcpy" "ac_cv_func_memcpy"
+if test "x$ac_cv_func_memcpy" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MEMCPY 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: memcpy" "$LINENO" 5
+fi
+done
 
 for ac_func in memset
 do :
@@ -3273,6 +3294,19 @@ else
 fi
 done
 
+for ac_func in realloc
+do :
+  ac_fn_c_check_func "$LINENO" "realloc" "ac_cv_func_realloc"
+if test "x$ac_cv_func_realloc" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_REALLOC 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: realloc" "$LINENO" 5
+fi
+done
+
 for ac_func in setlocale
 do :
   ac_fn_c_check_func "$LINENO" "setlocale" "ac_cv_func_setlocale"
@@ -3283,19 +3317,6 @@ _ACEOF
 
 else
   as_fn_error $? "Cannot compile - missing function: setlocale" "$LINENO" 5
-fi
-done
-
-for ac_func in strstr
-do :
-  ac_fn_c_check_func "$LINENO" "strstr" "ac_cv_func_strstr"
-if test "x$ac_cv_func_strstr" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_STRSTR 1
-_ACEOF
-
-else
-  as_fn_error $? "Cannot compile - missing function: strstr" "$LINENO" 5
 fi
 done
 
@@ -3315,10 +3336,140 @@ _ACEOF
 fi
 done
 
+for ac_func in strcat
+do :
+  ac_fn_c_check_func "$LINENO" "strcat" "ac_cv_func_strcat"
+if test "x$ac_cv_func_strcat" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRCAT 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: strcat" "$LINENO" 5
+fi
+done
+
+for ac_func in strcmp
+do :
+  ac_fn_c_check_func "$LINENO" "strcmp" "ac_cv_func_strcmp"
+if test "x$ac_cv_func_strcmp" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRCMP 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: strcmp" "$LINENO" 5
+fi
+done
+
+for ac_func in strcpy
+do :
+  ac_fn_c_check_func "$LINENO" "strcpy" "ac_cv_func_strcpy"
+if test "x$ac_cv_func_strcpy" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRCPY 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: strcpy" "$LINENO" 5
+fi
+done
+
+for ac_func in strncmp
+do :
+  ac_fn_c_check_func "$LINENO" "strncmp" "ac_cv_func_strncmp"
+if test "x$ac_cv_func_strncmp" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRNCMP 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: strncmp" "$LINENO" 5
+fi
+done
+
+for ac_func in strstr
+do :
+  ac_fn_c_check_func "$LINENO" "strstr" "ac_cv_func_strstr"
+if test "x$ac_cv_func_strstr" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRSTR 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: strstr" "$LINENO" 5
+fi
+done
+
+for ac_func in strtok
+do :
+  ac_fn_c_check_func "$LINENO" "strtok" "ac_cv_func_strtok"
+if test "x$ac_cv_func_strtok" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRTOK 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: strtok" "$LINENO" 5
+fi
+done
+
 
 # Check for crucial libc functions
 if test "$unix" = yes
 then
+    for ac_func in atexit
+do :
+  ac_fn_c_check_func "$LINENO" "atexit" "ac_cv_func_atexit"
+if test "x$ac_cv_func_atexit" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ATEXIT 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: atexit" "$LINENO" 5
+fi
+done
+
+    for ac_func in bind
+do :
+  ac_fn_c_check_func "$LINENO" "bind" "ac_cv_func_bind"
+if test "x$ac_cv_func_bind" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_BIND 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: bind" "$LINENO" 5
+fi
+done
+
+    for ac_func in connect
+do :
+  ac_fn_c_check_func "$LINENO" "connect" "ac_cv_func_connect"
+if test "x$ac_cv_func_connect" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CONNECT 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: connect" "$LINENO" 5
+fi
+done
+
+    for ac_func in fork
+do :
+  ac_fn_c_check_func "$LINENO" "fork" "ac_cv_func_fork"
+if test "x$ac_cv_func_fork" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_FORK 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: fork" "$LINENO" 5
+fi
+done
+
     for ac_func in gethostbyname
 do :
   ac_fn_c_check_func "$LINENO" "gethostbyname" "ac_cv_func_gethostbyname"
@@ -3332,42 +3483,29 @@ else
 fi
 done
 
-    for ac_func in mkfifo
+    for ac_func in getpid
 do :
-  ac_fn_c_check_func "$LINENO" "mkfifo" "ac_cv_func_mkfifo"
-if test "x$ac_cv_func_mkfifo" = xyes; then :
+  ac_fn_c_check_func "$LINENO" "getpid" "ac_cv_func_getpid"
+if test "x$ac_cv_func_getpid" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_MKFIFO 1
+#define HAVE_GETPID 1
 _ACEOF
 
 else
-  as_fn_error $? "Cannot compile - missing function: mkfifo" "$LINENO" 5
+  as_fn_error $? "Cannot compile - missing function: getpid" "$LINENO" 5
 fi
 done
 
-    for ac_func in socket
+    for ac_func in getsockopt
 do :
-  ac_fn_c_check_func "$LINENO" "socket" "ac_cv_func_socket"
-if test "x$ac_cv_func_socket" = xyes; then :
+  ac_fn_c_check_func "$LINENO" "getsockopt" "ac_cv_func_getsockopt"
+if test "x$ac_cv_func_getsockopt" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_SOCKET 1
+#define HAVE_GETSOCKOPT 1
 _ACEOF
 
 else
-  as_fn_error $? "Cannot compile - missing function: socket" "$LINENO" 5
-fi
-done
-
-    for ac_func in atexit
-do :
-  ac_fn_c_check_func "$LINENO" "atexit" "ac_cv_func_atexit"
-if test "x$ac_cv_func_atexit" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_ATEXIT 1
-_ACEOF
-
-else
-  as_fn_error $? "Cannot compile - missing function: atexit" "$LINENO" 5
+  as_fn_error $? "Cannot compile - missing function: getsockopt" "$LINENO" 5
 fi
 done
 
@@ -3384,7 +3522,216 @@ else
 fi
 done
 
+    for ac_func in mkfifo
+do :
+  ac_fn_c_check_func "$LINENO" "mkfifo" "ac_cv_func_mkfifo"
+if test "x$ac_cv_func_mkfifo" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MKFIFO 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: mkfifo" "$LINENO" 5
 fi
+done
+
+    for ac_func in msgctl
+do :
+  ac_fn_c_check_func "$LINENO" "msgctl" "ac_cv_func_msgctl"
+if test "x$ac_cv_func_msgctl" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MSGCTL 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: msgctl" "$LINENO" 5
+fi
+done
+
+    for ac_func in msgget
+do :
+  ac_fn_c_check_func "$LINENO" "msgget" "ac_cv_func_msgget"
+if test "x$ac_cv_func_msgget" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MSGGET 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: msgget" "$LINENO" 5
+fi
+done
+
+    for ac_func in msgrcv
+do :
+  ac_fn_c_check_func "$LINENO" "msgrcv" "ac_cv_func_msgrcv"
+if test "x$ac_cv_func_msgrcv" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MSGRCV 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: msgrcv" "$LINENO" 5
+fi
+done
+
+    for ac_func in recv
+do :
+  ac_fn_c_check_func "$LINENO" "recv" "ac_cv_func_recv"
+if test "x$ac_cv_func_recv" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_RECV 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: recv" "$LINENO" 5
+fi
+done
+
+    for ac_func in setsockopt
+do :
+  ac_fn_c_check_func "$LINENO" "setsockopt" "ac_cv_func_setsockopt"
+if test "x$ac_cv_func_setsockopt" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SETSOCKOPT 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: setsockopt" "$LINENO" 5
+fi
+done
+
+    for ac_func in socket
+do :
+  ac_fn_c_check_func "$LINENO" "socket" "ac_cv_func_socket"
+if test "x$ac_cv_func_socket" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SOCKET 1
+_ACEOF
+
+else
+  as_fn_error $? "Cannot compile - missing function: socket" "$LINENO" 5
+fi
+done
+
+fi
+
+# Search for dl
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing dlopen" >&5
+$as_echo_n "checking for library containing dlopen... " >&6; }
+if ${ac_cv_search_dlopen+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dlopen ();
+int
+main ()
+{
+return dlopen ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' dl; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_dlopen=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_dlopen+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_dlopen+:} false; then :
+
+else
+  ac_cv_search_dlopen=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_dlopen" >&5
+$as_echo "$ac_cv_search_dlopen" >&6; }
+ac_res=$ac_cv_search_dlopen
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  as_fn_error $? "Cannot compile - missing library: dl" "$LINENO" 5
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing dlsym" >&5
+$as_echo_n "checking for library containing dlsym... " >&6; }
+if ${ac_cv_search_dlsym+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dlsym ();
+int
+main ()
+{
+return dlsym ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' dl; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_dlsym=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_dlsym+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_dlsym+:} false; then :
+
+else
+  ac_cv_search_dlsym=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_dlsym" >&5
+$as_echo "$ac_cv_search_dlsym" >&6; }
+ac_res=$ac_cv_search_dlsym
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  as_fn_error $? "Cannot compile - missing library: dl" "$LINENO" 5
+fi
+
 
 # Check for pkgconfig
 # Extract the first word of "pkg-config", so it can be a program name with args.
@@ -3768,11 +4115,6 @@ fi
 
 
 if test "$slang" = yes; then
-    if test "$darwin" = yes; then
-	SOTARGET="libgtk-server.dylib"
-    else
-	SOTARGET="libgtk-server.so"
-    fi
     DEFAULT="3"
 fi
 
@@ -3794,11 +4136,6 @@ fi
 
 
 if test "$scriptbasic" = yes; then
-    if test "$darwin" = yes; then
-	SOTARGET="libgtk-server.dylib"
-    else
-	SOTARGET="libgtk-server.so"
-    fi
     DEFAULT="4"
 fi
 
@@ -3827,15 +4164,6 @@ _ACEOF
 	 ksh93=yes
 fi
 
-
-if test "$ksh93" = yes; then
-    if test "$darwin" = yes; then
-	SOTARGET="libgtk-server.dylib"
-    else
-	SOTARGET="libgtk-server.so"
-    fi
-    DEFAULT="2"
-fi
 
 # Check parameter: where is the Kornshell source directory?
 # Check whether --enable-ksh93-source was given.
@@ -3916,7 +4244,9 @@ if test "$CC" = gcc; then
     fi
 fi
 
-# Checks for header files.
+# Autodetect FFI if none was given
+if test "$ffi" != yes -a "$ffcall" != yes -a "$cinv" != yes -a "$dyncall" != yes
+then
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -4314,34 +4644,6 @@ fi
 done
 
 
-ac_fn_c_check_header_mongrel "$LINENO" "locale.h" "ac_cv_header_locale_h" "$ac_includes_default"
-if test "x$ac_cv_header_locale_h" = xyes; then :
-
-else
-  as_fn_error $? "Cannot compile - missing header: locale.h" "$LINENO" 5
-fi
-
-
-ac_fn_c_check_header_mongrel "$LINENO" "stdlib.h" "ac_cv_header_stdlib_h" "$ac_includes_default"
-if test "x$ac_cv_header_stdlib_h" = xyes; then :
-
-else
-  as_fn_error $? "Cannot compile - missing header: stdlib.h" "$LINENO" 5
-fi
-
-
-ac_fn_c_check_header_mongrel "$LINENO" "string.h" "ac_cv_header_string_h" "$ac_includes_default"
-if test "x$ac_cv_header_string_h" = xyes; then :
-
-else
-  as_fn_error $? "Cannot compile - missing header: string.h" "$LINENO" 5
-fi
-
-
-
-# Autodetect FFI if none was given
-if test "$ffi" != yes -a "$ffcall" != yes -a "$cinv" != yes -a "$dyncall" != yes
-then
 ac_fn_c_check_header_mongrel "$LINENO" "ffi.h" "ac_cv_header_ffi_h" "$ac_includes_default"
 if test "x$ac_cv_header_ffi_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
@@ -4385,8 +4687,66 @@ fi
 
 fi
 
+# Checks for header files.
+ac_fn_c_check_header_mongrel "$LINENO" "errno.h" "ac_cv_header_errno_h" "$ac_includes_default"
+if test "x$ac_cv_header_errno_h" = xyes; then :
+
+else
+  as_fn_error $? "Cannot compile - missing header: errno.h" "$LINENO" 5
+fi
+
+
+ac_fn_c_check_header_mongrel "$LINENO" "locale.h" "ac_cv_header_locale_h" "$ac_includes_default"
+if test "x$ac_cv_header_locale_h" = xyes; then :
+
+else
+  as_fn_error $? "Cannot compile - missing header: locale.h" "$LINENO" 5
+fi
+
+
+ac_fn_c_check_header_mongrel "$LINENO" "stdio.h" "ac_cv_header_stdio_h" "$ac_includes_default"
+if test "x$ac_cv_header_stdio_h" = xyes; then :
+
+else
+  as_fn_error $? "Cannot compile - missing header: stdio.h" "$LINENO" 5
+fi
+
+
+ac_fn_c_check_header_mongrel "$LINENO" "stdlib.h" "ac_cv_header_stdlib_h" "$ac_includes_default"
+if test "x$ac_cv_header_stdlib_h" = xyes; then :
+
+else
+  as_fn_error $? "Cannot compile - missing header: stdlib.h" "$LINENO" 5
+fi
+
+
+ac_fn_c_check_header_mongrel "$LINENO" "string.h" "ac_cv_header_string_h" "$ac_includes_default"
+if test "x$ac_cv_header_string_h" = xyes; then :
+
+else
+  as_fn_error $? "Cannot compile - missing header: string.h" "$LINENO" 5
+fi
+
+
+
 if test "$unix" = yes
 then
+    ac_fn_c_check_header_mongrel "$LINENO" "arpa/inet.h" "ac_cv_header_arpa_inet_h" "$ac_includes_default"
+if test "x$ac_cv_header_arpa_inet_h" = xyes; then :
+
+else
+  as_fn_error $? "Cannot compile - missing header: arpa/inet.h" "$LINENO" 5
+fi
+
+
+    ac_fn_c_check_header_mongrel "$LINENO" "ctype.h" "ac_cv_header_ctype_h" "$ac_includes_default"
+if test "x$ac_cv_header_ctype_h" = xyes; then :
+
+else
+  as_fn_error $? "Cannot compile - missing header: ctype.h" "$LINENO" 5
+fi
+
+
     ac_fn_c_check_header_mongrel "$LINENO" "fcntl.h" "ac_cv_header_fcntl_h" "$ac_includes_default"
 if test "x$ac_cv_header_fcntl_h" = xyes; then :
 
@@ -4403,6 +4763,30 @@ else
 fi
 
 
+    ac_fn_c_check_header_mongrel "$LINENO" "signal.h" "ac_cv_header_signal_h" "$ac_includes_default"
+if test "x$ac_cv_header_signal_h" = xyes; then :
+
+else
+  as_fn_error $? "Cannot compile - missing header: signal.h" "$LINENO" 5
+fi
+
+
+    ac_fn_c_check_header_mongrel "$LINENO" "sys/ipc.h" "ac_cv_header_sys_ipc_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_ipc_h" = xyes; then :
+
+else
+  as_fn_error $? "Cannot compile - missing header: sys/ipc.h" "$LINENO" 5
+fi
+
+
+    ac_fn_c_check_header_mongrel "$LINENO" "sys/msg.h" "ac_cv_header_sys_msg_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_msg_h" = xyes; then :
+
+else
+  as_fn_error $? "Cannot compile - missing header: sys/msg.h" "$LINENO" 5
+fi
+
+
     ac_fn_c_check_header_mongrel "$LINENO" "sys/socket.h" "ac_cv_header_sys_socket_h" "$ac_includes_default"
 if test "x$ac_cv_header_sys_socket_h" = xyes; then :
 
@@ -4411,19 +4795,27 @@ else
 fi
 
 
+    ac_fn_c_check_header_mongrel "$LINENO" "sys/stat.h" "ac_cv_header_sys_stat_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_stat_h" = xyes; then :
+
+else
+  as_fn_error $? "Cannot compile - missing header: sys/stat.h" "$LINENO" 5
+fi
+
+
+    ac_fn_c_check_header_mongrel "$LINENO" "sys/types.h" "ac_cv_header_sys_types_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_types_h" = xyes; then :
+
+else
+  as_fn_error $? "Cannot compile - missing header: sys/types.h" "$LINENO" 5
+fi
+
+
     ac_fn_c_check_header_mongrel "$LINENO" "sys/wait.h" "ac_cv_header_sys_wait_h" "$ac_includes_default"
 if test "x$ac_cv_header_sys_wait_h" = xyes; then :
 
 else
   as_fn_error $? "Cannot compile - missing header: sys/wait.h" "$LINENO" 5
-fi
-
-
-    ac_fn_c_check_header_mongrel "$LINENO" "arpa/inet.h" "ac_cv_header_arpa_inet_h" "$ac_includes_default"
-if test "x$ac_cv_header_arpa_inet_h" = xyes; then :
-
-else
-  as_fn_error $? "Cannot compile - missing header: arpa/inet.h" "$LINENO" 5
 fi
 
 
@@ -5821,41 +6213,21 @@ fi
 
 echo
 
-if test "$library" = yes
+if test "$ffi" = yes
 then
-    if test "$ffi" = yes
-    then
-	echo "The GTK-server will be built with $CC as a shared object using the Foreign Function Interface (FFI)."
-    fi
-    if test "$ffcall" = yes
-    then
-	echo "The GTK-server will be built with $CC as a shared object using Foreign Function Calls (FFCALL)."
-    fi
-    if test "$cinv" = yes
-    then
-	echo "The GTK-server will be built with $CC as a shared object using C/Invoke (CINV)."
-    fi
-    if test "$dyncall" = yes
-    then
-	echo "The GTK-server will be built with $CC as a shared object using DynCall (DYNCALL)."
-    fi
-else
-    if test "$ffi" = yes
-    then
-	echo "The GTK-server will be built with $CC as a standalone executable using the Foreign Function Interface (FFI)."
-    fi
-    if test "$ffcall" = yes
-    then
-	echo "The GTK-server will be built with $CC as a standalone executable using Foreign Function Calls (FFCALL)."
-    fi
-    if test "$cinv" = yes
-    then
-	echo "The GTK-server will be built with $CC as a standalone executable using C/Invoke (CINV)."
-    fi
-    if test "$dyncall" = yes
-    then
-	echo "The GTK-server will be built with $CC as a standalone executable using DynCall (DYNCALL)."
-    fi
+    echo "The GTK-server will be built with $CC using the Foreign Function Interface (FFI)."
+fi
+if test "$ffcall" = yes
+then
+    echo "The GTK-server will be built with $CC using Foreign Function Calls (FFCALL)."
+fi
+if test "$cinv" = yes
+then
+    echo "The GTK-server will be built with $CC using C/Invoke (CINV)."
+fi
+if test "$dyncall" = yes
+then
+    echo "The GTK-server will be built with $CC using DynCall (DYNCALL)."
 fi
 
 echo

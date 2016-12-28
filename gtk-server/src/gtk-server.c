@@ -446,7 +446,6 @@
 
 #ifdef GTK_SERVER_KSH93
 #include <shell.h>
-#include <stdio.h>
 #endif
 
 #ifdef GTK_SERVER_SLANG
@@ -473,16 +472,13 @@
 #include <openssl/err.h>
 #endif
 
-#ifndef GTK_SERVER_KSH93
 #include <stdio.h>
-#endif
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <locale.h>
 #include <unistd.h>
 #include <ctype.h>
-#include <sys/stat.h>
 #include "uthash.h"
 
 #ifdef GTK_SERVER_FFI

@@ -69,26 +69,43 @@ if test "$solaris" = yes; then
     CFLAGS="-fPIC"
 fi
 
-# Checks for typedefs, structures, and compiler characteristics.
-#to be done: AC_C_CONST
-
 # Checks for library functions.
-#to be done: AC_FUNC_FORK
-#to be done: AC_FUNC_MALLOC
+AC_CHECK_FUNCS(malloc, [], [AC_MSG_ERROR(Cannot compile - missing function: malloc)])
+AC_CHECK_FUNCS(memcpy, [], [AC_MSG_ERROR(Cannot compile - missing function: memcpy)])
 AC_CHECK_FUNCS(memset, [], [AC_MSG_ERROR(Cannot compile - missing function: memset)])
+AC_CHECK_FUNCS(realloc, [], [AC_MSG_ERROR(Cannot compile - missing function: realloc)])
 AC_CHECK_FUNCS(setlocale, [], [AC_MSG_ERROR(Cannot compile - missing function: setlocale)])
-AC_CHECK_FUNCS(strstr, [], [AC_MSG_ERROR(Cannot compile - missing function: strstr)])
 AC_CHECK_FUNCS(snprintf, [], [AC_DEFINE_UNQUOTED(GTK_SERVER_NOSNPRINTF)])
+AC_CHECK_FUNCS(strcat, [], [AC_MSG_ERROR(Cannot compile - missing function: strcat)])
+AC_CHECK_FUNCS(strcmp, [], [AC_MSG_ERROR(Cannot compile - missing function: strcmp)])
+AC_CHECK_FUNCS(strcpy, [], [AC_MSG_ERROR(Cannot compile - missing function: strcpy)])
+AC_CHECK_FUNCS(strncmp, [], [AC_MSG_ERROR(Cannot compile - missing function: strncmp)])
+AC_CHECK_FUNCS(strstr, [], [AC_MSG_ERROR(Cannot compile - missing function: strstr)])
+AC_CHECK_FUNCS(strtok, [], [AC_MSG_ERROR(Cannot compile - missing function: strtok)])
 
 # Check for crucial libc functions
 if test "$unix" = yes
 then
-    AC_CHECK_FUNCS(gethostbyname, [], [AC_MSG_ERROR(Cannot compile - missing function: gethostbyname)])
-    AC_CHECK_FUNCS(mkfifo, [], [AC_MSG_ERROR(Cannot compile - missing function: mkfifo)])
-    AC_CHECK_FUNCS(socket, [], [AC_MSG_ERROR(Cannot compile - missing function: socket)])
     AC_CHECK_FUNCS(atexit, [], [AC_MSG_ERROR(Cannot compile - missing function: atexit)])
+    AC_CHECK_FUNCS(bind, [], [AC_MSG_ERROR(Cannot compile - missing function: bind)])
+    AC_CHECK_FUNCS(connect, [], [AC_MSG_ERROR(Cannot compile - missing function: connect)])
+    AC_CHECK_FUNCS(fork, [], [AC_MSG_ERROR(Cannot compile - missing function: fork)])
+    AC_CHECK_FUNCS(gethostbyname, [], [AC_MSG_ERROR(Cannot compile - missing function: gethostbyname)])
+    AC_CHECK_FUNCS(getpid, [], [AC_MSG_ERROR(Cannot compile - missing function: getpid)])
+    AC_CHECK_FUNCS(getsockopt, [], [AC_MSG_ERROR(Cannot compile - missing function: getsockopt)])
     AC_CHECK_FUNCS(inet_ntoa, [], [AC_MSG_ERROR(Cannot compile - missing function: inet_ntoa)])
+    AC_CHECK_FUNCS(mkfifo, [], [AC_MSG_ERROR(Cannot compile - missing function: mkfifo)])
+    AC_CHECK_FUNCS(msgctl, [], [AC_MSG_ERROR(Cannot compile - missing function: msgctl)])
+    AC_CHECK_FUNCS(msgget, [], [AC_MSG_ERROR(Cannot compile - missing function: msgget)])
+    AC_CHECK_FUNCS(msgrcv, [], [AC_MSG_ERROR(Cannot compile - missing function: msgrcv)])
+    AC_CHECK_FUNCS(recv, [], [AC_MSG_ERROR(Cannot compile - missing function: recv)])
+    AC_CHECK_FUNCS(setsockopt, [], [AC_MSG_ERROR(Cannot compile - missing function: setsockopt)])
+    AC_CHECK_FUNCS(socket, [], [AC_MSG_ERROR(Cannot compile - missing function: socket)])
 fi
+
+# Search for dl
+AC_SEARCH_LIBS([dlopen], [dl], [], [AC_MSG_ERROR(Cannot compile - missing library: dl)], [])
+AC_SEARCH_LIBS([dlsym], [dl], [], [AC_MSG_ERROR(Cannot compile - missing library: dl)], [])
 
 # Check for pkgconfig
 AC_PATH_PROG(PKGCONFIG_CONFIG, pkg-config, no)
@@ -234,11 +251,6 @@ AC_ARG_ENABLE(slang,
 	 slang=yes])
 
 if test "$slang" = yes; then
-    if test "$darwin" = yes; then
-	SOTARGET="libgtk-server.dylib"
-    else
-	SOTARGET="libgtk-server.so"
-    fi
     DEFAULT="3"
 fi
 
@@ -252,11 +264,6 @@ AC_ARG_ENABLE(scriptbasic,
 	 scriptbasic=yes])
 
 if test "$scriptbasic" = yes; then
-    if test "$darwin" = yes; then
-	SOTARGET="libgtk-server.dylib"
-    else
-	SOTARGET="libgtk-server.so"
-    fi
     DEFAULT="4"
 fi
 
@@ -278,15 +285,6 @@ AC_ARG_ENABLE(ksh93,
 	LDFLAGS="$LDFLAGS -shared -Lksh93 -lshell -ldll -lcmd -last"
 	library=yes
 	 ksh93=yes])
-
-if test "$ksh93" = yes; then
-    if test "$darwin" = yes; then
-	SOTARGET="libgtk-server.dylib"
-    else
-	SOTARGET="libgtk-server.so"
-    fi
-    DEFAULT="2"
-fi
 
 # Check parameter: where is the Kornshell source directory?
 AC_ARG_ENABLE(ksh93-source,
@@ -318,11 +316,6 @@ if test "$CC" = gcc; then
     fi
 fi
 
-# Checks for header files.
-AC_CHECK_HEADER(locale.h, [], [AC_MSG_ERROR(Cannot compile - missing header: locale.h)])
-AC_CHECK_HEADER(stdlib.h, [], [AC_MSG_ERROR(Cannot compile - missing header: stdlib.h)])
-AC_CHECK_HEADER(string.h, [], [AC_MSG_ERROR(Cannot compile - missing header: string.h)])
-
 # Autodetect FFI if none was given
 if test "$ffi" != yes -a "$ffcall" != yes -a "$cinv" != yes -a "$dyncall" != yes
 then
@@ -333,13 +326,26 @@ AC_CHECK_HEADER(ffi.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_FFI) LDFLAGS="$LDFLAGS -lf
 		    [AC_MSG_ERROR(Cannot compile - no foreign function headers found! Please check 'README.1ST' for details.)]) ]) ]) ])
 fi
 
+# Checks for header files.
+AC_CHECK_HEADER(errno.h, [], [AC_MSG_ERROR(Cannot compile - missing header: errno.h)])
+AC_CHECK_HEADER(locale.h, [], [AC_MSG_ERROR(Cannot compile - missing header: locale.h)])
+AC_CHECK_HEADER(stdio.h, [], [AC_MSG_ERROR(Cannot compile - missing header: stdio.h)])
+AC_CHECK_HEADER(stdlib.h, [], [AC_MSG_ERROR(Cannot compile - missing header: stdlib.h)])
+AC_CHECK_HEADER(string.h, [], [AC_MSG_ERROR(Cannot compile - missing header: string.h)])
+
 if test "$unix" = yes
 then
+    AC_CHECK_HEADER(arpa/inet.h, [], [AC_MSG_ERROR(Cannot compile - missing header: arpa/inet.h)])
+    AC_CHECK_HEADER(ctype.h, [], [AC_MSG_ERROR(Cannot compile - missing header: ctype.h)])
     AC_CHECK_HEADER(fcntl.h, [], [AC_MSG_ERROR(Cannot compile - missing header: fcntl.h)])
     AC_CHECK_HEADER(netdb.h, [], [AC_MSG_ERROR(Cannot compile - missing header: netdb.h)])
+    AC_CHECK_HEADER(signal.h, [], [AC_MSG_ERROR(Cannot compile - missing header: signal.h)])
+    AC_CHECK_HEADER(sys/ipc.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/ipc.h)])
+    AC_CHECK_HEADER(sys/msg.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/msg.h)])
     AC_CHECK_HEADER(sys/socket.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/socket.h)])
+    AC_CHECK_HEADER(sys/stat.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/stat.h)])
+    AC_CHECK_HEADER(sys/types.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/types.h)])
     AC_CHECK_HEADER(sys/wait.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/wait.h)])
-    AC_CHECK_HEADER(arpa/inet.h, [], [AC_MSG_ERROR(Cannot compile - missing header: arpa/inet.h)])
     AC_CHECK_HEADER(unistd.h, [], [AC_MSG_ERROR(Cannot compile - missing header: unistd.h)])
 fi
 
@@ -449,41 +455,21 @@ fi
 
 echo
 
-if test "$library" = yes
+if test "$ffi" = yes
 then
-    if test "$ffi" = yes
-    then
-	echo "The GTK-server will be built with $CC as a shared object using the Foreign Function Interface (FFI)."
-    fi
-    if test "$ffcall" = yes
-    then
-	echo "The GTK-server will be built with $CC as a shared object using Foreign Function Calls (FFCALL)."
-    fi
-    if test "$cinv" = yes
-    then
-	echo "The GTK-server will be built with $CC as a shared object using C/Invoke (CINV)."
-    fi
-    if test "$dyncall" = yes
-    then
-	echo "The GTK-server will be built with $CC as a shared object using DynCall (DYNCALL)."
-    fi
-else
-    if test "$ffi" = yes
-    then
-	echo "The GTK-server will be built with $CC as a standalone executable using the Foreign Function Interface (FFI)."
-    fi
-    if test "$ffcall" = yes
-    then
-	echo "The GTK-server will be built with $CC as a standalone executable using Foreign Function Calls (FFCALL)."
-    fi
-    if test "$cinv" = yes
-    then
-	echo "The GTK-server will be built with $CC as a standalone executable using C/Invoke (CINV)."
-    fi
-    if test "$dyncall" = yes
-    then
-	echo "The GTK-server will be built with $CC as a standalone executable using DynCall (DYNCALL)."
-    fi
+    echo "The GTK-server will be built with $CC using the Foreign Function Interface (FFI)."
+fi
+if test "$ffcall" = yes
+then
+    echo "The GTK-server will be built with $CC using Foreign Function Calls (FFCALL)."
+fi
+if test "$cinv" = yes
+then
+    echo "The GTK-server will be built with $CC using C/Invoke (CINV)."
+fi
+if test "$dyncall" = yes
+then
+    echo "The GTK-server will be built with $CC using DynCall (DYNCALL)."
 fi
 
 echo

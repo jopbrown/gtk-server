@@ -4,7 +4,7 @@ Howto compile
 
 1) Compile and install S-Lang and the S-Lang libraries first.
 
-2) Start the GTK-server configure script as follows: ./configure --enable-slang
+2) Choose a backend, for example: GTK3. Then start the GTK-server configure script as follows: ./configure --enable-slang --with-gtk3
 
 3) Start compilation of the GTK-server with the command 'make'. After that 'make install'.
 

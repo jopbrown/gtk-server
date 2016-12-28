@@ -110,26 +110,17 @@ install : $(TARGET) $(SOTARGET)
 	$(INSTALL) -m 644 ../documentation/gtk-server.1 $(MANDIR)/man1
 	$(INSTALL) -m 644 ../documentation/gtk-server.cfg.1 $(MANDIR)/man1
 	$(INSTALL) -m 644 ../documentation/stop-gtk-server.1 $(MANDIR)/man1
-	@if [ $(DEFAULT) -eq "2" ]; then \
-	    echo "Installing Kornshell module..."; \
-	    mkdir -p $(LIBDIR); \
-	    $(INSTALL) $(SOTARGET) $(LIBDIR); \
-	    echo "mkdir -p $(LIBDIR)"; \
-	    echo "$(INSTALL) $(SOTARGET) $(LIBDIR)"; \
-	fi;
 	@if [ $(DEFAULT) -eq "3" ]; then \
-		echo "Installing S-Lang module..."; \
-		mv libgtk-server.so /usr/lib/gtk-module.so; \
-		echo "mv libgtk-server.so /usr/lib/gtk-module.so"; \
+	    echo -n "Installing S-Lang module... "; \
+	    ln -sf $(LIBDIR)/$(SOLINK) $(LIBDIR)/gtk-module.so \
+	    echo "done.";
 	fi;
 	@if [ $(DEFAULT) -eq "4" ]; then \
-		echo "Installing Scriptbasic module..."; \
-		mkdir -p $(LIBDIR); \
-		mv libgtk-server.so $(LIBDIR)/gtk-server.so; \
-		echo "mv libgtk-server.so $(LIBDIR)/gtk-server.so"; \
-		mkdir -p $(INCL); \
-		cp scriptbasic/gtk.bas $(INCL)/gtk.bas; \
-		echo "cp scriptbasic/gtk.bas $(INCL)/gtk.bas"; \
+	    echo -n "Installing Scriptbasic module... "; \
+	    ln -sf $(LIBDIR)/$(SOLINK) $(LIBDIR)/gtk-server.so; \
+	    mkdir -p $(INCL); \
+	    cp ../scriptbasic/gtk.bas $(INCL)/gtk.bas; \
+	    echo "done.";
 	fi
 
 uninstall:
