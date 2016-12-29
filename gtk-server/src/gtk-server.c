@@ -437,6 +437,7 @@
 *		. Fixed compile warning for Xforms
 *		. XForms can use enumerations in callback definition
 *		. More intelligence in searching and opening defined libraries
+*		. Added '-debug' parameter to activate interactive debugging
 *
 *************************************************************************************************************************************************/
 
@@ -739,15 +740,16 @@ struct behaviour {
     int exit_sig;		/* Keep exit signal to send to PPID */
     int ppid;			/* Keep PID of parent */
     int behave;			/* Binary flag
-				    -list of configured calls	000000001
-				    -do not create FIFO file	000000010
-				    -do not spawn to backgrnd	000000100
-				    -send signal on exit	000001000
-				    -run a macro first		000010000
-				    -send INIT string		000100000
-				    -use SSL encryption	wo cert	001000000
-				    -use SSL encryption	& cert	010000000
-				    -use check on handle	100000000*/
+				    -list of configured calls	0000000001
+				    -do not create FIFO file	0000000010
+				    -do not spawn to backgrnd	0000000100
+				    -send signal on exit	0000001000
+				    -run a macro first		0000010000
+				    -send INIT string		0000100000
+				    -use SSL encryption	wo cert	0001000000
+				    -use SSL encryption	& cert	0010000000
+				    -use check on handle	0100000000
+				    -use check on debug		1000000000*/
     int mode;			/* Are we running in STDIN, FIFO, IPC, TCP, UDP mode? */
 };
 
@@ -1422,6 +1424,14 @@ if (new == NULL) return NULL;
 
 new[n] = '\0';
 return (char *) memcpy (new, s, n);
+}
+
+/*************************************************************************************************/
+/* Used for debug panel */
+
+void switch_flag_on(void* widget, long *data)
+{
+    *data = 1;
 }
 
 /*************************************************************************************************/
@@ -4723,6 +4733,23 @@ SSL *ssl;
 BIO *sbio;
 #endif
 
+/* Needed for debug window */
+#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
+GtkWidget *debug_window;
+GtkTextBuffer *debug_buffer;
+GtkTextIter debug_iter;
+GtkWidget *debug_view, *debug_scrolled, *debug_execute, *debug_close, *debug_next, *debug_vbox, *debug_hbox;
+#elif GTK_SERVER_XF
+FL_FORM *debug_window;
+FL_OBJECT *debug_view, *debug_close, *debug_execute, *debug_next;
+char *xf_buffer;
+#endif
+#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+fd_set rfds;				/* Needed for file descriptor polling in case debug window is used */
+struct timeval tv;
+long debug_step = 0, debug_run = 0;
+#endif
+
 #ifdef GTK_SERVER_UNIX
 char *filename;
 socklen_t sin_size, addr_len;
@@ -4758,7 +4785,11 @@ CHAR chRequest[MAX_LEN];
 DWORD cbBytesRead, cbWritten; 
 BOOL fSuccess;
 char *dialog_msg = (char*)malloc(MAX_LEN*sizeof(char));
+#endif
 
+#if GTK_SERVER_XF
+argv[0] = strdup("");
+fl_initialize(&argc, argv, "XForms", 0, 0);
 #endif
 
 /* Binary flags to behave to '0' */
@@ -4774,11 +4805,6 @@ gtkserver.macro = NULL;
 gtkserver.certificate = NULL;
 gtkserver.ca = NULL;
 gtkserver.password = NULL;
-
-#if GTK_SERVER_XF
-argv[0] = strdup("");
-fl_initialize(&argc, argv, "XForms", 0, 0);
-#endif
 
 /* Run help if there are no arguments */
 if (argc < 2 || !strncmp(argv[1], "help", 4) || !strncmp(argv[1], "-help", 5)) {
@@ -4998,12 +5024,103 @@ else {
 	else if (!strncmp(argv[i], "handle", 6) || !strncmp(argv[i], "-handle", 7)){ /* Should first part of incoming string be considered handle from client? */
 	    gtkserver.behave |= 256;
 	}
+	else if (!strncmp(argv[i], "debug", 5) || !strncmp(argv[i], "-debug", 6)){ /* Show debug dialog with logging? */
+	    gtkserver.behave |= 512;
+	}
 	else {
 	    Print_Error("%s%s%s", 3, "\nArgument '", argv[i], "' to GTK-server not recognized!");
 	    exit(EXIT_FAILURE);
 	}
     }
 }
+
+/* Define the debug window */
+#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
+gtk_init(NULL, NULL);
+debug_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+gtk_window_set_title(GTK_WINDOW(debug_window), "GTK-server Debugger");
+gtk_window_set_default_size(GTK_WINDOW(debug_window), 600, 300);
+gtk_window_set_icon_name(GTK_WINDOW(debug_window), "gtk-preferences");
+debug_buffer = gtk_text_buffer_new(0);
+debug_view = gtk_text_view_new_with_buffer(debug_buffer);
+debug_scrolled = gtk_scrolled_window_new(0, 0);
+gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(debug_scrolled), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(debug_scrolled), GTK_SHADOW_ETCHED_IN);
+gtk_container_add(GTK_CONTAINER(debug_scrolled), debug_view);
+gtk_container_set_border_width(GTK_CONTAINER(debug_scrolled), 5);
+gtk_text_view_set_editable(GTK_TEXT_VIEW(debug_view), 0);
+gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(debug_view), GTK_WRAP_NONE);
+gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(debug_view), 0);
+#if GTK_SERVER_GTK2x
+debug_execute = gtk_button_new_from_stock("gtk-execute");
+debug_close = gtk_button_new_from_stock("gtk-quit");
+debug_next = gtk_button_new_from_stock("gtk-go-forward");
+debug_vbox = gtk_vbox_new(0, 0);
+debug_hbox = gtk_hbox_new(0, 0);
+#elif GTK_SERVER_GTK3x
+debug_execute = gtk_button_new_from_icon_name("system-run", GTK_ICON_SIZE_BUTTON);
+gtk_button_set_label(GTK_BUTTON(debug_execute), "Run");
+debug_close = gtk_button_new_from_icon_name("process-stop", GTK_ICON_SIZE_BUTTON);
+gtk_button_set_label(GTK_BUTTON(debug_close), "Quit");
+debug_next = gtk_button_new_from_icon_name("go-next", GTK_ICON_SIZE_BUTTON);
+gtk_button_set_label(GTK_BUTTON(debug_next), "Step");
+debug_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+debug_hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+#endif
+gtk_box_pack_start(GTK_BOX(debug_hbox), debug_close, 0, 0, 1);
+gtk_box_pack_end(GTK_BOX(debug_hbox), debug_execute, 0, 0, 1);
+gtk_box_pack_end(GTK_BOX(debug_hbox), debug_next, 0, 0, 1);
+gtk_box_pack_start(GTK_BOX(debug_vbox), debug_scrolled, 1, 1, 1);
+gtk_box_pack_start(GTK_BOX(debug_vbox), debug_hbox, 0, 0, 1);
+gtk_container_add(GTK_CONTAINER(debug_window), debug_vbox);
+g_signal_connect(debug_execute, "clicked", G_CALLBACK(switch_flag_on), &debug_run);
+g_signal_connect(debug_next, "clicked", G_CALLBACK(switch_flag_on), &debug_step);
+g_signal_connect(debug_close, "clicked", G_CALLBACK(exit), NULL);
+g_signal_connect(debug_window, "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);
+if (gtkserver.behave & 512) { gtk_widget_show_all(debug_window); }
+
+#define update_gui while(gtk_events_pending()) { gtk_main_iteration_do(0); }
+
+#define scroll_to_end(x, y, z, n) do { \
+    if(n&2) gtk_text_buffer_insert_at_cursor(debug_buffer, "SCRIPT: ", -1); \
+    else gtk_text_buffer_insert_at_cursor(debug_buffer, "SERVER: ", -1); \
+    gtk_text_buffer_insert_at_cursor(debug_buffer, z, -1); \
+    if(n&1) gtk_text_buffer_insert_at_cursor(debug_buffer, "\n", -1); \
+    update_gui; \
+    gtk_text_buffer_get_end_iter(x, &debug_iter); \
+    gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(y), &debug_iter, 0, 1, 0, 1); \
+    update_gui; \
+} while(0)
+
+#elif GTK_SERVER_XF
+debug_window = fl_bgn_form(FL_BORDER_BOX, 600, 300);
+debug_view = fl_add_input(FL_MULTILINE_INPUT, 10, 10, 580, 230, NULL);
+fl_set_input_cursor_visible(debug_view, 0);
+fl_set_object_return(debug_view, FL_RETURN_NONE);
+debug_close = fl_add_button(FL_NORMAL_BUTTON, 10, 250, 80, 40, "Quit");
+fl_set_object_callback(debug_close, (FL_CALLBACKPTR)exit, 0);
+debug_execute = fl_add_button(FL_NORMAL_BUTTON, 510, 250, 80, 40, "Run");
+fl_set_object_callback(debug_execute, (FL_CALLBACKPTR)switch_flag_on,  (long)&debug_run);
+debug_next = fl_add_button(FL_NORMAL_BUTTON, 420, 250, 80, 40, "Step");
+fl_set_object_callback(debug_next, (FL_CALLBACKPTR)switch_flag_on,  (long)&debug_step);
+fl_end_form();
+if (gtkserver.behave & 512) { fl_show_form(debug_window, FL_PLACE_CENTER, FL_FULLBORDER, "GTK-server Debugger"); }
+
+#define update_gui fl_check_forms();
+
+#define scroll_to_end(i, x, y, n) do { \
+    xf_buffer = strdup(fl_get_input(x)); \
+    xf_buffer = realloc(xf_buffer, strlen(xf_buffer)+strlen(y)+8+2); \
+    if(n&2) strcat(xf_buffer, "SCRIPT: "); \
+    else strcat(xf_buffer, "SERVER: "); \
+    strcat(xf_buffer, y); \
+    if(n&1) { strcat(xf_buffer, "\n"); } \
+    fl_set_input(x, xf_buffer); \
+    free(xf_buffer); \
+    while(fl_check_forms()); \
+} while(0)
+
+#endif
 
 #else	/* LIBRARY is defined */
 int init_result = 0;
@@ -5041,6 +5158,11 @@ do {
     }
     else if (!strncmp(Trim_String(user_data), "handle", 6) || !strncmp(Trim_String(user_data), "-handle", 7)){
 	gtkserver.behave |= 256;	    /* Find handle flag */
+	user_data = strtok(NULL, " ");
+	init_result++;
+    }
+    else if (!strncmp(Trim_String(user_data), "debug", 5) || !strncmp(Trim_String(user_data), "-debug", 6)){
+	gtkserver.behave |= 512;
 	user_data = strtok(NULL, " ");
 	init_result++;
     }
@@ -5452,6 +5574,7 @@ if (gtkserver.behave & 16 && gtkserver.macro != NULL){
 }
 
 /**************************************************************************************** STDIN */
+
 /* There is an argument, check on STDIN flag */
 if (gtkserver.mode == 1) {
 
@@ -5460,10 +5583,33 @@ if (gtkserver.mode == 1) {
 
     /* This is the main input loop via STDIN */
     while (1) {
+
+	/* Debug window */
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	if (gtkserver.behave & 512) {
+	    /* Poll descriptor to see if data is available */
+	    while(debug_step == 0)
+	    {
+		debug_step = debug_run;
+		do {
+		    FD_ZERO(&rfds);
+		    FD_SET(STDIN_FILENO, &rfds);
+		    /* Set a time to avoid 100% CPU load */
+		    tv.tv_usec = 1000;
+		    tv.tv_sec = 0;
+		    /* Update the debugging GUI */
+		    update_gui;
+		} while (select(STDIN_FILENO+1, &rfds, NULL, NULL, &tv) == 0);
+	    }
+	    if(debug_run || debug_step == 1) { debug_step = 0; }
+	}
+	#endif
+
+	/* Main STDIN interface handling */
 	len = 0;
-	do {
-	    i = read(STDIN, line, MAX_LEN);
-	    
+	do {  
+	    i = read(STDIN_FILENO, line, MAX_LEN);
+
 	    /* Fix by Sebastiaan van Erk */
 	    if (i == -1) Print_Error("%s%s", 2, "\nError in reading from STDIN: ", strerror(errno));
 
@@ -5487,6 +5633,9 @@ if (gtkserver.mode == 1) {
 	    fprintf(logfile, "SCRIPT: %s\n", in);
 	    fflush(logfile);
 	}
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, in, 2); }
+	#endif
 
 	retstr = Call_Realize(Trim_String(in), cinv_ctx);
 
@@ -5495,6 +5644,9 @@ if (gtkserver.mode == 1) {
 	    fprintf(logfile, "SERVER: %s\n", retstr);
 	    fflush(logfile);
 	}
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
+	#endif
 
 	/* Answer from GTK-server */
 	fprintf(stdout, "%s\n", retstr);
@@ -5535,10 +5687,33 @@ if (gtkserver.mode == 2) {
 
     /* This is the main input loop via FIFO */
     while (1) {
+
 	/* First open in READ mode */
 	if((sockfd = open(gtkserver.fifo, O_RDONLY)) < 0){
 	    Print_Error("%s%s", 2, "\nError opening FIFO: ", strerror(errno));
 	}
+
+	/* Debug window */
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	if (gtkserver.behave & 512) {
+	    /* Poll descriptor to see if data is available */
+	    while(debug_step == 0)
+	    {
+		debug_step = debug_run;
+		do {
+		    FD_ZERO(&rfds);
+		    FD_SET(sockfd, &rfds);
+		    /* Set a time to avoid 100% CPU load */
+		    tv.tv_usec = 1000;
+		    tv.tv_sec = 0;
+		    /* Update the debugging GUI */
+		    update_gui;
+		} while (select(sockfd+1, &rfds, NULL, NULL, &tv) == 0);
+	    }
+	    if(debug_run || debug_step == 1) { debug_step = 0; }
+	}
+	#endif
+
 	/* Now wait for data */
 	len = 0;
 	do {
@@ -5570,6 +5745,9 @@ if (gtkserver.mode == 2) {
 	    fprintf(logfile, "SCRIPT: %s\n", in);
 	    fflush(logfile);
 	}
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, in, 2); }
+	#endif
 
 	retstr = Call_Realize(Trim_String(in), cinv_ctx);
 
@@ -5578,6 +5756,9 @@ if (gtkserver.mode == 2) {
 	    fprintf(logfile, "SERVER: %s\n", retstr);
 	    fflush(logfile);
 	}
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
+	#endif
 
 	/* Now open in WRITE mode */
 	if((sockfd = open(gtkserver.fifo, O_WRONLY)) < 0){
@@ -5827,6 +6008,28 @@ while (1){
 
 	/* We enter the mainloop - read incoming text */
 	while(1){
+
+	    /* Debug window */
+	    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	    if (gtkserver.behave & 512) {
+		/* Poll descriptor to see if data is available */
+		while(debug_step == 0)
+		{
+		    debug_step = debug_run;
+		    do {
+			FD_ZERO(&rfds);
+			FD_SET(new_fd, &rfds);
+			/* Set a time to avoid 100% CPU load */
+			tv.tv_usec = 1000;
+			tv.tv_sec = 0;
+			/* Update the debugging GUI */
+			update_gui;
+		    } while (select(new_fd+1, &rfds, NULL, NULL, &tv) == 0);
+		}
+		if(debug_run || debug_step == 1) { debug_step = 0; }
+	    }
+	    #endif
+
 	    len = 0;
 	    do {
 		numbytes = recv(new_fd, buf, MAX_LEN, 0);
@@ -5854,6 +6057,9 @@ while (1){
 		fprintf(logfile, "SCRIPT: %s\n", Trim_String(in));
 		fflush(logfile);
 	    }
+	    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	    if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, Trim_String(in), 3); }
+	    #endif
 
 	    retstr = Call_Realize(Trim_String(in), cinv_ctx);
 
@@ -5862,6 +6068,9 @@ while (1){
 		fprintf(logfile, "SERVER: %s\n", retstr);
 		fflush(logfile);
 	    }
+	    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	    if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
+	    #endif
 
 	    /* Now send the result back to the socket */
 	    strcat(retstr, "\n");
@@ -6000,6 +6209,28 @@ if (gtkserver.mode == 6) {
 
     /* We enter the mainloop - read incoming text */
     while(1){
+
+	/* Debug window */
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	if (gtkserver.behave & 512) {
+	    /* Poll descriptor to see if data is available */
+	    while(debug_step == 0)
+	    {
+		debug_step = debug_run;
+		do {
+		    FD_ZERO(&rfds);
+		    FD_SET(sockfd, &rfds);
+		    /* Set a time to avoid 100% CPU load */
+		    tv.tv_usec = 1000;
+		    tv.tv_sec = 0;
+		    /* Update the debugging GUI */
+		    update_gui;
+		} while (select(sockfd+1, &rfds, NULL, NULL, &tv) == 0);
+	    }
+	    if(debug_run || debug_step == 1) { debug_step = 0; }
+	}
+	#endif
+
 	len = 0;
 	do {
 	    if (gtkserver.behave & 192){
@@ -6034,6 +6265,9 @@ if (gtkserver.mode == 6) {
 	    fprintf(logfile, "SCRIPT: %s\n", Trim_String(in));
 	    fflush(logfile);
 	}
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, Trim_String(in), 3); }
+	#endif
 
 	retstr = Call_Realize(Trim_String(in), cinv_ctx);
 
@@ -6042,9 +6276,12 @@ if (gtkserver.mode == 6) {
 	    fprintf(logfile, "SERVER: %s\n", retstr);
 	    fflush(logfile);
 	}
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
+	#endif
 
 	/* Now send the result back to the socket */
-	strcat(retstr, "\n");
+	if(strlen(retstr)< MAX_LEN-1) { strcat(retstr, "\n"); }
 
 	if (gtkserver.behave & 192){
 	    #ifdef GTK_SERVER_USE_SSL
@@ -6126,6 +6363,28 @@ if (logfile != NULL){
 
 /* Now accept incoming packets */
 while (1){
+
+    /* Debug window */
+    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+    if (gtkserver.behave & 512) {
+	/* Poll descriptor to see if data is available */
+	while(debug_step == 0)
+	{
+	    debug_step = debug_run;
+	    do {
+		FD_ZERO(&rfds);
+		FD_SET(sockfd, &rfds);
+		/* Set a time to avoid 100% CPU load */
+		tv.tv_usec = 1000;
+		tv.tv_sec = 0;
+		/* Update the debugging GUI */
+		update_gui;
+	    } while (select(sockfd+1, &rfds, NULL, NULL, &tv) == 0);
+	}
+	if(debug_run || debug_step == 1) { debug_step = 0; }
+    }
+    #endif
+
     if ((numbytes = recvfrom(sockfd, in, page - 1, 0, (struct sockaddr *)&their_addr, &addr_len)) > 0) {
 
 	/* Terminate incoming string */
@@ -6136,6 +6395,9 @@ while (1){
 	    fprintf(logfile, "SCRIPT: %s\n", Trim_String(in));
 	    fflush(logfile);
 	}
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, Trim_String(in), 3); }
+	#endif
 
 	retstr = Call_Realize(Trim_String(in), cinv_ctx);
 
@@ -6144,7 +6406,10 @@ while (1){
 	    fprintf(logfile, "SERVER: %s\n", retstr);
 	    fflush(logfile);
 	}
-	strcat(retstr, "\n");
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
+	#endif
+	if(strlen(retstr)< MAX_LEN-1) strcat(retstr, "\n");
 
 	/* Now send the result back to the socket */
 	if ((numbytes=sendto(sockfd, retstr, strlen(retstr), 0, (struct sockaddr *)&their_addr, sizeof(struct sockaddr))) == -1) {
@@ -6194,10 +6459,32 @@ page = 0;
 
 /* Endless loop */
 while (1){
+    numbytes = 0;
+
+    /* Debug window */
+    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+    if (gtkserver.behave & 512) {
+	/* Poll descriptor to see if data is available */
+	while(debug_step == 0)
+	{
+	    debug_step = debug_run;
+	    do {
+		/* Update the debugging GUI */
+		update_gui;
+		/* Set a time to avoid 100% CPU load */
+		usleep(1000);
+		/* Poll the IPC */
+		if(numbytes == 0) { numbytes = msgrcv(msgid, &msgp, MAX_LEN, 1, IPC_NOWAIT|MSG_NOERROR); }
+	    } while (numbytes == 0);
+	}
+	if(debug_run || debug_step == 1) { debug_step = 0; }
+    }
+    #endif
+
     len = 0;
     /* Now read queue */
     do {
-	numbytes = msgrcv(msgid, &msgp, MAX_LEN, 1, MSG_NOERROR);
+	if(numbytes == 0) { numbytes = msgrcv(msgid, &msgp, MAX_LEN, 1, MSG_NOERROR); }
 
 	if(numbytes < 0) Print_Error("%s%s", 2, "\nError in reading from IPC(ipc): ", strerror(errno));
 
@@ -6208,6 +6495,7 @@ while (1){
 
 	memcpy(in + len, msgp.mtext, numbytes);
 	len += numbytes;
+	numbytes = 0;
     }
     while (numbytes == MAX_LEN);
 
@@ -6219,6 +6507,9 @@ while (1){
 	fprintf(logfile, "SCRIPT: %s\n", Trim_String(in));
 	fflush(logfile);
     }
+    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+    if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, Trim_String(in), 3); }
+    #endif
 
     retstr = Call_Realize(Trim_String(in), cinv_ctx);
 
@@ -6227,6 +6518,9 @@ while (1){
 	fprintf(logfile, "SERVER: %s\n", retstr);
 	fflush(logfile);
     }
+    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+    if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
+    #endif
 
     /* We agree with ourselves to use msgtype = 1 */
     msgp.mtype = 1;
@@ -6241,9 +6535,9 @@ while (1){
 	else ipc = NULL;
     } while (ipc != NULL);
 
-    /* SYNC: wait for other PID to write data */
+    /* SYNC: wait for this PID to finish writing data - if other PID, then writing data of client script occured. */
     do {
-	usleep(5); /* Do not overload kernel */
+	usleep(10); /* Do not overload kernel */
 	if(msgctl(msgid, IPC_STAT, msgstat) < 0) Print_Error("%s%s", 2, "\nCould not stat message queue! ERROR: ", strerror(errno));
     } while(getpid() == msgstat->msg_lspid);
 }

@@ -17,7 +17,7 @@ NUM_COLS=2
 TRUE=1
 
 # Start gtk-server in FIFO mode
-gtk-server -fifo=$PI &
+gtk-server -fifo=$PI -detach -debug
 while [ ! -p $PI ]; do continue; done
 
 # Initialize GTK
@@ -117,6 +117,13 @@ do
 	    gtk "gtk_tree_sortable_set_sort_column_id $LST $SECOND_COL $ORDER_SECOND";;
 
     esac
+    # In case of exit via window
+    if [[ ! -p $PIPE ]]
+    then
+        rm -f $PIPE
+        exit
+    fi  
+
 done
 
 gtk "gtk_server_exit"

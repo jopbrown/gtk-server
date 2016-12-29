@@ -24,7 +24,7 @@ com()
 #------------------------ Main starts here
 
 # Start gtk-server
-gtk-server -fifo=$PIPE &
+gtk-server -fifo=$PIPE -debug -detach
 
 # Make sure the PIPE file is available
 while [ ! -p $PIPE ]; do continue; done
