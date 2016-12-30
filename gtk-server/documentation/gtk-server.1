@@ -143,6 +143,12 @@ provided to this option to verify the certificate presented by the remote host.
 .B -password=string
 To be used in combination with the ssl option. This option should provide a password to decrypt
 the SSL certificate's key if the key was encrypted.
+.TP
+.B -debug
+The GTK\-server will start a small graphical panel containing the output of the information exchange
+between client script and GTK\-server. Three buttons are visible: (1) the "Step" button to execute
+the input from the client script line by line, (2) the "Run" button to let the client script execute its
+commands all at once, and (3) a "Quit" button to stop the GTK\-server altogether.
 
 .SH "SHEBANG"
 .PP

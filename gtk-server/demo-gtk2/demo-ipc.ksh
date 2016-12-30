@@ -13,11 +13,11 @@
 # Communication function; $@ contains the string to be sent
 function gtk
 {
-RESULT=$(gtk-server msg=$$,"$@")
+    RESULT=$(gtk-server -msg=$$,"$@")
 }
 
 # Start GTK-server in IPC mode
-gtk-server -detach -ipc=$$ -log=/tmp/gtk-server.log
+gtk-server -detach -debug -ipc=$$ -log=/tmp/gtk-server.log
 
 # Define GUI
 gtk "gtk_init NULL NULL"

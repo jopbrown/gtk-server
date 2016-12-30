@@ -438,6 +438,7 @@
 *		. XForms can use enumerations in callback definition
 *		. More intelligence in searching and opening defined libraries
 *		. Added '-debug' parameter to activate interactive debugging
+*		. Lots of fixes in autoconf macros and demonstration scripts
 *
 *************************************************************************************************************************************************/
 
@@ -6464,18 +6465,18 @@ while (1){
     /* Debug window */
     #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
     if (gtkserver.behave & 512) {
-	/* Poll descriptor to see if data is available */
+	/* Poll message queue to see if data is available */
 	while(debug_step == 0)
 	{
 	    debug_step = debug_run;
-	    do {
-		/* Update the debugging GUI */
-		update_gui;
-		/* Set a time to avoid 100% CPU load */
-		usleep(1000);
-		/* Poll the IPC */
-		if(numbytes == 0) { numbytes = msgrcv(msgid, &msgp, MAX_LEN, 1, IPC_NOWAIT|MSG_NOERROR); }
-	    } while (numbytes == 0);
+	    /* Update the debugging GUI */
+	    update_gui;
+	    /* Set a time to avoid 100% CPU load */
+	    usleep(1000);
+	    /* Poll the IPC */
+	    if(numbytes == 0) { numbytes = msgrcv(msgid, &msgp, MAX_LEN, 1, IPC_NOWAIT|MSG_NOERROR); }
+
+	    if(numbytes < 0 && errno == ENOMSG) { numbytes = 0; }
 	}
 	if(debug_run || debug_step == 1) { debug_step = 0; }
     }
