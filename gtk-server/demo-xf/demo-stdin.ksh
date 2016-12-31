@@ -52,7 +52,5 @@ do
     esac
 done
 
-xf "fl_finish"
-
 # Exit server
 xf "gtk_server_exit"

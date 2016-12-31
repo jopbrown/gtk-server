@@ -439,6 +439,7 @@
 *		. More intelligence in searching and opening defined libraries
 *		. Added '-debug' parameter to activate interactive debugging
 *		. Lots of fixes in autoconf macros and demonstration scripts
+*		. Fixed GTK3 warning with error dialogue.
 *
 *************************************************************************************************************************************************/
 
@@ -1123,12 +1124,12 @@ va_list args;
 char data[MAX_LEN];
 #ifdef GTK_SERVER_UNIX
     #if defined(GTK_SERVER_GTK2x) || defined(GTK_SERVER_GTK3x)
-	GtkWidget *dialog;
+	GtkWidget *dialog, *window;
 	/* Read arguments incoming in functionheader */
 	va_start(args, no);
 	vsnprintf(data, MAX_LEN, fmt, args);
-	gtk_init(NULL, NULL);
-	dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, 2, "%s", data);
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	dialog = gtk_message_dialog_new(GTK_WINDOW(window), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "%s", data);
 	gtk_window_set_title(GTK_WINDOW(dialog), "GTK-server Error!");
 	gtk_window_set_keep_above(GTK_WINDOW(dialog), TRUE);
 	gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER);
@@ -1139,7 +1140,6 @@ char data[MAX_LEN];
 	/* Read arguments incoming in functionheader */
 	va_start(args, no);
 	vsnprintf(data, MAX_LEN, fmt, args);
-	gtk_init(NULL, NULL);
 	dialog = gtk_dialog_new();
 	gtk_window_set_title(GTK_WINDOW(dialog), "GTK-server Error!");
 	gtk_widget_set_usize(dialog, 350, 100);
@@ -4700,6 +4700,13 @@ int len;
 char myname[MAX_LEN];
 #endif
 
+#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
+gtk_init(NULL, NULL);
+#elif GTK_SERVER_XF
+argv[0] = strdup("");
+fl_initialize(&argc, argv, "XForms", 0, 0);
+#endif
+
 #ifndef GTK_SERVER_LIBRARY
 /* Define the returnstring */
 char *retstr = NULL;
@@ -4786,11 +4793,6 @@ CHAR chRequest[MAX_LEN];
 DWORD cbBytesRead, cbWritten; 
 BOOL fSuccess;
 char *dialog_msg = (char*)malloc(MAX_LEN*sizeof(char));
-#endif
-
-#if GTK_SERVER_XF
-argv[0] = strdup("");
-fl_initialize(&argc, argv, "XForms", 0, 0);
 #endif
 
 /* Binary flags to behave to '0' */
@@ -5037,7 +5039,6 @@ else {
 
 /* Define the debug window */
 #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
-gtk_init(NULL, NULL);
 debug_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 gtk_window_set_title(GTK_WINDOW(debug_window), "GTK-server Debugger");
 gtk_window_set_default_size(GTK_WINDOW(debug_window), 600, 300);
@@ -5059,11 +5060,11 @@ debug_next = gtk_button_new_from_stock("gtk-go-forward");
 debug_vbox = gtk_vbox_new(0, 0);
 debug_hbox = gtk_hbox_new(0, 0);
 #elif GTK_SERVER_GTK3x
-debug_execute = gtk_button_new_from_icon_name("system-run", GTK_ICON_SIZE_BUTTON);
+debug_execute = gtk_button_new_from_icon_name("go-jump", GTK_ICON_SIZE_DND);
 gtk_button_set_label(GTK_BUTTON(debug_execute), "Run");
-debug_close = gtk_button_new_from_icon_name("process-stop", GTK_ICON_SIZE_BUTTON);
+debug_close = gtk_button_new_from_icon_name("process-stop", GTK_ICON_SIZE_DND);
 gtk_button_set_label(GTK_BUTTON(debug_close), "Quit");
-debug_next = gtk_button_new_from_icon_name("go-next", GTK_ICON_SIZE_BUTTON);
+debug_next = gtk_button_new_from_icon_name("go-next", GTK_ICON_SIZE_DND);
 gtk_button_set_label(GTK_BUTTON(debug_next), "Step");
 debug_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 debug_hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
@@ -5125,11 +5126,6 @@ if (gtkserver.behave & 512) { fl_show_form(debug_window, FL_PLACE_CENTER, FL_FUL
 
 #else	/* LIBRARY is defined */
 int init_result = 0;
-
-#if GTK_SERVER_XF
-argv[0] = strdup("");
-fl_initialize(&argc, argv, "XForms", 0, 0);
-#endif
 
 do {
     if (!strncmp(Trim_String(user_data), "gtk_server_cfg", 14) || !strncmp(Trim_String(user_data), "GTK_SERVER_CFG", 14)){
@@ -5455,11 +5451,6 @@ configfile = include;
 include = NULL;
 count_line = 0;
 }
-
-/* If macros are defined, init GTK already */
-#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
-if(Macro_Defs != NULL && Macro_Defs->name != NULL) gtk_init(NULL, NULL);
-#endif
 
 /* Now see if we need to print the complete configuration (for debugging) */
 if (gtkserver.behave & 1){

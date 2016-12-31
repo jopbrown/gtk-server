@@ -17,7 +17,7 @@ xf()
 }
 
 # Start GTK-server in STDIN mode
-gtk-server -fifo=$PIPE -log=/tmp/$0.log &
+gtk-server -fifo=$PIPE -log=/tmp/$0.log -detach -debug
 while [ ! -p $PIPE ]; do continue; done
 
 xf "fl_bgn_form FL_BORDER_BOX 320 240"
@@ -58,8 +58,6 @@ do
 	exit
     fi
 done
-
-xf "fl_finish"
 
 # Make sure GTK-server cleans up the pipefile
 xf "gtk_server_exit"
