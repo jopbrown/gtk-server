@@ -28,14 +28,21 @@ Similarly, compilation with GTK2 or GTK1 can be forced as well:
 ./configure --with-gtk2
 ./configure --with-gtk1
 
+The default installation procedure will try to install all
+versions of GTK-server.
+
+The script 'select-gtk-server' can be used to select the active
+GTK-server. It  needs to be executed as 'root' and will create 
+a symlink called 'gtk-server' to the correct binary.
+
 You can test if compilation and installation was successfull by
 trying the following:
 
-GTK2:
-echo screensaver | gtk-server -stdin
-
 GTK3:
 echo screensaver3 | gtk-server -stdin
+
+GTK2:
+echo screensaver | gtk-server -stdin
 
 XForms:
 echo xscreensaver | gtk-server -stdin
@@ -294,6 +301,9 @@ License
 The UTHASH library was released under the BSD license.
 Visit the UTHASH homepage for details:
 
+https://troydhanson.github.io/uthash/
+
+Formerly:
 http://uthash.sourceforge.net/
 
 

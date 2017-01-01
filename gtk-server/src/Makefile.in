@@ -8,7 +8,7 @@ datarootdir =	@datarootdir@
 MANDIR =	@mandir@
 CC =		@CC@
 STRIP =		@STRIP@
-CFLAGS =	-Wall @CFLAGS@ @DEFS@ -DLOCALCFG=\"$(SYSCONFIG)/gtk-server.cfg\"
+CFLAGS =	-Wall @CFLAGS@ @CPPFLAGS@ @DEFS@ -DLOCALCFG=\"$(SYSCONFIG)/gtk-server.cfg\"
 LDFLAGS =	@LDFLAGS@
 OBJS =		gtk-server.o
 INSTALL = 	@INSTALL@
