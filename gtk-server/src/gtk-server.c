@@ -549,7 +549,7 @@
 #define GTK_SERVER_NONE 0
 
 /* Define GTK-server version - macro 'VERSION' also used by FFI on some platforms */
-#define GTK_SERVER_VERSION "2.4.1 beta"
+#define GTK_SERVER_VERSION "2.4.1"
 
 /* Define backlog for tcp-connections */
 #define BACKLOG 4
