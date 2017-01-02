@@ -4854,6 +4854,14 @@ if (argc < 2 || !strncmp(argv[1], "help", 4) || !strncmp(argv[1], "-help", 5)) {
     #endif
 }
 
+/* Initialize GUI toolkits */
+#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
+gtk_init(NULL, NULL);
+#elif GTK_SERVER_XF
+argv[0] = strdup("");
+fl_initialize(&argc, argv, "XForms", 0, 0);
+#endif
+
 /* See if we are running from a shebang */
 if(!strncmp(argv[1], "this", 4) || !strncmp(argv[1], "-this", 5)){
     user_cfgfile = argv[2];
@@ -5030,14 +5038,6 @@ else {
     }
 }
 
-/* Initialize GUI toolkits */
-#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
-gtk_init(NULL, NULL);
-#elif GTK_SERVER_XF
-argv[0] = strdup("");
-fl_initialize(&argc, argv, "XForms", 0, 0);
-#endif
-
 /* Define the debug window */
 #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
 debug_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -5128,6 +5128,14 @@ if (gtkserver.behave & 512) { fl_show_form(debug_window, FL_PLACE_CENTER, FL_FUL
 #else	/* LIBRARY is defined */
 int init_result = 0;
 
+/* Initialize GUI toolkits */
+#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
+gtk_init(NULL, NULL);
+#elif GTK_SERVER_XF
+argv[0] = strdup("");
+fl_initialize(&argc, argv, "XForms", 0, 0);
+#endif
+
 do {
     if (!strncmp(Trim_String(user_data), "gtk_server_cfg", 14) || !strncmp(Trim_String(user_data), "GTK_SERVER_CFG", 14)){
 	user_data += 14;
@@ -5212,14 +5220,6 @@ if(gtkserver.post == NULL) gtkserver.post = strdup("");
 
 /* Initialize the optional incoming client handle to NULL */
 gtkserver.handle = strdup("");
-
-/* Initialize GUI toolkits */
-#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
-gtk_init(NULL, NULL);
-#elif GTK_SERVER_XF
-argv[0] = strdup("");
-fl_initialize(&argc, argv, "XForms", 0, 0);
-#endif
 
 /* If argument to configfile is entered it will overrule the other default locations (standalone exe)
 This does not work with the LIBRARY version since it will always send a string through the 'gtk' function.  */
