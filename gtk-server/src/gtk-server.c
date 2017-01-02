@@ -549,7 +549,7 @@
 #define GTK_SERVER_NONE 0
 
 /* Define GTK-server version - macro 'VERSION' also used by FFI on some platforms */
-#define GTK_SERVER_VERSION "2.4.1"
+#define GTK_SERVER_VERSION "2.4.2 beta"
 
 /* Define backlog for tcp-connections */
 #define BACKLOG 4
@@ -4700,13 +4700,6 @@ int len;
 char myname[MAX_LEN];
 #endif
 
-#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
-gtk_init(NULL, NULL);
-#elif GTK_SERVER_XF
-argv[0] = strdup("");
-fl_initialize(&argc, argv, "XForms", 0, 0);
-#endif
-
 #ifndef GTK_SERVER_LIBRARY
 /* Define the returnstring */
 char *retstr = NULL;
@@ -5037,6 +5030,14 @@ else {
     }
 }
 
+/* Initialize GUI toolkits */
+#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
+gtk_init(NULL, NULL);
+#elif GTK_SERVER_XF
+argv[0] = strdup("");
+fl_initialize(&argc, argv, "XForms", 0, 0);
+#endif
+
 /* Define the debug window */
 #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
 debug_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -5211,6 +5212,14 @@ if(gtkserver.post == NULL) gtkserver.post = strdup("");
 
 /* Initialize the optional incoming client handle to NULL */
 gtkserver.handle = strdup("");
+
+/* Initialize GUI toolkits */
+#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
+gtk_init(NULL, NULL);
+#elif GTK_SERVER_XF
+argv[0] = strdup("");
+fl_initialize(&argc, argv, "XForms", 0, 0);
+#endif
 
 /* If argument to configfile is entered it will overrule the other default locations (standalone exe)
 This does not work with the LIBRARY version since it will always send a string through the 'gtk' function.  */
