@@ -572,9 +572,6 @@ struct stat sb;
 #define illegal_pointer(p) IsBadReadPtr(p, MAX_LEN)
 #endif
 
-/* Define some inputs and outputs */
-enum { STDIN, STDOUT, STDERR };
-
 /* Define structure containing configuration data */
 typedef struct config_struct {
     char *name;
