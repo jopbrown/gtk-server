@@ -441,6 +441,11 @@
 *		. Lots of fixes in autoconf macros and demonstration scripts
 *		. Fixed GTK3 warning with error dialogue.
 *
+* CHANGES GTK-SERVER 2.4.2
+* ------------------------
+*		. Fixed compile warning with GCC 4.8
+*		. Improved 'gtk_server_os' command
+*
 *************************************************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
@@ -498,6 +503,7 @@
 #ifdef GTK_SERVER_UNIX
 #include <netdb.h>
 #include <sys/socket.h>
+#include <sys/utsname.h>
 #include <sys/wait.h>
 #include <arpa/inet.h>
 #include <signal.h>
@@ -2959,6 +2965,7 @@ char *retstr;			/* Result holder */
 char buffer[MAX_LEN];		/* Buffer to keep macro redefinitions */
 int cmd;			/* Macro-parser: what MACRO command are we currently executing? */
 int item;			/* If handle from client is given start parsing at item = 1, else item = 0 */
+struct utsname pf;              /* For gtk_server_os */
 
 #if GTK_SERVER_FFI || GTK_SERVER_FFCALL
     #ifdef GTK_SERVER_UNIX
@@ -3118,24 +3125,14 @@ if (inputdata != NULL) {
     }
     /* Internal call for OS */
     else if (!strcmp("gtk_server_os", gtk_api_call)){
-	/* Return GTK-server platform */
-	#ifdef GTK_SERVER_BSD
-	retstr = Print_Result("%s%sBSD%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
-	#elif GTK_SERVER_SOLARIS
-	retstr = Print_Result("%s%sSolaris%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
-	#elif GTK_SERVER_DARWIN
-	retstr = Print_Result("%s%sMacOS%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
-	#elif GTK_SERVER_TRU64
-	retstr = Print_Result("%s%sTru64Unix%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
-	#elif GTK_SERVER_WIN32
-	retstr = Print_Result("%s%sWindows%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
-	#elif GTK_SERVER_X86_64 == 1
-	retstr = Print_Result("%s%sLinux 64bit compatible%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
-	#elif GTK_SERVER_UNIX
-	retstr = Print_Result("%s%sLinux compatible%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
-	#else
-	retstr = Print_Result("%s%sUnknown%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
-	#endif
+        if (uname (&pf) < 0)
+        {
+	    retstr = Print_Result("%s%sUnknown%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
+        }
+        else
+        {
+	    retstr = Print_Result("%s%s%s %s on %s%s", 6, gtkserver.pre, gtkserver.handle, pf.sysname, pf.release, pf.machine, gtkserver.post);
+        }
     }
     else if (!strcmp("GTK_SERVER_ENABLE_C_STRING_ESCAPING", gtk_api_call) || !strcmp("gtk_server_enable_c_string_escaping", gtk_api_call)){
 	gtkserver.c_escaped = 1;
