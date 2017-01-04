@@ -29,7 +29,7 @@ gtk("gtk_container_add win tbl")
 
 define(button, gtk("gtk_button_new_from_icon_name window-close GTK_ICON_SIZE_DND"))
 gtk("gtk_button_set_label button 'Quit this dialogue'")
-gtk("gtk_table_attach_defaults tbl button 6 9 6 9")
+gtk("gtk_table_attach_defaults tbl button 6 9 7 9")
 
 define(entry, gtk("gtk_entry_new"))
 gtk("gtk_table_attach_defaults tbl entry 1 6 1 3")
@@ -45,6 +45,6 @@ define(exit_cb, `gtk("gtk_server_exit")' `m4exit(0)')
 
 define(event, `ifelse($1, entry, `entry_cb', `exit_cb')')
 
-define(loop, undefine(`cb') define(`cb',`callback') `event(cb)' `loop')
+define(mainloop, define(`cb',`callback') `event(cb)' `mainloop')
 
-loop
+mainloop
