@@ -7,12 +7,11 @@
 * Please read the documentation on how to use this program.
 * The CREDITS file lists all people who have helped improving the GTK-server.
 *
-* Original idea and design by Peter van Eerten, september 2003 - december 2016
+* Original idea and design by Peter van Eerten, september 2003 - january 2017
 * Mail: peter@gtk-server.org
 *
-* This source has become a little bit messy. What started as a quick hack, grew out
-* to a large program. For GTK-server 3.0 a complete redesign of the source
-* is planned.
+* This source has become a little bit messy. What started as a quick hack,
+* grew out to a large program.
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -445,6 +444,7 @@
 * ------------------------
 *		. Fixed compile warning with GCC 4.8
 *		. Improved 'gtk_server_os' command
+*               . Cleanup code
 *
 *************************************************************************************************************************************************/
 
@@ -6276,7 +6276,7 @@ if (gtkserver.mode == 6) {
 	#endif
 
 	/* Now send the result back to the socket */
-	if(strlen(retstr)< MAX_LEN-1) { strcat(retstr, "\n"); }
+	strcat(retstr, "\n");
 
 	if (gtkserver.behave & 192){
 	    #ifdef GTK_SERVER_USE_SSL
@@ -6404,7 +6404,7 @@ while (1){
 	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
 	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
 	#endif
-	if(strlen(retstr)< MAX_LEN-1) strcat(retstr, "\n");
+	strcat(retstr, "\n");
 
 	/* Now send the result back to the socket */
 	if ((numbytes=sendto(sockfd, retstr, strlen(retstr), 0, (struct sockaddr *)&their_addr, sizeof(struct sockaddr))) == -1) {
