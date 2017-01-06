@@ -445,6 +445,7 @@
 *		. Fixed compile warning with GCC 4.8
 *		. Improved 'gtk_server_os' command
 *               . Cleanup code
+*		. Added '-nonl' parameter to prevent GTK-server adding newline to responses.
 *
 *************************************************************************************************************************************************/
 
@@ -745,16 +746,17 @@ struct behaviour {
     int exit_sig;		/* Keep exit signal to send to PPID */
     int ppid;			/* Keep PID of parent */
     int behave;			/* Binary flag
-				    -list of configured calls	0000000001
-				    -do not create FIFO file	0000000010
-				    -do not spawn to backgrnd	0000000100
-				    -send signal on exit	0000001000
-				    -run a macro first		0000010000
-				    -send INIT string		0000100000
-				    -use SSL encryption	wo cert	0001000000
-				    -use SSL encryption	& cert	0010000000
-				    -use check on handle	0100000000
-				    -use check on debug		1000000000*/
+				    -list of configured calls	00000000001
+				    -do not create FIFO file	00000000010
+				    -do not spawn to backgrnd	00000000100
+				    -send signal on exit	00000001000
+				    -run a macro first		00000010000
+				    -send INIT string		00000100000
+				    -use SSL encryption	wo cert	00001000000
+				    -use SSL encryption	& cert	00010000000
+				    -use check on handle	00100000000
+				    -use check on debug		01000000000
+				    -disable adding of newline  10000000000 */
     int mode;			/* Are we running in STDIN, FIFO, IPC, TCP, UDP mode? */
 };
 
@@ -1198,7 +1200,7 @@ va_list args;
 va_list backup;
 
 /* These are used for the C string escaping */
-unsigned int i = 0, j = 0, l = 0, q, found;
+unsigned int i = 0, j = 0, l = 0, q, found, amount;
 char hex_buf[3];
 char *result;
 
@@ -1210,17 +1212,17 @@ memcpy (&backup, &args, sizeof (va_list));
 
 /* Only executed at first-time use, the 2 extra blocks for are needed for \n\0 */
 if (retstr == NULL) {
-    retstr = (char*)malloc(memsize*sizeof(char) + 2*sizeof(char));
+    retstr = (char*)calloc(memsize + 2, sizeof(char));
     if (retstr == NULL) Print_Error("%s%s", 2, "\nNo sufficient memory to allocate returnvalue: ", strerror(errno));
 }
 
 /* vsnprintf returns amount of chars that should be written regardless given size */
-i = vsnprintf(retstr, memsize, fmt, args);
+amount = vsnprintf(retstr, memsize, fmt, args);
 
-if (i > memsize) {
-    retstr = (char*)realloc(retstr, i*sizeof(char) + 2*sizeof(char));
+if (amount > memsize) {
+    retstr = (char*)realloc(retstr, (amount+2)*sizeof(char));
     if (retstr == NULL) Print_Error("%s%s", 2, "\nNo sufficient memory to allocate returnvalue: ", strerror(errno));
-    memsize = i;
+    memsize = amount;
     /* Put back the va_list as it has been used already, using a portable va_copy */
     memcpy (&args, &backup, sizeof (va_list));
     vsnprintf(retstr, memsize, fmt, args);
@@ -1309,6 +1311,11 @@ if (gtkserver.c_escaped & 2) {
 
     /* Make sure to 0 flag */
     gtkserver.c_escaped &= 253;
+}
+
+/* Add terminating newline if no '-nonl' parameter was provided */
+if(!(gtkserver.behave & 1024) && retstr[amount-1] != '\n') {
+    retstr = strncat(retstr, "\n", 1);
 }
 
 return retstr;
@@ -4408,7 +4415,10 @@ if (inputdata != NULL) {
 			fflush(logfile);
 		    }
 		    /* No RETURN, no ASSOC or GET or COMPARE, no number, no string assignment, no assignment to other var? Execute the buffer */
-		    if(cmd != 15 && cmd != 14 && cmd != 5 && cmd != 4 && cmd != 6 && !is_value(buf) && *buf != 38 && *buf != 36) retstr = Call_Realize(buf, cinv_ctx);
+		    if(cmd != 15 && cmd != 14 && cmd != 5 && cmd != 4 && cmd != 6 && !is_value(buf) && *buf != 38 && *buf != 36)
+		    {
+			retstr = Call_Realize(buf, cinv_ctx);
+		    }
 		    else {
 			/* Prefill result of macro */
 			if (cmd == 14 && *buf == 36) {
@@ -4460,8 +4470,8 @@ if (inputdata != NULL) {
 				}
 				/* It's not a string, keep returnstring - '-1' if it was not found by GTK-server */
 				else{
-				    Macro_Found->var[*sym - 97] = (char*)realloc(Macro_Found->var[*sym - 97], strlen(retstr)+1);
-				    strcpy(Macro_Found->var[*sym - 97], retstr);
+				    Macro_Found->var[*sym - 97] = (char*)realloc(Macro_Found->var[*sym - 97], strlen(Trim_String(retstr))+1);
+				    strcpy(Macro_Found->var[*sym - 97], Trim_String(retstr));
 				}
 			    }
 			    else Print_Error("%s%s%s%s", 4, "\nERROR: Illegal variablename in assignment!\n\nMacro: ", Macro_Found->name, "\n\nVariablename: ", sym);
@@ -4960,7 +4970,10 @@ else {
 	    if (len >= 0) in[len] = '\0';
     
 	    /* Print result to STDOUT */
-	    fprintf(stdout, "%s\n", in);
+	    if(gtkserver.behave & 1024)
+		{ fprintf(stdout, "%s", in); }
+	    else
+		{ fprintf(stdout, "%s\n", in); }
 	    fflush(stdout);
 	    exit(EXIT_SUCCESS);
 	}
@@ -5024,6 +5037,9 @@ else {
 	}
 	else if (!strncmp(argv[i], "debug", 5) || !strncmp(argv[i], "-debug", 6)){ /* Show debug dialog with logging? */
 	    gtkserver.behave |= 512;
+	}
+	else if (!strncmp(argv[i], "nonl", 4) || !strncmp(argv[i], "-nonl", 5)){ /* Do not add a newline after each string coming back from GTK-server */
+	    gtkserver.behave |= 1024;
 	}
 	else {
 	    Print_Error("%s%s%s", 3, "\nArgument '", argv[i], "' to GTK-server not recognized!");
@@ -5161,8 +5177,8 @@ do {
 	user_data = strtok(NULL, " ");
 	init_result++;
     }
-    else if (!strncmp(Trim_String(user_data), "debug", 5) || !strncmp(Trim_String(user_data), "-debug", 6)){
-	gtkserver.behave |= 512;
+    else if (!strncmp(Trim_String(user_data), "nonl", 4) || !strncmp(Trim_String(user_data), "-nonl", 5)){
+	gtkserver.behave |= 1024;
 	user_data = strtok(NULL, " ");
 	init_result++;
     }
@@ -5644,7 +5660,7 @@ if (gtkserver.mode == 1) {
 	#endif
 
 	/* Answer from GTK-server */
-	fprintf(stdout, "%s\n", retstr);
+	fprintf(stdout, "%s", retstr);
 
 	fflush(stdout);
     }
@@ -5761,7 +5777,6 @@ if (gtkserver.mode == 2) {
 	}
 
 	/* Answer from GTK-server */
-	strcat(retstr, "\n");
 	if(write (sockfd, retstr, strlen(retstr)) < 0) Print_Error("%s%s", 2, "\nError writing FIFO: ", strerror(errno));
 
 	/* Close socket again */
@@ -5874,7 +5889,6 @@ if (gtkserver.mode == 2) {
 		    fprintf(logfile, "SERVER: %s\n", retstr);
 		    fflush(logfile);
 		}
-		strcat(retstr, "\n");
 
 		fSuccess = WriteFile(hPipe2, retstr, strlen(retstr), &cbWritten, NULL);
 
@@ -6068,7 +6082,6 @@ while (1){
 	    #endif
 
 	    /* Now send the result back to the socket */
-	    strcat(retstr, "\n");
 	    numbytes = send(new_fd, retstr, strlen(retstr), 0);
 
 	    if (numbytes < 0) Print_Error("%s%s", 2, "\nError in sending to TCP: ", strerror(errno));
@@ -6276,8 +6289,6 @@ if (gtkserver.mode == 6) {
 	#endif
 
 	/* Now send the result back to the socket */
-	strcat(retstr, "\n");
-
 	if (gtkserver.behave & 192){
 	    #ifdef GTK_SERVER_USE_SSL
 	    numbytes = SSL_write(ssl, retstr, strlen(retstr));
@@ -6404,10 +6415,9 @@ while (1){
 	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
 	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
 	#endif
-	strcat(retstr, "\n");
 
 	/* Now send the result back to the socket */
-	if ((numbytes=sendto(sockfd, retstr, strlen(retstr), 0, (struct sockaddr *)&their_addr, sizeof(struct sockaddr))) == -1) {
+	if ((numbytes = sendto(sockfd, retstr, strlen(retstr), 0, (struct sockaddr *)&their_addr, sizeof(struct sockaddr))) == -1) {
 	    Print_Error("%s%s", 2, "\nCould not send DATAGRAM packet.\n\nERROR: ", strerror(errno));
 	}
     }

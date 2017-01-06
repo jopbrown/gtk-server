@@ -13,7 +13,7 @@ divert(-1)dnl
 
 syscmd(`gtk-server -ipc=1 -debug -detach')
 
-define(gtk, `esyscmd(`gtk-server -msg=1,`$@'')')
+define(gtk, `esyscmd(`gtk-server -nonl -msg=1,`$@'')')
 
 #-----------------------------------------------------------
 

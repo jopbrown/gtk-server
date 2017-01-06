@@ -14,7 +14,7 @@ function gtk { print -p $1; read -p GTK; }
 function define { $2 "$3"; eval $1=$GTK; }
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin -log=/tmp/$0.log |&
+gtk-server -stdin -log=/tmp/$0.log -debug |&
 
 # Define GUI
 gtk "gtk_init NULL NULL"
