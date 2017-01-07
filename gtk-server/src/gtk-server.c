@@ -5110,11 +5110,12 @@ debug_window = fl_bgn_form(FL_BORDER_BOX, 600, 300);
 debug_view = fl_add_input(FL_MULTILINE_INPUT, 10, 10, 580, 230, NULL);
 fl_set_input_cursor_visible(debug_view, 0);
 fl_set_object_return(debug_view, FL_RETURN_NONE);
-debug_close = fl_add_button(FL_NORMAL_BUTTON, 10, 250, 80, 40, "Quit");
+debug_close = fl_add_button(FL_NORMAL_BUTTON, 10, 250, 80, 40, "@#9+");
+fl_set_object_lcol(debug_close, FL_RED);
 fl_set_object_callback(debug_close, (FL_CALLBACKPTR)exit, 0);
-debug_execute = fl_add_button(FL_NORMAL_BUTTON, 510, 250, 80, 40, "Run");
+debug_execute = fl_add_button(FL_NORMAL_BUTTON, 510, 250, 80, 40, "@#>>");
 fl_set_object_callback(debug_execute, (FL_CALLBACKPTR)switch_flag_on,  (long)&debug_run);
-debug_next = fl_add_button(FL_NORMAL_BUTTON, 420, 250, 80, 40, "Step");
+debug_next = fl_add_button(FL_NORMAL_BUTTON, 420, 250, 80, 40, "@#>");
 fl_set_object_callback(debug_next, (FL_CALLBACKPTR)switch_flag_on,  (long)&debug_step);
 fl_end_form();
 if (gtkserver.behave & 512) { fl_show_form(debug_window, FL_PLACE_CENTER, FL_FULLBORDER, "GTK-server Debugger"); }
@@ -5641,11 +5642,11 @@ if (gtkserver.mode == 1) {
 
 	/* If logging is enabled, write incoming text to log */
 	if (logfile != NULL){
-	    fprintf(logfile, "SCRIPT: %s\n", in);
+	    fprintf(logfile, "SCRIPT: %s\n", Trim_String(in));
 	    fflush(logfile);
 	}
 	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, in, 2); }
+	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, Trim_String(in), 3); }
 	#endif
 
 	retstr = Call_Realize(Trim_String(in), cinv_ctx);
@@ -5753,11 +5754,11 @@ if (gtkserver.mode == 2) {
 
 	/* If logging is enabled, write incoming text to log */
 	if (logfile != NULL){
-	    fprintf(logfile, "SCRIPT: %s\n", in);
+	    fprintf(logfile, "SCRIPT: %s\n", Trim_String(in));
 	    fflush(logfile);
 	}
 	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, in, 2); }
+	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, Trim_String(in), 3); }
 	#endif
 
 	retstr = Call_Realize(Trim_String(in), cinv_ctx);
@@ -5878,7 +5879,7 @@ if (gtkserver.mode == 2) {
 
 		/* If logging is enabled, write incoming text to log */
 		if (logfile != NULL){
-		    fprintf(logfile, "SCRIPT: %s\n", in);
+		    fprintf(logfile, "SCRIPT: %s\n", Trim_String(in));
 		    fflush(logfile);
 		}
 

@@ -11,7 +11,7 @@
 # Optionally enable GTK logging
 (xf "gtk_server_cfg log=/tmp/gtk-server.log")
 
-(println (get-string (xf "gtk_server_version")))
+(print (get-string (xf "gtk_server_version")))
 
 # Connect to the GTK-server
 (setq WINDOW (get-string (xf "fl_bgn_form FL_BORDER_BOX 320 240")))
