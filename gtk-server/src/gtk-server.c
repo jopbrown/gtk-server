@@ -1293,18 +1293,20 @@ if (gtkserver.c_escaped & 2) {
     result[++j] = '"';
     result[++j] = '\0';
 
+    amount = strlen(result);
+
     /* Static return buffer big enough?*/
-    if (strlen(result) > memsize){
-	retstr = (char*)realloc(retstr, strlen(result)*sizeof(char) + 2*sizeof(char));
+    if (amount > memsize){
+	retstr = (char*)realloc(retstr, (amount+2)*sizeof(char));
 	if (retstr == NULL) Print_Error("%s%s", 2, "\nNo sufficient memory to allocate returnvalue: ", strerror(errno));
-	memsize = strlen(result);
+	memsize = amount;
     }
 
     /* Clearup static return buffer */
-    memset(retstr, 0, memsize);
+    memset(retstr, 0, amount);
 
     /* Copy result in static buffer */
-    memcpy(retstr, result, strlen(result));
+    memcpy(retstr, result, amount);
 
     /* Free temporary buffer */
     free(result);
