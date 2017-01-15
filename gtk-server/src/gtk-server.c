@@ -446,6 +446,7 @@
 *		. Improved 'gtk_server_os' command
 *               . Cleanup code
 *		. Added '-nonl' parameter to prevent GTK-server adding newline to responses.
+*		. Added Pause button to debug panel
 *
 *************************************************************************************************************************************************/
 
@@ -1445,6 +1446,11 @@ return (char *) memcpy (new, s, n);
 void switch_flag_on(void* widget, long *data)
 {
     *data = 1;
+}
+
+void switch_flag_off(void* widget, long *data)
+{
+    *data = 0;
 }
 
 /*************************************************************************************************/
@@ -4745,10 +4751,10 @@ BIO *sbio;
 GtkWidget *debug_window;
 GtkTextBuffer *debug_buffer;
 GtkTextIter debug_iter;
-GtkWidget *debug_view, *debug_scrolled, *debug_execute, *debug_close, *debug_next, *debug_vbox, *debug_hbox;
+GtkWidget *debug_view, *debug_scrolled, *debug_execute, *debug_close, *debug_next, *debug_pause, *debug_vbox, *debug_hbox;
 #elif GTK_SERVER_XF
 FL_FORM *debug_window;
-FL_OBJECT *debug_view, *debug_close, *debug_execute, *debug_next;
+FL_OBJECT *debug_view, *debug_close, *debug_execute, *debug_pause, *debug_next;
 char *xf_buffer;
 #endif
 #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
@@ -5070,6 +5076,7 @@ gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(debug_view), 0);
 debug_execute = gtk_button_new_from_stock("gtk-execute");
 debug_close = gtk_button_new_from_stock("gtk-quit");
 debug_next = gtk_button_new_from_stock("gtk-go-forward");
+debug_pause = gtk_button_new_from_stock("gtk-media-pause");
 debug_vbox = gtk_vbox_new(0, 0);
 debug_hbox = gtk_hbox_new(0, 0);
 #elif GTK_SERVER_GTK3x
@@ -5079,15 +5086,19 @@ debug_close = gtk_button_new_from_icon_name("process-stop", GTK_ICON_SIZE_DND);
 gtk_button_set_label(GTK_BUTTON(debug_close), "Quit");
 debug_next = gtk_button_new_from_icon_name("go-next", GTK_ICON_SIZE_DND);
 gtk_button_set_label(GTK_BUTTON(debug_next), "Step");
+debug_pause = gtk_button_new_from_icon_name("media-playback-pause", GTK_ICON_SIZE_DND);
+gtk_button_set_label(GTK_BUTTON(debug_pause), "Pause");
 debug_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 debug_hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 #endif
 gtk_box_pack_start(GTK_BOX(debug_hbox), debug_close, 0, 0, 1);
+gtk_box_pack_end(GTK_BOX(debug_hbox), debug_pause, 0, 0, 1);
 gtk_box_pack_end(GTK_BOX(debug_hbox), debug_execute, 0, 0, 1);
 gtk_box_pack_end(GTK_BOX(debug_hbox), debug_next, 0, 0, 1);
 gtk_box_pack_start(GTK_BOX(debug_vbox), debug_scrolled, 1, 1, 1);
 gtk_box_pack_start(GTK_BOX(debug_vbox), debug_hbox, 0, 0, 1);
 gtk_container_add(GTK_CONTAINER(debug_window), debug_vbox);
+g_signal_connect(debug_pause, "clicked", G_CALLBACK(switch_flag_off), &debug_run);
 g_signal_connect(debug_execute, "clicked", G_CALLBACK(switch_flag_on), &debug_run);
 g_signal_connect(debug_next, "clicked", G_CALLBACK(switch_flag_on), &debug_step);
 g_signal_connect(debug_close, "clicked", G_CALLBACK(exit), NULL);
@@ -5115,9 +5126,11 @@ fl_set_object_return(debug_view, FL_RETURN_NONE);
 debug_close = fl_add_button(FL_NORMAL_BUTTON, 10, 250, 80, 40, "@#9+");
 fl_set_object_lcol(debug_close, FL_RED);
 fl_set_object_callback(debug_close, (FL_CALLBACKPTR)exit, 0);
-debug_execute = fl_add_button(FL_NORMAL_BUTTON, 510, 250, 80, 40, "@#>>");
+debug_execute = fl_add_button(FL_NORMAL_BUTTON, 420, 250, 80, 40, "@#>>");
 fl_set_object_callback(debug_execute, (FL_CALLBACKPTR)switch_flag_on,  (long)&debug_run);
-debug_next = fl_add_button(FL_NORMAL_BUTTON, 420, 250, 80, 40, "@#>");
+debug_pause = fl_add_button(FL_NORMAL_BUTTON, 510, 250, 80, 40, "@#square");
+fl_set_object_callback(debug_pause, (FL_CALLBACKPTR)switch_flag_off,  (long)&debug_run);
+debug_next = fl_add_button(FL_NORMAL_BUTTON, 330, 250, 80, 40, "@#>");
 fl_set_object_callback(debug_next, (FL_CALLBACKPTR)switch_flag_on,  (long)&debug_step);
 fl_end_form();
 if (gtkserver.behave & 512) { fl_show_form(debug_window, FL_PLACE_CENTER, FL_FULLBORDER, "GTK-server Debugger"); }

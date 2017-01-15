@@ -9,7 +9,9 @@
 # Revised at april 26, 2008 - PvE.
 # Tested with GTK-server 2.4 in december 2016 - PvE
 #------------------------------------------------
-#
+
+trap 'exit' SIGCHLD
+
 # Communication function; assignment function
 function gtk { print -p $1; read -p GTK; }
 function define { $2 "$3"; eval $1=$GTK; }
