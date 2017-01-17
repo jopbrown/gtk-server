@@ -240,11 +240,12 @@ program. Any value other than 0 will propagate the event to GTK also.
 When the GTK-server has been compiled for XForms, the ID of the form must be provided as first argument,
 after which the event mask should be entered. The event mask can be one of KeyPressMask, KeyReleaseMask,
 ButtonPressMask, ButtonReleaseMask, EnterWindowMask, LeaveWindowMask, PointerMotionMask or
-ButtonMotionMask. These are defined in the X-Server header files.
+ButtonMotionMask. These can be entered as a plain value (mentioned in the X-Server header files), or they
+can be defined as an ENUM in the GTK\-server config file.
 .TP
 .B gtk_server_connect_after <widgetID> <signal> <description> [flag]
 Similar to "gtk_server_connect", but the signal occurs after other signals take place.
-This function is not available when the GTK-server has been compiled for the XForms backend.
+This function is not available when the GTK\-server has been compiled for the XForms backend.
 .TP
 .B gtk_server_disconnect <widgetID> <description>
 Disconnects a signal from a widget which has been defined with "gtk_server_connect" or

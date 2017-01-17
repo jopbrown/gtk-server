@@ -340,7 +340,8 @@ program. Any value other than 0 will propagate the event to GTK also.
 When the GTK-server has been compiled for XForms, the ID of the form must be provided as first argument,
 after which the event mask should be entered. The event mask can be one of KeyPressMask, KeyReleaseMask,
 ButtonPressMask, ButtonReleaseMask, EnterWindowMask, LeaveWindowMask, PointerMotionMask or
-ButtonMotionMask. These are defined in the X-Server header files.
+ButtonMotionMask. These can be entered as a plain value (mentioned in the X-Server header files), or they
+can be defined as an ENUM in the GTK-server config file.
 <DT><B>gtk_server_connect_after &lt;widgetID&gt; &lt;signal&gt; &lt;description&gt; [flag]</B>
 
 <DD>
@@ -603,6 +604,6 @@ the sourcepackage for credits.
 This document was created by
 <A HREF="/cgi-bin/man/man2html">man2html</A>,
 using the manual pages.<BR>
-Time: 20:14:29 GMT, January 17, 2017
+Time: 20:52:26 GMT, January 17, 2017
 </BODY>
 </HTML>
