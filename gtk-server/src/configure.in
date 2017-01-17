@@ -107,6 +107,30 @@ fi
 AC_SEARCH_LIBS([dlopen], [dl], [], [AC_MSG_ERROR(Cannot compile - missing library: dl)], [])
 AC_SEARCH_LIBS([dlsym], [dl], [], [AC_MSG_ERROR(Cannot compile - missing library: dl)], [])
 
+# Checks for header files.
+AC_CHECK_HEADER(errno.h, [], [AC_MSG_ERROR(Cannot compile - missing header: errno.h)])
+AC_CHECK_HEADER(locale.h, [], [AC_MSG_ERROR(Cannot compile - missing header: locale.h)])
+AC_CHECK_HEADER(stdio.h, [], [AC_MSG_ERROR(Cannot compile - missing header: stdio.h)])
+AC_CHECK_HEADER(stdlib.h, [], [AC_MSG_ERROR(Cannot compile - missing header: stdlib.h)])
+AC_CHECK_HEADER(string.h, [], [AC_MSG_ERROR(Cannot compile - missing header: string.h)])
+
+if test "$unix" = yes
+then
+    AC_CHECK_HEADER(arpa/inet.h, [], [AC_MSG_ERROR(Cannot compile - missing header: arpa/inet.h)])
+    AC_CHECK_HEADER(ctype.h, [], [AC_MSG_ERROR(Cannot compile - missing header: ctype.h)])
+    AC_CHECK_HEADER(fcntl.h, [], [AC_MSG_ERROR(Cannot compile - missing header: fcntl.h)])
+    AC_CHECK_HEADER(netdb.h, [], [AC_MSG_ERROR(Cannot compile - missing header: netdb.h)])
+    AC_CHECK_HEADER(signal.h, [], [AC_MSG_ERROR(Cannot compile - missing header: signal.h)])
+    AC_CHECK_HEADER(sys/ipc.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/ipc.h)])
+    AC_CHECK_HEADER(sys/msg.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/msg.h)])
+    AC_CHECK_HEADER(sys/socket.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/socket.h)])
+    AC_CHECK_HEADER(sys/stat.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/stat.h)])
+    AC_CHECK_HEADER(sys/types.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/types.h)])
+    AC_CHECK_HEADER(sys/utsname.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/utsname.h)])
+    AC_CHECK_HEADER(sys/wait.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/wait.h)])
+    AC_CHECK_HEADER(unistd.h, [], [AC_MSG_ERROR(Cannot compile - missing header: unistd.h)])
+fi
+
 # Check for pkgconfig
 AC_PATH_PROG(PKGCONFIG_CONFIG, pkg-config, no)
 if test "PKGCONFIG_CONFIG" = "no"; then
@@ -324,30 +348,6 @@ AC_CHECK_HEADER(ffi.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_FFI) LDFLAGS="$LDFLAGS -lf
 	[AC_CHECK_HEADER(cinvoke.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_CINV) LDFLAGS="$LDFLAGS -lcinvoke -ldl"] cinv=yes,
 	    [AC_CHECK_HEADER(dyncall.h,	[AC_DEFINE_UNQUOTED(GTK_SERVER_DYNCALL) LDFLAGS="$LDFLAGS -ldynload_s -ldyncall_s -ldl"] dyncall=yes,
 		    [AC_MSG_ERROR(Cannot compile - no foreign function headers found! Please check 'README.1ST' for details.)]) ]) ]) ])
-fi
-
-# Checks for header files.
-AC_CHECK_HEADER(errno.h, [], [AC_MSG_ERROR(Cannot compile - missing header: errno.h)])
-AC_CHECK_HEADER(locale.h, [], [AC_MSG_ERROR(Cannot compile - missing header: locale.h)])
-AC_CHECK_HEADER(stdio.h, [], [AC_MSG_ERROR(Cannot compile - missing header: stdio.h)])
-AC_CHECK_HEADER(stdlib.h, [], [AC_MSG_ERROR(Cannot compile - missing header: stdlib.h)])
-AC_CHECK_HEADER(string.h, [], [AC_MSG_ERROR(Cannot compile - missing header: string.h)])
-
-if test "$unix" = yes
-then
-    AC_CHECK_HEADER(arpa/inet.h, [], [AC_MSG_ERROR(Cannot compile - missing header: arpa/inet.h)])
-    AC_CHECK_HEADER(ctype.h, [], [AC_MSG_ERROR(Cannot compile - missing header: ctype.h)])
-    AC_CHECK_HEADER(fcntl.h, [], [AC_MSG_ERROR(Cannot compile - missing header: fcntl.h)])
-    AC_CHECK_HEADER(netdb.h, [], [AC_MSG_ERROR(Cannot compile - missing header: netdb.h)])
-    AC_CHECK_HEADER(signal.h, [], [AC_MSG_ERROR(Cannot compile - missing header: signal.h)])
-    AC_CHECK_HEADER(sys/ipc.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/ipc.h)])
-    AC_CHECK_HEADER(sys/msg.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/msg.h)])
-    AC_CHECK_HEADER(sys/socket.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/socket.h)])
-    AC_CHECK_HEADER(sys/stat.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/stat.h)])
-    AC_CHECK_HEADER(sys/types.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/types.h)])
-    AC_CHECK_HEADER(sys/utsname.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/utsname.h)])
-    AC_CHECK_HEADER(sys/wait.h, [], [AC_MSG_ERROR(Cannot compile - missing header: sys/wait.h)])
-    AC_CHECK_HEADER(unistd.h, [], [AC_MSG_ERROR(Cannot compile - missing header: unistd.h)])
 fi
 
 # Check CC, options for GCC/TCC

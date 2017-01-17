@@ -4329,7 +4329,7 @@ if (inputdata != NULL) {
 		retstr = Float_GUI(func, Call_Found, 2, vm);
 		#endif
 	    }
-	    /* The GTK CALL should return it's address (needed for glutBitmap for example - (not really GTK)) */
+	    /* The GTK CALL should return its address (needed for glutBitmap for example - (not really GTK)) */
 	    else if (!strcmp(Call_Found->returnvalue, "ADDRESS")){
 		retstr = Print_Result("%s%s%ld%s", 4, gtkserver.pre, gtkserver.handle, (long)func, gtkserver.post);
 	    }
