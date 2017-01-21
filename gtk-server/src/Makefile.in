@@ -20,10 +20,12 @@ GTK3_CFLAGS =   @GTK3_CFLAGS@
 GTK2_CFLAGS =   @GTK2_CFLAGS@
 GTK1_CFLAGS =   @GTK1_CFLAGS@
 XF_CFLAGS =     @XF_CFLAGS@
+MOTIF_CFLAGS =  @MOTIF_CFLAGS@
 GTK3_LIBS =     @GTK3_LIBS@
 GTK2_LIBS =     @GTK2_LIBS@
 GTK1_LIBS =     @GTK1_LIBS@
 XF_LIBS =       @XF_LIBS@
+MOTIF_LIBS =    @MOTIF_LIBS@
 SSLFLAGS =      @SSLFLAGS@
 LINK =          @LINK@
 SOLINK =        @SOLINK@
@@ -57,7 +59,14 @@ gtk-server-xf : gtk-server.c
 
 libgtk-server-xf.so : gtk-server.c
 	$(CC) -DGTK_SERVER_XF -DGTK_SERVER_LIBRARY -shared $(CFLAGS) $(XF_CFLAGS) -o $@ gtk-server.c $(XF_LIBS) $(LDFLAGS)
- 
+
+gtk-server-motif : gtk-server.c
+	$(CC) -DGTK_SERVER_MOTIF $(CFLAGS) $(MOTIF_CFLAGS) -o $@ gtk-server.c $(MOTIF_LIBS) $(SSLFLAGS) $(LDFLAGS)
+	$(STRIP) $@
+
+libgtk-server-motif.so : gtk-server.c
+	$(CC) -DGTK_SERVER_MOTIF -DGTK_SERVER_LIBRARY -shared $(CFLAGS) $(MOTIF_CFLAGS) -o $@ gtk-server.c $(MOTIF_LIBS) $(LDFLAGS)
+
 gtk-server-console : gtk-server.c
 	$(CC) $(CFLAGS) -o $@ gtk-server.c $(SSLFLAGS) $(LDFLAGS)
 	$(STRIP) $@

@@ -141,25 +141,31 @@ fi
 AC_ARG_WITH(gtk1,
     [AC_HELP_STRING([--with-gtk1], [force compilation with GTK1.x (default: GUESS)])],
 	[GTK1_LIBS="`pkg-config --libs gtk+`"
-	GTK1_CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes gtk2x=no gtk3x=no xf=no console=no])
+	GTK1_CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes gtk2x=no gtk3x=no xf=no motif=no console=no])
 
 # Check parameter: force compilation for GTK2?
 AC_ARG_WITH(gtk2,
     [AC_HELP_STRING([--with-gtk2], [force compilation with GTK2.x (default: GUESS)])],
 	[GTK2_LIBS="`pkg-config --libs gtk+-2.0`"
-	 GTK2_CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk1x=no gtk2x=yes gtk3x=no xf=no console=no])
+	 GTK2_CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk1x=no gtk2x=yes gtk3x=no xf=no motif=no console=no])
 
 # Check parameter: force compilation for GTK3?
 AC_ARG_WITH(gtk3,
     [AC_HELP_STRING([--with-gtk3], [force compilation with GTK3.x (default: GUESS)])],
 	[GTK3_LIBS="`pkg-config --libs gtk+-3.0`"
-	 GTK3_CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk1x=no gtk2x=no gtk3x=yes xf=no console=no])
+	 GTK3_CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk1x=no gtk2x=no gtk3x=yes xf=no motif=no console=no])
 
 # Check parameter: force compilation for XForms?
 AC_ARG_WITH(xforms,
     [AC_HELP_STRING([--with-xforms], [force compilation with XForms (default: GUESS)])],
-	[XF_LIBS="-L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lforms -lm"
-	 XF_CFLAGS="-I/usr/X11R6/include/X11" gtk1x=no gtk2x=no gtk3x=no xf=yes console=no])
+	[XF_LIBS="-lXext -lX11 -lXpm -lGL -lforms -lm"
+	 XF_CFLAGS="-I/usr/X11R6/include/X11" gtk1x=no gtk2x=no gtk3x=no xf=yes motif=no console=no])
+
+# Check parameter: force compilation for Motif?
+AC_ARG_WITH(motif,
+    [AC_HELP_STRING([--with-motif], [force compilation with Motif (default: GUESS)])],
+	[MOTIF_LIBS="-lXm -lXt -lX11 -lm"
+	 MOTIF_CFLAGS="-I/usr/X11R6/include/X11" gtk1x=no gtk2x=no gtk3x=no xf=no motif=yes console=no])
 
 # Check parameter: force compilation for console?
 AC_ARG_WITH(console,
@@ -167,7 +173,7 @@ AC_ARG_WITH(console,
     [CFLAGS="" gtk1x=no gtk2x=no gtk3x=no xf=no console=yes])
 
 # Guess all toolkits if none was provided
-if test "$console" != yes -a "$xf" != yes -a "$gtk1x" != yes -a "$gtk2x" != yes -a "$gtk3x" != yes
+if test "$console" != yes -a "$motif" != yes -a "$xf" != yes -a "$gtk1x" != yes -a "$gtk2x" != yes -a "$gtk3x" != yes
 then
     AC_CHECK_LIB([gtk-3], [gtk_init],
 	[GTK3_LIBS="`pkg-config --libs gtk+-3.0`"
@@ -185,6 +191,11 @@ then
     AC_CHECK_LIB([forms], [fl_initialize],
 	[XF_LIBS="-L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lforms -lm"
         XF_CFLAGS="-I/usr/X11R6/include/X11" xf=yes], [], [])
+
+    AC_CHECK_LIB([Xt], [XtVaAppInitialize],
+	[MOTIF_LIBS="-lXm -lXt -lX11 -lm"
+        MOTIF_CFLAGS="-I/usr/X11R6/include/X11" motif=yes], [], [])
+
     console=yes
 fi
 
@@ -194,6 +205,14 @@ if test "$console" = yes; then
     SOTARGET="${SOTARGET} libgtk-server-console.so"
     LINK="gtk-server-console"
     SOLINK="libgtk-server-console.so"
+fi
+if test "$motif" = yes; then
+    AC_SUBST(MOTIF_CFLAGS)
+    AC_SUBST(MOTIF_LIBS)
+    TARGET="${TARGET} gtk-server-motif"
+    SOTARGET="${SOTARGET} libgtk-server-motif.so"
+    LINK="gtk-server-motif"
+    SOLINK="libgtk-server-motif.so"
 fi
 if test "$xf" = yes; then
     AC_SUBST(XF_CFLAGS)
@@ -410,6 +429,13 @@ then
     echo " - Use XForms backend: YES"
 else
     echo " - Use XForms backend: NO"
+fi
+
+if test "$motif" = yes
+then
+    echo " - Use Motif backend: YES"
+else
+    echo " - Use Motif backend: NO"
 fi
 
 if test "$console" = yes

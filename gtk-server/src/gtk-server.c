@@ -447,6 +447,7 @@
 *               . Cleanup code
 *		. Added '-nonl' parameter to prevent GTK-server adding newline to responses.
 *		. Added Pause button to debug panel
+*		. Support for Motif
 *
 *************************************************************************************************************************************************/
 
@@ -475,6 +476,11 @@
 #ifdef GTK_SERVER_XF
 #include <X11/XKBlib.h>
 #include <forms.h>
+#endif
+
+#ifdef GTK_SERVER_MOTIF
+#include <X11/XKBlib.h>
+#include <Xm/XmAll.h>
 #endif
 
 #ifdef GTK_SERVER_USE_SSL
@@ -615,6 +621,18 @@ typedef struct enum_struct {
 /* Needed for hashtable */
 struct enum_struct *enum_protos = NULL;
 
+#ifdef GTK_SERVER_MOTIF
+/* Define structure to define enumerations */
+typedef struct class_struct {
+    char *name;			/* Name of the class */
+    void* ptr;			/* Actual pointer to the class */
+    UT_hash_handle hh;       /* makes this structure hashable */
+} CLASS;
+
+/* Needed for hashtable */
+struct class_struct *class_protos = NULL;
+#endif
+
 /* This defines assocs created in configfile macro's */
 typedef struct macro_assoc_struct {
     char assoc[LONG_SIZE];	/* The associated widgetID */
@@ -660,6 +678,8 @@ typedef union {
     GtkWidget *wvalue;
     #elif GTK_SERVER_XF
     FL_OBJECT *wvalue;
+    #elif GTK_SERVER_MOTIF
+    Widget wvalue;
     #else
     void *wvalue;
     #endif
@@ -676,6 +696,8 @@ typedef union {
     GtkWidget	**p_wvalue;
     #elif GTK_SERVER_XF
     FL_OBJECT	**p_wvalue;
+    #elif GTK_SERVER_MOTIF
+    Widget	*p_wvalue;
     #else
     void **p_wvalue;
     #endif
@@ -696,6 +718,9 @@ struct callback {
     #elif GTK_SERVER_XF
     FL_OBJECT *object;
     unsigned int button;
+    #elif GTK_SERVER_MOTIF
+    Widget object;
+    int button;
     #else
     void *object;
     int button;
@@ -746,6 +771,10 @@ struct behaviour {
     int ipc;			/* The signal number to use when in IPC mode */
     int exit_sig;		/* Keep exit signal to send to PPID */
     int ppid;			/* Keep PID of parent */
+#ifdef GTK_SERVER_MOTIF
+    XtAppContext app;		/* Motif app context */
+    Widget toplevel;		/* Motif widget toplevel */
+#endif
     int behave;			/* Binary flag
 				    -list of configured calls	00000000001
 				    -do not create FIFO file	00000000010
@@ -781,6 +810,8 @@ typedef struct wid_sig {
     GtkWidget* widget;
     #elif GTK_SERVER_XF
     FL_OBJECT *widget;
+    #elif GTK_SERVER_MOTIF
+    Widget widget;
     #endif
     char* data;
     struct wid_sig *next;
@@ -801,6 +832,8 @@ GtkObject *obj_address[MAX_ARGS];
 GtkWidget *obj_address[MAX_ARGS];
 #elif GTK_SERVER_XF
 FL_OBJECT *obj_address[MAX_ARGS];
+#elif GTK_SERVER_MOTIF
+Widget obj_address[MAX_ARGS];
 #else
 void *obj_address[MAX_ARGS];
 #endif
@@ -884,6 +917,9 @@ BODY *Body_Text;
 BODY *Body_Last;
 /* Define list for enum definitions */
 ENUM *Enum_Defs;
+#ifdef GTK_SERVER_MOTIF
+CLASS *Class_Defs;
+#endif
 ALIAS *Alias_Defs;
 
 char *filename;
@@ -1469,6 +1505,21 @@ fl_get_form_mouse(form, &Current_Object.mousex, &Current_Object.mousey, &Current
 
 /* Pass to GTK_SERVER_XForms */
 return 0;
+}
+
+#elif GTK_SERVER_MOTIF
+void motif_callback(Widget w, XtPointer client_data, XtPointer call_data)
+{
+XmAnyCallbackStruct *data;
+
+Current_Object.object = w;
+Current_Object.state = (long)w;
+
+data = (XmAnyCallbackStruct*)call_data;
+
+Current_Object.key = XkbKeycodeToKeysym(XtDisplay(gtkserver.toplevel), data->event->xkey.keycode, 0, 0);
+
+Current_Object.key_state = 0;
 }
 
 /*************************************************************************************************/
@@ -2251,6 +2302,9 @@ return Print_Result("%s%sok%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.po
     #elif GTK_SERVER_XF
     char *Widget_GUI(FL_OBJECT *widget, CONFIG *call)
     {
+    #elif GTK_SERVER_MOTIF
+    char *Widget_GUI(Widget widget, CONFIG *call)
+    {
     #else
     char *Widget_GUI(void *widget, CONFIG *call)
     {
@@ -2264,6 +2318,8 @@ char *Widget_GUI(void *func, CONFIG *call, DCCallVM* vm)
 GtkWidget *widget;		/* Temporary widget holder */
 #elif GTK_SERVER_XF
 FL_OBJECT *widget;
+#elif GTK_SERVER_MOTIF
+Widget widget;
 #else
 void *widget;
 #endif
@@ -2280,6 +2336,8 @@ ffi_cif cif;		/* Contains pointer to FFI_CIF structure */
 GtkWidget *widget;		/* Temporary widget holder */
 #elif GTK_SERVER_XF
 FL_OBJECT *widget;
+#elif GTK_SERVER_MOTIF
+Widget widget;
 #else
 void *widget;
 #endif
@@ -2306,6 +2364,8 @@ CInvFunction *proto;
 GtkWidget *widget;		/* Temporary widget holder */
 #elif GTK_SERVER_XF
 FL_OBJECT *widget;
+#elif GTK_SERVER_MOTIF
+Widget widget;
 #else
 void *widget;
 #endif
@@ -3007,6 +3067,8 @@ unsigned int signal_id;
 TIMEOUT *data;
 GtkWidget *opaque; /* Needed for OPAQUE */
 ASSOC *Last_List_Sigs = NULL;
+#elif GTK_SERVER_MOTIF
+CLASS *Class_Found;
 #endif
 char *widget;
 char *signal;
@@ -3023,6 +3085,8 @@ char* string_return;
     GtkObject* widget_return;
     #elif GTK_SERVER_XF
     FL_OBJECT* widget_return;
+    #elif GTK_SERVER_MOTIF
+    Widget widget_return;
     #else
     void *widget_return;
     #endif
@@ -3067,6 +3131,11 @@ if (inputdata != NULL) {
 		    #elif GTK_SERVER_XF
 		    Current_Object.object = fl_do_forms();
 		    Current_Object.state = (long)Current_Object.object;
+		    #elif GTK_SERVER_MOTIF
+		    //XtVaCreateWidget("win", xmMainWindowWidgetClass, gtkserver.toplevel, NULL);
+		    //XtSetKeyboardFocus(None, gtkserver.toplevel);
+		    XtRealizeWidget(gtkserver.toplevel);
+		    XtAppProcessEvent(gtkserver.app, XtIMAll);
 		    #endif
 		}
 		/* Update asynchronously */
@@ -3080,6 +3149,13 @@ if (inputdata != NULL) {
 		    #elif GTK_SERVER_XF
 		    Current_Object.object = fl_check_forms();
 		    Current_Object.state = (long)Current_Object.object;
+		    #elif GTK_SERVER_MOTIF
+		    XtRealizeWidget(gtkserver.toplevel);
+		    while(XtAppPending(gtkserver.app)){
+			XtAppProcessEvent(gtkserver.app, XtIMAll);
+			/* Go out when a widget is recognized by GTK-server */
+			if ((long)Current_Object.state != GTK_SERVER_NONE) break;
+		    }
 		    #endif
 		}
 		/* Find out the callback state for the given object for all arguments to gtk_server_callback */
@@ -3109,6 +3185,13 @@ if (inputdata != NULL) {
 	/* Return GTK-server version */
 	retstr = Print_Result("%s%s%s%s", 4, gtkserver.pre, gtkserver.handle, GTK_SERVER_VERSION, gtkserver.post);
     }
+    #ifdef GTK_SERVER_MOTIF
+    /* Call to get toplevel widget in Motif */
+    else if (!strcmp("gtk_server_toplevel", gtk_api_call)){
+	/* Return GTK-server version */
+	retstr = Print_Result("%s%s%ld%s", 4, gtkserver.pre, gtkserver.handle, (long)gtkserver.toplevel, gtkserver.post);
+    }
+    #endif
     /* Return FFI used for compilation */
     else if (!strcmp("gtk_server_ffi", gtk_api_call)){
 	#ifdef GTK_SERVER_FFI
@@ -3131,6 +3214,8 @@ if (inputdata != NULL) {
 	retstr = Print_Result("%s%sGTK3%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
 	#elif GTK_SERVER_XF
 	retstr = Print_Result("%s%sXForms%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
+	#elif GTK_SERVER_MOTIF
+	retstr = Print_Result("%s%sMotif%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
 	#else
 	retstr = Print_Result("%s%sconsole%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
 	#endif
@@ -3197,6 +3282,8 @@ if (inputdata != NULL) {
 	gtk_exit(0);
 	#elif GTK_SERVER_XF
 	fl_finish();
+	exit(EXIT_SUCCESS);
+	#elif GTK_SERVER_MOTIF
 	exit(EXIT_SUCCESS);
 	#else
 	exit(EXIT_SUCCESS);
@@ -3431,7 +3518,7 @@ if (inputdata != NULL) {
 	}
 	List_Sigs->data = strdup(arg);
 	#endif
-	#ifdef GTK_SERVER_XF
+	#if GTK_SERVER_XF
 	if(isalpha(signal[0]))
 	{
 	    HASH_FIND_STR(enum_protos, signal, Enum_Found);
@@ -3448,6 +3535,8 @@ if (inputdata != NULL) {
 	{
 	    fl_register_raw_callback((FL_FORM*)(atol(widget)), atoi(signal), xforms_callback);
 	}
+	#elif GTK_SERVER_MOTIF
+	XtAddCallback((Widget)(atol(widget)), signal, motif_callback, NULL);
 	/* This function was greatly improved by Wolfgang Oertl */
 	#elif GTK_SERVER_GTK1x
 	if(!strncmp(Trim_String(signal), "button-press-event", 18) || !strncmp(Trim_String(signal), "button_press_event", 18) ||
@@ -3804,6 +3893,8 @@ if (inputdata != NULL) {
 	    else if (!strcmp(Call_Found->returnvalue, "WIDGET")) av_start_ptr(funclist, *func, GtkWidget*, &widget_return);
 	    #elif GTK_SERVER_XF
 	    else if (!strcmp(Call_Found->returnvalue, "WIDGET")) av_start_ptr(funclist, *func, FL_OBJECT*, &widget_return);
+	    #elif GTK_SERVER_MOTIF
+	    else if (!strcmp(Call_Found->returnvalue, "WIDGET")) av_start_ptr(funclist, *func, Widget, &widget_return);
 	    #else
 	    else if (!strcmp(Call_Found->returnvalue, "WIDGET")) av_start_ptr(funclist, *func, void*, &widget_return);
 	    #endif
@@ -3904,6 +3995,8 @@ if (inputdata != NULL) {
 			#ifdef GTK_SERVER_FFI
 			    #ifdef GTK_SERVER_XF
 			    theargs[i].wvalue = (FL_OBJECT*)(atol(arg));
+			    #elif GTK_SERVER_MOTIF
+			    theargs[i].wvalue = (Widget)(atol(arg));
 			    #elif GTK_SERVER_GTK1x || GTK_SERVER_GTK2x
 			    theargs[i].wvalue = (GtkObject*)(atol(arg));
 				#elif GTK_SERVER_GTK3x
@@ -3916,6 +4009,8 @@ if (inputdata != NULL) {
 			#elif GTK_SERVER_FFCALL
 			    #ifdef GTK_SERVER_XF
 			    av_ptr(funclist, FL_OBJECT*, (FL_OBJECT*)(atol(arg)));
+			    #elif GTK_SERVER_MOTIF
+			    av_ptr(funclist, Widget, (Widget)(atol(arg)));
 			    #elif GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
 			    av_ptr(funclist, GtkObject*, (GtkObject*)(atol(arg)));
 			    #else
@@ -3924,9 +4019,11 @@ if (inputdata != NULL) {
 			#elif GTK_SERVER_CINV
 			    #ifdef GTK_SERVER_XF
 			    theargs[i].wvalue = (FL_OBJECT*)(atol(arg));
+			    #elif GTK_SERVER_MOTIF
+			    theargs[i].wvalue = (Widget)(atol(arg));
 			    #elif GTK_SERVER_GTK1x || GTK_SERVER_GTK2x
 			    theargs[i].wvalue = (GtkObject*)(atol(arg));
-				#elif GTK_SERVER_GTK3x
+			    #elif GTK_SERVER_GTK3x
 			    theargs[i].wvalue = (GtkWidget*)(atol(arg));
 			    #else
 			    theargs[i].wvalue = (void*)(atol(arg));
@@ -3936,6 +4033,8 @@ if (inputdata != NULL) {
 			#elif GTK_SERVER_DYNCALL
 			    #ifdef GTK_SERVER_XF
 			    dcArgPointer(vm, (FL_OBJECT*)atol(arg));
+			    #elif GTK_SERVER_MOTIF
+			    dcArgPointer(vm, (Widget)atol(arg));
 			    #elif GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
 			    dcArgPointer(vm, (GtkObject*)atol(arg));
 			    #else
@@ -3944,6 +4043,24 @@ if (inputdata != NULL) {
 
 			#endif
 		    }
+		    #ifdef GTK_SERVER_MOTIF
+		    else if (!strcmp(Call_Found->args[i], "CLASS")){
+			HASH_FIND_STR(class_protos, arg, Class_Found);
+			#ifdef GTK_SERVER_FFI
+			theargs[i].pvalue = Class_Found->ptr;
+			argtypes[i] = &ffi_type_pointer;
+			argvalues[i] = &theargs[i].pvalue;
+			#elif GTK_SERVER_FFCALL
+			av_ptr(funclist, void*, Class_Found->ptr);
+			#elif GTK_SERVER_CINV
+			strcat(argtypes, "p");
+			theargs[i].pvalue = Class_Found->ptr;
+			argvalues[i] = &theargs[i].pvalue;
+			#elif GTK_SERVER_DYNCALL
+			dcArgPointer(vm, Class_Found->ptr;
+			#endif
+		    }
+		    #endif
 		    else if (!strcmp(Call_Found->args[i], "POINTER")){
 			#ifdef GTK_SERVER_FFI
 			theargs[i].pvalue = (void*)atol(arg);
@@ -4163,6 +4280,8 @@ if (inputdata != NULL) {
 		    else if (!strcmp(Call_Found->args[i], "PTR_WIDGET")) {
 			#ifdef GTK_SERVER_XF
 			obj_address[i] = (FL_OBJECT*)(atol(arg));
+			#elif GTK_SERVER_MOTIF
+			obj_address[i] = (Widget)(atol(arg));
 			#elif GTK_SERVER_GTK1x || GTK_SERVER_GTK2x
 			obj_address[i] = (GtkObject*)(atol(arg));
 			#elif GTK_SERVER_GTK3x
@@ -4177,6 +4296,8 @@ if (inputdata != NULL) {
 			#elif GTK_SERVER_FFCALL
 			    #ifdef GTK_SERVER_XF
 			    av_ptr(funclist, FL_OBJECT*, &obj_address[i]);
+			    #elif GTK_SERVER_MOTIF
+			    av_ptr(funclist, Widget, &obj_address[i]);
 			    #elif GTK_SERVER_GTK1x || GTK_SERVER_GTK2x
 			    av_ptr(funclist, GtkObject*, &obj_address[i]);
 				#elif GTK_SERVER_GTK3x
@@ -4674,9 +4795,13 @@ return retstr;
 int init(char *user_data)
 {
 
-#ifdef GTK_SERVER_XF
+#if GTK_SERVER_XF
 int argc = 1;
 char *argv[1];
+#endif
+
+#if GTK_SERVER_MOTIF
+int argc = 0;
 #endif
 
 #else
@@ -4725,6 +4850,10 @@ BODY *Body_Text;
 BODY *Body_Last;
 /* Define list for enum definitions */
 ENUM *Enum_Defs;
+/* Define list for enum definitions */
+#ifdef GTK_SERVER_MOTIF
+CLASS *Class_Defs;
+#endif
 /* Define list for alias definitions */
 ALIAS *Alias_Defs;
 /* Define vars for TCP sockets */
@@ -4850,6 +4979,8 @@ if (argc < 2 || !strncmp(argv[1], "help", 4) || !strncmp(argv[1], "-help", 5)) {
     printf("GTK 3.x ");
     #elif GTK_SERVER_XF
     printf("XForms ");
+    #elif GTK_SERVER_MOTIF
+    printf("Motif ");
     #else
     printf("console ");
     #endif
@@ -4872,6 +5003,10 @@ gtk_init(NULL, NULL);
 #elif GTK_SERVER_XF
 argv[0] = strdup("");
 fl_initialize(&argc, argv, "XForms", 0, 0);
+#elif GTK_SERVER_MOTIF
+int argcc = 0;
+XtSetLanguageProc(NULL, NULL, NULL);
+gtkserver.toplevel = XtVaAppInitialize(&gtkserver.app, "Motif", NULL, 0, &argcc, NULL, NULL, NULL);
 #endif
 
 /* See if we are running from a shebang */
@@ -5160,6 +5295,9 @@ gtk_init(NULL, NULL);
 #elif GTK_SERVER_XF
 argv[0] = strdup("");
 fl_initialize(&argc, argv, "XForms", 0, 0);
+#elif GTK_SERVER_MOTIF
+XtSetLanguageProc(NULL, NULL, NULL);
+gtkserver.toplevel = XtVaAppInitialize(&gtkserver.app, "Motif", NULL, 0, &argc, NULL, NULL, NULL);
 #endif
 
 do {
@@ -5487,6 +5625,69 @@ include = NULL;
 count_line = 0;
 }
 
+#ifdef GTK_SERVER_MOTIF
+
+/* Add Motif class types */
+#define MOTIF_ADD_CLASS(x) do { \
+    HASH_FIND_STR(class_protos, #x, Class_Defs); \
+    Class_Defs = (CLASS*)malloc(sizeof(CLASS)); \
+    Class_Defs->name = #x; \
+    Class_Defs->ptr = x; \
+    HASH_ADD_KEYPTR(hh, class_protos, #x, strlen(#x), Class_Defs); \
+} while(0)
+
+MOTIF_ADD_CLASS(xmArrowButtonWidgetClass);
+MOTIF_ADD_CLASS(xmBulletinBoardWidgetClass);
+MOTIF_ADD_CLASS(xmCascadeButtonWidgetClass);
+MOTIF_ADD_CLASS(xmColumnWidgetClass);
+MOTIF_ADD_CLASS(xmComboBoxWidgetClass);
+MOTIF_ADD_CLASS(xmCommandWidgetClass);
+MOTIF_ADD_CLASS(xmContainerWidgetClass);
+MOTIF_ADD_CLASS(xmDataFieldWidgetClass);
+MOTIF_ADD_CLASS(xmDialogShellWidgetClass);
+MOTIF_ADD_CLASS(xmDragOverShellWidgetClass);
+MOTIF_ADD_CLASS(xmDrawingAreaWidgetClass);
+MOTIF_ADD_CLASS(xmDrawnButtonWidgetClass);
+MOTIF_ADD_CLASS(xmFileSelectionBoxWidgetClass);
+MOTIF_ADD_CLASS(xmFormWidgetClass);
+MOTIF_ADD_CLASS(xmFrameWidgetClass);
+MOTIF_ADD_CLASS(xmGrabShellWidgetClass);
+MOTIF_ADD_CLASS(xmIconButtonWidgetClass);
+MOTIF_ADD_CLASS(xmLabelWidgetClass);
+MOTIF_ADD_CLASS(xmListWidgetClass);
+MOTIF_ADD_CLASS(xmMainWindowWidgetClass);
+MOTIF_ADD_CLASS(xmManagerWidgetClass);
+MOTIF_ADD_CLASS(xmMenuShellWidgetClass);
+MOTIF_ADD_CLASS(xmMessageBoxWidgetClass);
+MOTIF_ADD_CLASS(xmNotebookWidgetClass);
+MOTIF_ADD_CLASS(xmPanedWidgetClass);
+MOTIF_ADD_CLASS(xmPanedWindowWidgetClass);
+MOTIF_ADD_CLASS(xmPrimitiveWidgetClass);
+MOTIF_ADD_CLASS(xmPushButtonWidgetClass);
+MOTIF_ADD_CLASS(xmRowColumnWidgetClass);
+MOTIF_ADD_CLASS(xmScaleWidgetClass);
+MOTIF_ADD_CLASS(xmScrollBarWidgetClass);
+MOTIF_ADD_CLASS(xmScrolledWindowWidgetClass);
+MOTIF_ADD_CLASS(xmSelectionBoxWidgetClass);
+MOTIF_ADD_CLASS(xmSeparatorWidgetClass);
+MOTIF_ADD_CLASS(xmSimpleSpinBoxWidgetClass);
+MOTIF_ADD_CLASS(xmSpinBoxWidgetClass);
+MOTIF_ADD_CLASS(xmTabBoxWidgetClass);
+MOTIF_ADD_CLASS(xmTabStackWidgetClass);
+MOTIF_ADD_CLASS(xmTextFieldWidgetClass);
+MOTIF_ADD_CLASS(xmTextWidgetClass);
+MOTIF_ADD_CLASS(xmToggleButtonWidgetClass);
+/*
+MOTIF_ADD_CLASS(applicationShellWidgetClass);
+MOTIF_ADD_CLASS(compositeWidgetClass);
+MOTIF_ADD_CLASS(constraintWidgetClass);
+MOTIF_ADD_CLASS(coreWidgetClass);
+MOTIF_ADD_CLASS(topLevelShellWidgetClass);
+MOTIF_ADD_CLASS(transientShellWidgetClass);
+MOTIF_ADD_CLASS(vendorShellWidgetClass);
+MOTIF_ADD_CLASS(wmShellWidgetClass); */
+#endif
+
 /* Now see if we need to print the complete configuration (for debugging) */
 if (gtkserver.behave & 1){
 
@@ -5511,6 +5712,12 @@ if (gtkserver.behave & 1){
     for(Enum_Defs = enum_protos; Enum_Defs != NULL; Enum_Defs=Enum_Defs->hh.next){
 	fprintf(stdout, "ENUM %s = %d\n", Enum_Defs->name, Enum_Defs->value);
     }
+
+    #ifdef GTK_SERVER_MOTIF
+    for(Class_Defs = class_protos; Class_Defs != NULL; Class_Defs=Class_Defs->hh.next){
+	fprintf(stdout, "CLASS %s\n", Class_Defs->name);
+    }
+    #endif
 
     for(Macro_Defs=macro_protos; Macro_Defs != NULL; Macro_Defs=Macro_Defs->hh.next){
 	fprintf(stdout, "MACRO \"%s\"\n", Macro_Defs->name);

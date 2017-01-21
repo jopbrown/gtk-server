@@ -640,6 +640,8 @@ GTK1_LIBS
 GTK1_CFLAGS
 XF_LIBS
 XF_CFLAGS
+MOTIF_LIBS
+MOTIF_CFLAGS
 PKGCONFIG_CONFIG
 EGREP
 GREP
@@ -681,6 +683,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -707,6 +710,7 @@ with_gtk1
 with_gtk2
 with_gtk3
 with_xforms
+with_motif
 with_console
 with_ffi
 with_ffcall
@@ -766,6 +770,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1018,6 +1023,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1155,7 +1169,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1308,6 +1322,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1354,6 +1369,7 @@ Optional Packages:
   --with-gtk2             force compilation with GTK2.x (default: GUESS)
   --with-gtk3             force compilation with GTK3.x (default: GUESS)
   --with-xforms           force compilation with XForms (default: GUESS)
+  --with-motif            force compilation with Motif (default: GUESS)
   --with-console          force compilation for console (default: GUESS)
   --with-ffi              force compilation with libffi (default: GUESS)
   --with-ffcall           force compilation with libffcall (default: GUESS)
@@ -4319,7 +4335,7 @@ fi
 # Check whether --with-gtk1 was given.
 if test "${with_gtk1+set}" = set; then :
   withval=$with_gtk1; GTK1_LIBS="`pkg-config --libs gtk+`"
-	GTK1_CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes gtk2x=no gtk3x=no xf=no console=no
+	GTK1_CFLAGS="`pkg-config --cflags gtk+`" gtk1x=yes gtk2x=no gtk3x=no xf=no motif=no console=no
 fi
 
 
@@ -4328,7 +4344,7 @@ fi
 # Check whether --with-gtk2 was given.
 if test "${with_gtk2+set}" = set; then :
   withval=$with_gtk2; GTK2_LIBS="`pkg-config --libs gtk+-2.0`"
-	 GTK2_CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk1x=no gtk2x=yes gtk3x=no xf=no console=no
+	 GTK2_CFLAGS="`pkg-config --cflags gtk+-2.0`" gtk1x=no gtk2x=yes gtk3x=no xf=no motif=no console=no
 fi
 
 
@@ -4337,7 +4353,7 @@ fi
 # Check whether --with-gtk3 was given.
 if test "${with_gtk3+set}" = set; then :
   withval=$with_gtk3; GTK3_LIBS="`pkg-config --libs gtk+-3.0`"
-	 GTK3_CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk1x=no gtk2x=no gtk3x=yes xf=no console=no
+	 GTK3_CFLAGS="`pkg-config --cflags gtk+-3.0`" gtk1x=no gtk2x=no gtk3x=yes xf=no motif=no console=no
 fi
 
 
@@ -4345,8 +4361,17 @@ fi
 
 # Check whether --with-xforms was given.
 if test "${with_xforms+set}" = set; then :
-  withval=$with_xforms; XF_LIBS="-L/usr/X11R6/lib -lXext -lX11 -lXpm -lGL -lforms -lm"
-	 XF_CFLAGS="-I/usr/X11R6/include/X11" gtk1x=no gtk2x=no gtk3x=no xf=yes console=no
+  withval=$with_xforms; XF_LIBS="-lXext -lX11 -lXpm -lGL -lforms -lm"
+	 XF_CFLAGS="-I/usr/X11R6/include/X11" gtk1x=no gtk2x=no gtk3x=no xf=yes motif=no console=no
+fi
+
+
+# Check parameter: force compilation for Motif?
+
+# Check whether --with-motif was given.
+if test "${with_motif+set}" = set; then :
+  withval=$with_motif; MOTIF_LIBS="-lXm -lXt -lX11 -lm"
+	 MOTIF_CFLAGS="-I/usr/X11R6/include/X11" gtk1x=no gtk2x=no gtk3x=no xf=no motif=yes console=no
 fi
 
 
@@ -4359,7 +4384,7 @@ fi
 
 
 # Guess all toolkits if none was provided
-if test "$console" != yes -a "$xf" != yes -a "$gtk1x" != yes -a "$gtk2x" != yes -a "$gtk3x" != yes
+if test "$console" != yes -a "$motif" != yes -a "$xf" != yes -a "$gtk1x" != yes -a "$gtk2x" != yes -a "$gtk3x" != yes
 then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gtk_init in -lgtk-3" >&5
 $as_echo_n "checking for gtk_init in -lgtk-3... " >&6; }
@@ -4528,6 +4553,49 @@ if test "x$ac_cv_lib_forms_fl_initialize" = xyes; then :
         XF_CFLAGS="-I/usr/X11R6/include/X11" xf=yes
 fi
 
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XtVaAppInitialize in -lXt" >&5
+$as_echo_n "checking for XtVaAppInitialize in -lXt... " >&6; }
+if ${ac_cv_lib_Xt_XtVaAppInitialize+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXt  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XtVaAppInitialize ();
+int
+main ()
+{
+return XtVaAppInitialize ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_Xt_XtVaAppInitialize=yes
+else
+  ac_cv_lib_Xt_XtVaAppInitialize=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xt_XtVaAppInitialize" >&5
+$as_echo "$ac_cv_lib_Xt_XtVaAppInitialize" >&6; }
+if test "x$ac_cv_lib_Xt_XtVaAppInitialize" = xyes; then :
+  MOTIF_LIBS="-lXm -lXt -lX11 -lm"
+        MOTIF_CFLAGS="-I/usr/X11R6/include/X11" motif=yes
+fi
+
+
     console=yes
 fi
 
@@ -4537,6 +4605,14 @@ if test "$console" = yes; then
     SOTARGET="${SOTARGET} libgtk-server-console.so"
     LINK="gtk-server-console"
     SOLINK="libgtk-server-console.so"
+fi
+if test "$motif" = yes; then
+
+
+    TARGET="${TARGET} gtk-server-motif"
+    SOTARGET="${SOTARGET} libgtk-server-motif.so"
+    LINK="gtk-server-motif"
+    SOLINK="libgtk-server-motif.so"
 fi
 if test "$xf" = yes; then
 
@@ -6163,6 +6239,13 @@ then
     echo " - Use XForms backend: YES"
 else
     echo " - Use XForms backend: NO"
+fi
+
+if test "$motif" = yes
+then
+    echo " - Use Motif backend: YES"
+else
+    echo " - Use Motif backend: NO"
 fi
 
 if test "$console" = yes
