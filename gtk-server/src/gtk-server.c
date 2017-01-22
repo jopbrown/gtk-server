@@ -621,6 +621,16 @@ typedef struct enum_struct {
 /* Needed for hashtable */
 struct enum_struct *enum_protos = NULL;
 
+/* Define structure to define enumerations */
+typedef struct str_struct {
+    char *name;			/* Name of the string */
+    char *value;		/* Actual value of the string */
+    UT_hash_handle hh;       /* makes this structure hashable */
+} STR;
+
+/* Needed for hashtable */
+struct str_struct *str_protos = NULL;
+
 #ifdef GTK_SERVER_MOTIF
 /* Define structure to define enumerations */
 typedef struct class_struct {
@@ -917,6 +927,7 @@ BODY *Body_Text;
 BODY *Body_Last;
 /* Define list for enum definitions */
 ENUM *Enum_Defs;
+STR *Str_Defs;
 #ifdef GTK_SERVER_MOTIF
 CLASS *Class_Defs;
 #endif
@@ -3062,6 +3073,7 @@ CONFIG *Call_Found;
 ALIAS *Name_Found;
 MACRO_ASSOC *M_Assocs;		/* Struct to define Macro Assocs */
 ENUM *Enum_Found;
+STR *Str_Found;
 int macro_found = 0;		/* Needed for MACRO arg type */
 char *retstr;			/* Result holder */
 char buffer[MAX_LEN];		/* Buffer to keep macro redefinitions */
@@ -3162,8 +3174,6 @@ if (inputdata != NULL) {
 		    Current_Object.object = fl_do_forms();
 		    Current_Object.state = (long)Current_Object.object;
 		    #elif GTK_SERVER_MOTIF
-		    //XtVaCreateWidget("win", xmMainWindowWidgetClass, gtkserver.toplevel, NULL);
-		    //XtSetKeyboardFocus(None, gtkserver.toplevel);
 		    XtRealizeWidget(gtkserver.toplevel);
 		    XtAppProcessEvent(gtkserver.app, XtIMAll);
 		    #endif
@@ -3566,7 +3576,13 @@ if (inputdata != NULL) {
 	    fl_register_raw_callback((FL_FORM*)(atol(widget)), atoi(signal), xforms_callback);
 	}
 	#elif GTK_SERVER_MOTIF
-	XtAddCallback((Widget)(atol(widget)), signal, motif_callback, NULL);
+	HASH_FIND_STR(str_protos, signal, Str_Found);
+	if (Str_Found != NULL){
+	    XtAddCallback((Widget)(atol(widget)), Str_Found->value, motif_callback, NULL);
+	}
+	else{
+	    XtAddCallback((Widget)(atol(widget)), signal, motif_callback, NULL);
+	}
 	/* This function was greatly improved by Wolfgang Oertl */
 	#elif GTK_SERVER_GTK1x
 	if(!strncmp(Trim_String(signal), "button-press-event", 18) || !strncmp(Trim_String(signal), "button_press_event", 18) ||
@@ -3642,7 +3658,55 @@ if (inputdata != NULL) {
 	    }
 	}
     }
-
+#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_MOTIF
+    /* Internal call to disconnect signals
+	GTK does not check the userdata, but the address where the userdata is stored.
+    */
+    else if (!strcmp("gtk_server_disconnect", gtk_api_call)){
+	if ((widget = parse_data(list, ++item)) == NULL){
+	    Print_Error("%s", 1, "\nERROR: Cannot find widget reference in GTK_SERVER_DISCONNECT!");
+	}
+	if ((arg = parse_data(list, ++item)) == NULL){
+	    Print_Error("%s", 1, "\nERROR: Cannot find user data in GTK_SERVER_DISCONNECT!");
+	}
+	#ifdef GTK_SERVER_MOTIF
+	HASH_FIND_STR(str_protos, arg, Str_Found);
+	if (Str_Found != NULL){
+	    XtRemoveCallback((Widget)(atol(widget)), Str_Found->value, motif_callback, NULL);
+	}
+	else{
+	    XtRemoveCallback((Widget)(atol(widget)), arg, motif_callback, NULL);
+	}
+	#else
+	/* Find signal userdata in memory */
+	List_Sigs = Start_List_Sigs;
+	while ((List_Sigs != NULL) && (strcmp(List_Sigs->data, arg))) {
+	    Last_List_Sigs = List_Sigs;
+	    List_Sigs = List_Sigs->next;
+	}
+	/* Have we found the signal ? */
+	if (List_Sigs != NULL) {
+	    #ifdef GTK_SERVER_GTK1x
+	    gtk_signal_disconnect_by_data((GtkObject*)(atol(widget)), List_Sigs->data);
+	    i = 1;
+	    #elif GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
+	    i = g_signal_handlers_disconnect_matched((GtkWidget*)(atol(widget)), G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, List_Sigs->data);
+	    #endif
+	    /* Check if a widget was disconnected? */
+	    if(i > 0) {
+		/* Remove element from signal list */
+		if (Last_List_Sigs == NULL) Start_List_Sigs = List_Sigs->next;
+		else Last_List_Sigs->next = List_Sigs->next;
+		free(List_Sigs->data);
+		free(List_Sigs);
+		retstr = Print_Result("%s%sok%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
+	    }
+	    else retstr = Print_Result("%s%sWARNING: No widget with userdata \"%s\" disconnected.%s", 4, gtkserver.pre, gtkserver.handle, List_Sigs->data, gtkserver.post);
+	}
+	else retstr = Print_Result("%s%sWARNING: Cannot disconnect signal because userdata \"%s\" was not found.%s", 4, gtkserver.pre, gtkserver.handle, arg, gtkserver.post);
+	#endif
+    }
+#endif
 #if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
     /* Call to capture incoming callback values from callback function */
     else if (!strcmp("gtk_server_callback_value", gtk_api_call)){
@@ -3774,43 +3838,6 @@ if (inputdata != NULL) {
 	#endif
 	/* Return OK */
 	retstr = Print_Result("%s%sok%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
-    }
-    /* Internal call to disconnect signals
-	GTK does not check the userdata, but the address where the userdata is stored.
-    */
-    else if (!strcmp("gtk_server_disconnect", gtk_api_call)){
-	if ((widget = parse_data(list, ++item)) == NULL){
-	    Print_Error("%s", 1, "\nERROR: Cannot find widget reference in GTK_SERVER_DISCONNECT!");
-	}
-	if ((arg = parse_data(list, ++item)) == NULL){
-	    Print_Error("%s", 1, "\nERROR: Cannot find user data in GTK_SERVER_DISCONNECT!");
-	}
-	/* Find signal userdata in memory */
-	List_Sigs = Start_List_Sigs;
-	while ((List_Sigs != NULL) && (strcmp(List_Sigs->data, arg))) {
-	    Last_List_Sigs = List_Sigs;
-	    List_Sigs = List_Sigs->next;
-	}
-	/* Have we found the signal ? */
-	if (List_Sigs != NULL) {
-	    #ifdef GTK_SERVER_GTK1x
-	    gtk_signal_disconnect_by_data((GtkObject*)(atol(widget)), List_Sigs->data);
-	    i = 1;
-	    #elif GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
-	    i = g_signal_handlers_disconnect_matched((GtkWidget*)(atol(widget)), G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, List_Sigs->data);
-	    #endif
-	    /* Check if a widget was disconnected? */
-	    if(i > 0) {
-		/* Remove element from signal list */
-		if (Last_List_Sigs == NULL) Start_List_Sigs = List_Sigs->next;
-		else Last_List_Sigs->next = List_Sigs->next;
-		free(List_Sigs->data);
-		free(List_Sigs);
-		retstr = Print_Result("%s%sok%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
-	    }
-	    else retstr = Print_Result("%s%sWARNING: No widget with userdata \"%s\" disconnected.%s", 4, gtkserver.pre, gtkserver.handle, List_Sigs->data, gtkserver.post);
-	}
-	else retstr = Print_Result("%s%sWARNING: Cannot disconnect signal because userdata \"%s\" was not found.%s", 4, gtkserver.pre, gtkserver.handle, arg, gtkserver.post);
     }
     /* Internal call to remove a timeout in the IDLE loop of GTK */
     else if (!strcmp("gtk_server_timeout_remove", gtk_api_call)){
@@ -4106,20 +4133,40 @@ if (inputdata != NULL) {
 			dcArgPointer(vm, (void*)atol(arg));
 			#endif
 		    }
-		    else if (!strcmp(Call_Found->args[i], "STRING")){
-			#ifdef GTK_SERVER_FFI
-			theargs[i].pvalue = (char*)arg;
-			argtypes[i] = &ffi_type_pointer;
-			argvalues[i] = &theargs[i].pvalue;
-			#elif GTK_SERVER_FFCALL
-			av_ptr(funclist, char*, (char*)arg);
-			#elif GTK_SERVER_CINV
-			strcat(argtypes, "p");
-			theargs[i].pvalue = (char*)arg;
-			argvalues[i] = &theargs[i].pvalue;
-			#elif GTK_SERVER_DYNCALL
-			dcArgPointer(vm, (char*)arg);
-			#endif
+		    else if (!strcmp(Call_Found->args[i], "STRING") || !strcmp(Call_Found->args[i], "STR")){
+			/* First check if we have a string */
+			HASH_FIND_STR(str_protos, arg, Str_Found);
+			if (Str_Found != NULL){
+			    #ifdef GTK_SERVER_FFI
+			    theargs[i].pvalue = (char*)Str_Found->value;
+			    argtypes[i] = &ffi_type_pointer;
+			    argvalues[i] = &theargs[i].pvalue;
+			    #elif GTK_SERVER_FFCALL
+			    av_ptr(funclist, char*, (char*)Str_Found->value);
+			    #elif GTK_SERVER_CINV
+			    strcat(argtypes, "p");
+			    theargs[i].pvalue = (char*)Str_Found->value;
+			    argvalues[i] = &theargs[i].pvalue;
+			    #elif GTK_SERVER_DYNCALL
+			    dcArgPointer(vm, (char*)Str_Found->value);
+			    #endif
+			}
+			/* It is a STRING */
+			else {
+			    #ifdef GTK_SERVER_FFI
+			    theargs[i].pvalue = (char*)arg;
+			    argtypes[i] = &ffi_type_pointer;
+			    argvalues[i] = &theargs[i].pvalue;
+			    #elif GTK_SERVER_FFCALL
+			    av_ptr(funclist, char*, (char*)arg);
+			    #elif GTK_SERVER_CINV
+			    strcat(argtypes, "p");
+			    theargs[i].pvalue = (char*)arg;
+			    argvalues[i] = &theargs[i].pvalue;
+			    #elif GTK_SERVER_DYNCALL
+			    dcArgPointer(vm, (char*)arg);
+			    #endif
+			}
 		    }
 		    /* The booltype in GTK is actually a value of 0 or non-0 */
 		    else if (!strcmp(Call_Found->args[i], "BOOL")){
@@ -4856,6 +4903,7 @@ long count_line;
 /* Define temp variable holders for configfile entries */
 char *api_name;
 char *enum_name;
+char *str_name;
 char *alias_name;
 /* Define temp variables for loops */
 int i;
@@ -4880,6 +4928,7 @@ BODY *Body_Text;
 BODY *Body_Last;
 /* Define list for enum definitions */
 ENUM *Enum_Defs;
+STR *Str_Defs;
 /* Define list for enum definitions */
 #ifdef GTK_SERVER_MOTIF
 CLASS *Class_Defs;
@@ -5568,6 +5617,31 @@ while (fgets (line, MAX_LEN, configfile) != NULL){
 		HASH_ADD_KEYPTR(hh, enum_protos, Enum_Defs->name, strlen(Enum_Defs->name), Enum_Defs);
 	    }
 	}
+	else if (!strncmp(line, "STR_NAME", 8)){
+	    strtok(line, "=");
+	    str_name = strdup(Trim_String(strtok(NULL, ",")));
+	    if (str_name != NULL) {
+		/* Check if this is not a duplicate */
+		HASH_FIND_STR(str_protos, str_name, Str_Defs);
+		if (Str_Defs != NULL) {
+		    Print_Error("%s%d", 2, "\nERROR: duplicate string name in configfile at line: ", count_line);
+		}
+		/* Claim memory */
+		Str_Defs = (STR*)malloc(sizeof(STR));
+		/* Assign the found ENUM name */
+		Str_Defs->name = str_name;
+		/* Get next term: value of the enumeration */
+		cache = strtok(NULL, ",");
+		if (cache == NULL) {
+		    Print_Error("%s%d", 2, "\nERROR: missing value for enumeration in configfile at line: ", count_line);
+		}
+		else {
+		    Str_Defs->value = strdup(Trim_String(cache));
+		}
+		/* Now add to hash table */
+		HASH_ADD_KEYPTR(hh, str_protos, Str_Defs->name, strlen(Str_Defs->name), Str_Defs);
+	    }
+	}
 	else if (!strncmp(line, "ALIAS_NAME", 10)){
 	    strtok(line, "=");
 	    alias_name = strdup(Trim_String(strtok(NULL, ",")));
@@ -5740,6 +5814,10 @@ if (gtkserver.behave & 1){
 
     for(Enum_Defs = enum_protos; Enum_Defs != NULL; Enum_Defs=Enum_Defs->hh.next){
 	fprintf(stdout, "ENUM %s = %d\n", Enum_Defs->name, Enum_Defs->value);
+    }
+
+    for(Str_Defs = str_protos; Str_Defs != NULL; Str_Defs=Str_Defs->hh.next){
+	fprintf(stdout, "STR %s = %s\n", Str_Defs->name, Str_Defs->value);
     }
 
     #ifdef GTK_SERVER_MOTIF

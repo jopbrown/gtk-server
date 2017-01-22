@@ -52,15 +52,22 @@ names for the GTK callback signals must be used here. Then the type of the retur
 must be specified. The type can be one of the following: NONE, VOID, WIDGET, POINTER, BOOL, STRING, INT, LONG, 
 DOUBLE, FLOAT or ADDRESS. After that, it must be clear how many arguments the GTK function needs.
 Finally, the type of each indivdual argument must be declared. The type of the arguments can
-be one of the following: NULL, WIDGET, POINTER, BOOL, STRING, INT, LONG, DOUBLE, FLOAT, ENUM, MACRO, DATA or BASE64.
+be one of the following: NULL, WIDGET, POINTER, BOOL, STRING, INT, LONG, DOUBLE, FLOAT, ENUM, STR, CLASS, MACRO, DATA or BASE64.
 
-The ADDRESS returntype is used to return the address of a function in memory. The BASE64 type is used to send
-base64 encoded binary data to the GTK-server. The POINTER type can be used for generic pointers and non-GTK
-libraries. The ENUM type is used to define an enumeration name (see below).
+The ADDRESS return type is used to return the address of a function in memory.
 
-The MACRO type can be used in case a user function needs to be registered. In case GTK must execute a user
+The BASE64 argument type is used to send base64 encoded binary data to the GTK-server. The POINTER argument
+type can be used for generic pointers and non-GTK libraries.
+
+The MACRO argument type can be used in case a user function needs to be registered. In case GTK must execute a user
 function, the described macro will be used. A MACRO type always needs a DATA type, in which additional data
 can be specified. Macros are explained in the MACRO section of this manpage.
+
+The ENUM and STR argument types refer to their correspending ENUM_NAME and STR_NAME definitions (see below). Instead of
+ENUM, the types INT or LONG may be used as well. Similarly, instead of STR, it is allowed to plainly use STRING.
+
+The CLASS argument type refers to Motif classes. These are hardcoded and cannot be configured in the GTK\-server
+configuration file.
 
 The 'gtk\-server.cfg' file may not contain duplicate function definitions. This is verified
 by the GTK\-server during startup.
@@ -83,6 +90,18 @@ Duplicate enumeration names are not allowed. This is verified by the GTK\-server
 
 Example:
 .B ENUM_NAME = GTK_WINDOW_TOPLEVEL, 0
+.TP
+\fBSTR_NAME = <name>, <string>\fP
+The Motif API uses a lot of predefined strings. With this optional configuration line these strings can be set to their
+real names. The clientscript can use the original string name, and the GTK-server will substitute to the corresponding
+real string value automatically.
+
+The GTK\-server will lookup the string names in any argument defined as a STRING.
+
+Duplicate string names are not allowed. This is verified by the GTK\-server during startup.
+
+Example:
+.B STR_NAME = XmNactivateCallback, activateCallback
 .TP
 \fBALIAS_NAME = <alias>, <real name>\fP
 Some functions in external libraries may have the same name as an existing statement in a programming language. For
