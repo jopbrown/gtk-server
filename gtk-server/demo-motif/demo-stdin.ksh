@@ -7,7 +7,7 @@ function motif { print -p $1; read -p MOTIF; }
 function define { $2 "$3"; eval $1="${MOTIF}" >/dev/null 2>&1 ; }
 
 # Start GTK-server in STDIN mode
-gtk-server-motif -stdin -log=log.txt |&
+gtk-server-motif -stdin -log=/tmp/log.txt |&
 
 # Application - toplevel
 define top motif "gtk_server_toplevel"
@@ -19,8 +19,8 @@ motif "XtVaSetValues $top title 'This is a Motif Application' NULL"
 define win motif "XtVaCreateManagedWidget window xmMainWindowWidgetClass $top NULL"
 
 motif "gtk_server_redefine XtVaSetValues NONE NONE 4 WIDGET STRING INT NULL"
-motif "XtVaSetValues $win XmNwidth 800 NULL"
-motif "XtVaSetValues $win XmNheight 600 NULL"
+motif "XtVaSetValues $win XmNwidth 640 NULL"
+motif "XtVaSetValues $win XmNheight 480 NULL"
 
 # Fixed board
 define layer motif "XtVaCreateManagedWidget layer xmBulletinBoardWidgetClass $win NULL"
@@ -33,8 +33,8 @@ motif "XtVaSetValues $button XtVaTypedArg XmNlabelString XmRString 'Push the but
 motif "gtk_server_redefine XtVaSetValues NONE NONE 4 WIDGET STRING INT NULL"
 motif "XtVaSetValues $button XmNwidth 150 NULL"
 motif "XtVaSetValues $button XmNheight 60 NULL"
-motif "XtVaSetValues $button XmNx 640 NULL"
-motif "XtVaSetValues $button XmNy 530 NULL"
+motif "XtVaSetValues $button XmNx 480 NULL"
+motif "XtVaSetValues $button XmNy 410 NULL"
 
 # Label
 define label motif "XtVaCreateManagedWidget lbl xmLabelWidgetClass $layer NULL"
