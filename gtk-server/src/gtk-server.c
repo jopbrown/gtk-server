@@ -1164,12 +1164,14 @@ void Print_Error(char * fmt, int no, ...)
 {
 va_list args;
 char data[MAX_LEN];
+
+/* Read arguments incoming in functionheader */
+va_start(args, no);
+vsnprintf(data, MAX_LEN, fmt, args);
+
 #ifdef GTK_SERVER_UNIX
     #if defined(GTK_SERVER_GTK2x) || defined(GTK_SERVER_GTK3x)
 	GtkWidget *dialog, *window;
-	/* Read arguments incoming in functionheader */
-	va_start(args, no);
-	vsnprintf(data, MAX_LEN, fmt, args);
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	dialog = gtk_message_dialog_new(GTK_WINDOW(window), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "%s", data);
 	gtk_window_set_title(GTK_WINDOW(dialog), "GTK-server Error!");
@@ -1179,9 +1181,6 @@ char data[MAX_LEN];
 	gtk_widget_destroy(dialog);
     #elif GTK_SERVER_GTK1x
 	GtkWidget *dialog, *label, *close_button;
-	/* Read arguments incoming in functionheader */
-	va_start(args, no);
-	vsnprintf(data, MAX_LEN, fmt, args);
 	dialog = gtk_dialog_new();
 	gtk_window_set_title(GTK_WINDOW(dialog), "GTK-server Error!");
 	gtk_widget_set_usize(dialog, 350, 100);
@@ -1198,26 +1197,31 @@ char data[MAX_LEN];
 	gtk_main();
     #elif GTK_SERVER_XF
 	FL_FORM *dialog;
-	/* Read arguments incoming in functionheader */
-	va_start(args, no);
-	vsnprintf(data, MAX_LEN, fmt, args);
 	dialog = fl_bgn_form(FL_UP_BOX, 340, 180);
 	fl_add_text(FL_NORMAL_TEXT, 10, 10, 320, 100, data);
 	fl_add_button(FL_NORMAL_BUTTON, 135, 120, 70, 40, "Close");
 	fl_end_form();
 	fl_show_form(dialog, FL_PLACE_CENTER, FL_FULLBORDER, "GTK-server Error!");
 	fl_do_forms();
+    #elif GTK_SERVER_MOTIF
+	Widget msgbox, button;
+	msgbox = XmCreateMessageDialog(gtkserver.toplevel, "message", NULL, 0);
+	XtVaSetValues(msgbox, XtVaTypedArg, XmNdialogTitle, XmRString, "GTK-server Error!", 8, XmNwidth, 350, XmNheight, 100, XtVaTypedArg, XmNmessageString, XmRString, data, strlen(data), NULL);
+	XtVaSetValues(msgbox, XmNdialogType, XmDIALOG_INFORMATION, NULL);
+	XtAddCallback((Widget)msgbox, XmNokCallback, (XtCallbackProc)exit, NULL);
+	button = XmMessageBoxGetChild(msgbox, XmDIALOG_CANCEL_BUTTON);
+	if(button) XtDestroyWidget(button);
+	button = XmMessageBoxGetChild(msgbox, XmDIALOG_HELP_BUTTON);
+	if(button) XtDestroyWidget(button);
+	XtManageChild(msgbox);
+	XtRealizeWidget(gtkserver.toplevel);
+	XtAppMainLoop(gtkserver.app);
     #else
-	/* Read arguments incoming in functionheader */
-	va_start(args, no);
-	vsnprintf(data, MAX_LEN, fmt, args);
 	fprintf(stderr, "%s\n\n", data);
     #endif
     /* Send signal to parent process */
     if (gtkserver.behave & 8) kill(gtkserver.ppid, gtkserver.exit_sig);
 #elif GTK_SERVER_WIN32
-    va_start(args, no);
-    vsnprintf(data, MAX_LEN-1, fmt, args);
     /* Windows messages with messagebox */
     MessageBox(NULL, data, "GTK-server Error", MB_OK | MB_ICONSTOP);
 #endif
@@ -2302,6 +2306,7 @@ return Print_Result("%s%sok%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.po
     #elif GTK_SERVER_XF
     char *Widget_GUI(FL_OBJECT *widget, CONFIG *call)
     {
+	ENUM *Enum_Found;
     #elif GTK_SERVER_MOTIF
     char *Widget_GUI(Widget widget, CONFIG *call)
     {
@@ -2317,6 +2322,7 @@ char *Widget_GUI(void *func, CONFIG *call, DCCallVM* vm)
 #if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
 GtkWidget *widget;		/* Temporary widget holder */
 #elif GTK_SERVER_XF
+ENUM *Enum_Found;
 FL_OBJECT *widget;
 #elif GTK_SERVER_MOTIF
 Widget widget;
@@ -2335,6 +2341,7 @@ ffi_cif cif;		/* Contains pointer to FFI_CIF structure */
 #if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
 GtkWidget *widget;		/* Temporary widget holder */
 #elif GTK_SERVER_XF
+ENUM *Enum_Found;
 FL_OBJECT *widget;
 #elif GTK_SERVER_MOTIF
 Widget widget;
@@ -2363,6 +2370,7 @@ CInvFunction *proto;
 #if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
 GtkWidget *widget;		/* Temporary widget holder */
 #elif GTK_SERVER_XF
+ENUM *Enum_Found;
 FL_OBJECT *widget;
 #elif GTK_SERVER_MOTIF
 Widget widget;
@@ -2389,11 +2397,33 @@ else {
 List_Sigs->data = strdup(call->callbacktype);
 
 /* Connect signals */
-#if GTK_SERVER_GTK1x
-if (strcmp(call->callbacktype, "NONE")) gtk_signal_connect(GTK_OBJECT(widget), call->callbacktype, GTK_SIGNAL_FUNC(gtk_server_callback), (gpointer*)List_Sigs->data);
-#elif GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
-if (strcmp(call->callbacktype, "NONE")) g_signal_connect(GTK_OBJECT(widget), call->callbacktype, G_CALLBACK(gtk_server_callback), (gpointer*)List_Sigs->data);
-#endif
+if (strcmp(call->callbacktype, "NONE")) {
+
+    #if GTK_SERVER_GTK1x
+    gtk_signal_connect(GTK_OBJECT(widget), call->callbacktype, GTK_SIGNAL_FUNC(gtk_server_callback), (gpointer*)List_Sigs->data);
+    #elif GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
+    g_signal_connect(GTK_OBJECT(widget), call->callbacktype, G_CALLBACK(gtk_server_callback), (gpointer*)List_Sigs->data);
+    #elif GTK_SERVER_XF
+    if(isalpha(call->callbacktype[0]))
+    {
+	HASH_FIND_STR(enum_protos, call->callbacktype, Enum_Found);
+	if (Enum_Found != NULL)
+	{
+	    fl_register_raw_callback((FL_FORM*)widget, Enum_Found->value, xforms_callback);
+	}
+	else
+	{
+	    Print_Error("\nERROR: Cannot find signal '%s'!", 1, call->callbacktype);
+	}
+    }
+    else
+    {
+	fl_register_raw_callback((FL_FORM*)widget, atoi(call->callbacktype), xforms_callback);
+    }
+    #elif GTK_SERVER_MOTIF
+    XtAddCallback((Widget)widget, call->callbacktype, motif_callback, NULL);
+    #endif
+}
 
 /* Convert to long value */
 ptrstr = Return_Pointer_Args(call);
@@ -5286,7 +5316,7 @@ if (gtkserver.behave & 512) { fl_show_form(debug_window, FL_PLACE_CENTER, FL_FUL
 
 #endif
 
-#else	/* LIBRARY is defined */
+#else	/* ----------------------------------------------- LIBRARY is defined -------------------------------------- */
 int init_result = 0;
 
 /* Initialize GUI toolkits */
@@ -5377,7 +5407,7 @@ if (gtkserver.LogDir != NULL) {
     gtkserver.LogDir = strtok(NULL, "=");
 }
 
-#endif /* ---of the ifndef LIBRARY/else */
+#endif /* ----------------------------------------- of the ifndef LIBRARY/else ----------------------------------- */
 
 if(gtkserver.pre == NULL) gtkserver.pre = strdup("");
 if(gtkserver.post == NULL) gtkserver.post = strdup("");
@@ -5677,7 +5707,6 @@ MOTIF_ADD_CLASS(xmTabStackWidgetClass);
 MOTIF_ADD_CLASS(xmTextFieldWidgetClass);
 MOTIF_ADD_CLASS(xmTextWidgetClass);
 MOTIF_ADD_CLASS(xmToggleButtonWidgetClass);
-/*
 MOTIF_ADD_CLASS(applicationShellWidgetClass);
 MOTIF_ADD_CLASS(compositeWidgetClass);
 MOTIF_ADD_CLASS(constraintWidgetClass);
@@ -5685,7 +5714,7 @@ MOTIF_ADD_CLASS(coreWidgetClass);
 MOTIF_ADD_CLASS(topLevelShellWidgetClass);
 MOTIF_ADD_CLASS(transientShellWidgetClass);
 MOTIF_ADD_CLASS(vendorShellWidgetClass);
-MOTIF_ADD_CLASS(wmShellWidgetClass); */
+MOTIF_ADD_CLASS(wmShellWidgetClass);
 #endif
 
 /* Now see if we need to print the complete configuration (for debugging) */
