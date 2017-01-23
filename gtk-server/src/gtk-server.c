@@ -1220,11 +1220,12 @@ char data[MAX_LEN];
 	fl_show_form(dialog, FL_PLACE_CENTER, FL_FULLBORDER, "GTK-server Error!");
 	fl_do_forms();
     #elif GTK_SERVER_MOTIF
-	Widget msgbox, button;
+	Widget shell, msgbox, button;
         /* Read arguments incoming in functionheader */
         va_start(args, no);
         vsnprintf(data, MAX_LEN, fmt, args);
-	msgbox = XmCreateMessageDialog(gtkserver.toplevel, "message", NULL, 0);
+        shell = XtVaAppCreateShell (NULL, "Class", topLevelShellWidgetClass, XtDisplay(gtkserver.toplevel), NULL);
+	msgbox = XmCreateMessageDialog(shell, "message", NULL, 0);
 	XtVaSetValues(msgbox, XtVaTypedArg, XmNdialogTitle, XmRString, "GTK-server Error!", 8, XmNwidth, 350, XmNheight, 100, XtVaTypedArg, XmNmessageString, XmRString, data, strlen(data), NULL);
 	XtVaSetValues(msgbox, XmNdialogType, XmDIALOG_INFORMATION, NULL);
 	XtAddCallback((Widget)msgbox, XmNokCallback, (XtCallbackProc)exit, NULL);
@@ -1511,6 +1512,7 @@ return (char *) memcpy (new, s, n);
 /*************************************************************************************************/
 /* Used for debug panel */
 
+#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
 void switch_flag_on(void* widget, long *data)
 {
     *data = 1;
@@ -1520,6 +1522,18 @@ void switch_flag_off(void* widget, long *data)
 {
     *data = 0;
 }
+
+#elif GTK_SERVER_MOTIF
+void switch_flag_on(Widget w, XtPointer data, XtPointer call_data)
+{
+    *(long*)data = 1;
+}
+
+void switch_flag_off(Widget w, XtPointer data, XtPointer call_data)
+{
+    *(long*)data = 0;
+}
+#endif
 
 /*************************************************************************************************/
 #if GTK_SERVER_XF
@@ -4983,7 +4997,8 @@ FL_FORM *debug_window;
 FL_OBJECT *debug_view, *debug_close, *debug_execute, *debug_pause, *debug_next;
 char *xf_buffer;
 #elif GTK_SERVER_MOTIF
-Widget debug_window, debug_layer, debug_text, debug_close, debug_next, debug_pause, debug_execute;
+Widget debug_window, debug_layer, debug_view, debug_close, debug_next, debug_pause, debug_execute;
+char *motif_buf;
 #endif
 #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
 fd_set rfds;				/* Needed for file descriptor polling in case debug window is used */
@@ -5340,14 +5355,14 @@ if (gtkserver.behave & 512) { gtk_widget_show_all(debug_window); }
 
 #define update_gui while(gtk_events_pending()) { gtk_main_iteration_do(0); }
 
-#define scroll_to_end(x, y, z, n) do { \
-    if(n&2) gtk_text_buffer_insert_at_cursor(debug_buffer, "SCRIPT: ", -1); \
+#define scroll_to_end(x, y, z) do { \
+    if(z&2) gtk_text_buffer_insert_at_cursor(debug_buffer, "SCRIPT: ", -1); \
     else gtk_text_buffer_insert_at_cursor(debug_buffer, "SERVER: ", -1); \
-    gtk_text_buffer_insert_at_cursor(debug_buffer, z, -1); \
-    if(n&1) gtk_text_buffer_insert_at_cursor(debug_buffer, "\n", -1); \
+    gtk_text_buffer_insert_at_cursor(debug_buffer, y, -1); \
+    if(z&1) gtk_text_buffer_insert_at_cursor(debug_buffer, "\n", -1); \
     update_gui; \
-    gtk_text_buffer_get_end_iter(x, &debug_iter); \
-    gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(y), &debug_iter, 0, 1, 0, 1); \
+    gtk_text_buffer_get_end_iter(debug_buffer, &debug_iter); \
+    gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(x), &debug_iter, 0, 1, 0, 1); \
     update_gui; \
 } while(0)
 
@@ -5370,13 +5385,13 @@ if (gtkserver.behave & 512) { fl_show_form(debug_window, FL_PLACE_CENTER, FL_FUL
 
 #define update_gui fl_check_forms();
 
-#define scroll_to_end(i, x, y, n) do { \
+#define scroll_to_end(x, y, z) do { \
     xf_buffer = strdup(fl_get_input(x)); \
     xf_buffer = realloc(xf_buffer, strlen(xf_buffer)+strlen(y)+8+2); \
-    if(n&2) strcat(xf_buffer, "SCRIPT: "); \
+    if(z&2) strcat(xf_buffer, "SCRIPT: "); \
     else strcat(xf_buffer, "SERVER: "); \
     strcat(xf_buffer, y); \
-    if(n&1) { strcat(xf_buffer, "\n"); } \
+    if(z&1) { strcat(xf_buffer, "\n"); } \
     fl_set_input(x, xf_buffer); \
     free(xf_buffer); \
     while(fl_check_forms()); \
@@ -5384,24 +5399,36 @@ if (gtkserver.behave & 512) { fl_show_form(debug_window, FL_PLACE_CENTER, FL_FUL
 
 #elif GTK_SERVER_MOTIF
 debug_window = XtVaAppCreateShell (NULL, "Class", topLevelShellWidgetClass, XtDisplay(gtkserver.toplevel), XtNtitle, "GTK-server Debugger", NULL);
-debug_layer = XtVaCreateManagedWidget("layer", xmBulletinBoardWidgetClass, debug_window, NULL);
+debug_layer = XtVaCreateManagedWidget("layer", xmFormWidgetClass, debug_window, NULL);
 XtVaSetValues(debug_layer, XmNwidth, 600, XmNheight, 300, NULL);
-debug_text = XmCreateScrolledText(debug_layer, "text", NULL, 0);
-XtVaSetValues(debug_text, XmNeditMode, XmMULTI_LINE_EDIT, XmNwidth, 560, XmNheight, 210, XmNx, 10, XmNy, 10, NULL);
-XtManageChild(debug_text);
-debug_close = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNwidth, 80, XmNheight, 40, XmNx, 10, XmNy, 250, XmNleftAttachment, XmATTACH_FORM, XtVaTypedArg, XmNlabelString, XmRString, "Quit", 4, NULL);
+debug_view = XmCreateScrolledText(debug_layer, "text", NULL, 0);
+XtVaSetValues(XtParent(debug_view), XmNwidth, 580, XmNheight, 220, XmNx, 10, XmNy, 10, XmNleftAttachment, XmATTACH_SELF, XmNrightAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XmNtopAttachment, XmATTACH_SELF, NULL);
+XtVaSetValues(debug_view, XmNeditMode, XmMULTI_LINE_EDIT, XmNeditable, False, XmNcursorPositionVisible, False, NULL);
+XtManageChild(debug_view);
+debug_close = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNwidth, 80, XmNheight, 40, XmNx, 10, XmNy, 250, XmNleftAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XtVaTypedArg, XmNlabelString, XmRString, "Quit", 4, NULL);
 XtAddCallback((Widget)debug_close, XmNactivateCallback, (XtCallbackProc)exit, NULL);
-debug_next = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNwidth, 80, XmNheight, 40, XmNx, 330, XmNy, 250, XmNrightAttachment, XmATTACH_FORM, XtVaTypedArg, XmNlabelString, XmRString, "Step", 4, NULL);
-XtAddCallback((Widget)debug_next, XmNactivateCallback, (XtCallbackProc)debug_step, NULL);
-debug_execute = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNwidth, 80, XmNheight, 40, XmNx, 420, XmNy, 250, XmNrightAttachment, XmATTACH_FORM, XtVaTypedArg, XmNlabelString, XmRString, "Run", 4, NULL);
-XtAddCallback((Widget)debug_execute, XmNactivateCallback, (XtCallbackProc)debug_run, NULL);
-debug_pause = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNwidth, 80, XmNheight, 40, XmNx, 510, XmNy, 250, XmNrightAttachment, XmATTACH_FORM, XtVaTypedArg, XmNlabelString, XmRString, "Pause", 4, NULL);
-XtAddCallback((Widget)debug_pause, XmNactivateCallback, (XtCallbackProc)debug_run, NULL);
-if (gtkserver.behave & 512) { XtRealizeWidget(debug_window); XtAppMainLoop(gtkserver.app); }
+debug_next = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNwidth, 80, XmNheight, 40, XmNx, 330, XmNy, 250, XmNrightAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XtVaTypedArg, XmNlabelString, XmRString, "Step", 4, NULL);
+XtAddCallback((Widget)debug_next, XmNactivateCallback, (XtCallbackProc)switch_flag_on, &debug_step);
+debug_execute = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNwidth, 80, XmNheight, 40, XmNx, 420, XmNy, 250, XmNrightAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XtVaTypedArg, XmNlabelString, XmRString, "Run", 4, NULL);
+XtAddCallback((Widget)debug_execute, XmNactivateCallback, (XtCallbackProc)switch_flag_on, &debug_run);
+debug_pause = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNwidth, 80, XmNheight, 40, XmNx, 510, XmNy, 250, XmNrightAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XtVaTypedArg, XmNlabelString, XmRString, "Pause", 4, NULL);
+XtAddCallback((Widget)debug_pause, XmNactivateCallback, (XtCallbackProc)switch_flag_off, &debug_run);
+if (gtkserver.behave & 512) { XtRealizeWidget(debug_window); }
 
 #define update_gui while(XtAppPending(gtkserver.app)) { XtAppProcessEvent(gtkserver.app, XtIMAll); }
 
-#define scroll_to_end(i, x, y, n)
+#define scroll_to_end(x, y, z) do { \
+    motif_buf = XmTextGetString(x); \
+    motif_buf = realloc(motif_buf, strlen(motif_buf)+strlen(y)+8+2); \
+    if(z&2) strcat(motif_buf, "SCRIPT: "); \
+    else strcat(motif_buf, "SERVER: "); \
+    strcat(motif_buf, y); \
+    if(z&1) { strcat(motif_buf, "\n"); } \
+    XmTextSetString(x, motif_buf); \
+    XmTextShowPosition(debug_view, strlen(motif_buf)); \
+    XtFree(motif_buf); \
+    update_gui; \
+} while(0)
 #endif
 
 #else	/* ----------------------------------------------- LIBRARY is defined -------------------------------------- */
@@ -6014,7 +6041,7 @@ if (gtkserver.mode == 1) {
 	    fflush(logfile);
 	}
 	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
-	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, Trim_String(in), 3); }
+	if (gtkserver.behave & 512) { scroll_to_end(debug_view, Trim_String(in), 3); }
 	#endif
 
 	retstr = Call_Realize(Trim_String(in), cinv_ctx);
@@ -6024,8 +6051,8 @@ if (gtkserver.mode == 1) {
 	    fprintf(logfile, "SERVER: %s\n", retstr);
 	    fflush(logfile);
 	}
-	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_view, retstr, 1); }
 	#endif
 
 	/* Answer from GTK-server */
@@ -6074,7 +6101,7 @@ if (gtkserver.mode == 2) {
 	}
 
 	/* Debug window */
-	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
 	if (gtkserver.behave & 512) {
 	    /* Poll descriptor to see if data is available */
 	    while(debug_step == 0)
@@ -6125,8 +6152,8 @@ if (gtkserver.mode == 2) {
 	    fprintf(logfile, "SCRIPT: %s\n", Trim_String(in));
 	    fflush(logfile);
 	}
-	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, Trim_String(in), 3); }
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_view, Trim_String(in), 3); }
 	#endif
 
 	retstr = Call_Realize(Trim_String(in), cinv_ctx);
@@ -6136,8 +6163,8 @@ if (gtkserver.mode == 2) {
 	    fprintf(logfile, "SERVER: %s\n", retstr);
 	    fflush(logfile);
 	}
-	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_view, retstr, 1); }
 	#endif
 
 	/* Now open in WRITE mode */
@@ -6388,7 +6415,7 @@ while (1){
 	while(1){
 
 	    /* Debug window */
-	    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
 	    if (gtkserver.behave & 512) {
 		/* Poll descriptor to see if data is available */
 		while(debug_step == 0)
@@ -6435,8 +6462,8 @@ while (1){
 		fprintf(logfile, "SCRIPT: %s\n", Trim_String(in));
 		fflush(logfile);
 	    }
-	    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-	    if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, Trim_String(in), 3); }
+	    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
+	    if (gtkserver.behave & 512) { scroll_to_end(debug_view, Trim_String(in), 3); }
 	    #endif
 
 	    retstr = Call_Realize(Trim_String(in), cinv_ctx);
@@ -6446,8 +6473,8 @@ while (1){
 		fprintf(logfile, "SERVER: %s\n", retstr);
 		fflush(logfile);
 	    }
-	    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-	    if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
+	    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
+	    if (gtkserver.behave & 512) { scroll_to_end(debug_view, retstr, 1); }
 	    #endif
 
 	    /* Now send the result back to the socket */
@@ -6588,7 +6615,7 @@ if (gtkserver.mode == 6) {
     while(1){
 
 	/* Debug window */
-	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
 	if (gtkserver.behave & 512) {
 	    /* Poll descriptor to see if data is available */
 	    while(debug_step == 0)
@@ -6642,8 +6669,8 @@ if (gtkserver.mode == 6) {
 	    fprintf(logfile, "SCRIPT: %s\n", Trim_String(in));
 	    fflush(logfile);
 	}
-	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, Trim_String(in), 3); }
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_view, Trim_String(in), 3); }
 	#endif
 
 	retstr = Call_Realize(Trim_String(in), cinv_ctx);
@@ -6653,8 +6680,8 @@ if (gtkserver.mode == 6) {
 	    fprintf(logfile, "SERVER: %s\n", retstr);
 	    fflush(logfile);
 	}
-	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_view, retstr, 1); }
 	#endif
 
 	/* Now send the result back to the socket */
@@ -6740,7 +6767,7 @@ if (logfile != NULL){
 while (1){
 
     /* Debug window */
-    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
     if (gtkserver.behave & 512) {
 	/* Poll descriptor to see if data is available */
 	while(debug_step == 0)
@@ -6770,8 +6797,8 @@ while (1){
 	    fprintf(logfile, "SCRIPT: %s\n", Trim_String(in));
 	    fflush(logfile);
 	}
-	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, Trim_String(in), 3); }
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_view, Trim_String(in), 3); }
 	#endif
 
 	retstr = Call_Realize(Trim_String(in), cinv_ctx);
@@ -6781,8 +6808,8 @@ while (1){
 	    fprintf(logfile, "SERVER: %s\n", retstr);
 	    fflush(logfile);
 	}
-	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-	if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
+	#if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
+	if (gtkserver.behave & 512) { scroll_to_end(debug_view, retstr, 1); }
 	#endif
 
 	/* Now send the result back to the socket */
@@ -6836,7 +6863,7 @@ while (1){
     numbytes = 0;
 
     /* Debug window */
-    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
+    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
     if (gtkserver.behave & 512) {
 	/* Poll message queue to see if data is available */
 	while(debug_step == 0)
@@ -6881,8 +6908,8 @@ while (1){
 	fprintf(logfile, "SCRIPT: %s\n", Trim_String(in));
 	fflush(logfile);
     }
-    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-    if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, Trim_String(in), 3); }
+    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
+    if (gtkserver.behave & 512) { scroll_to_end(debug_view, Trim_String(in), 3); }
     #endif
 
     retstr = Call_Realize(Trim_String(in), cinv_ctx);
@@ -6892,8 +6919,8 @@ while (1){
 	fprintf(logfile, "SERVER: %s\n", retstr);
 	fflush(logfile);
     }
-    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF
-    if (gtkserver.behave & 512) { scroll_to_end(debug_buffer, debug_view, retstr, 1); }
+    #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
+    if (gtkserver.behave & 512) { scroll_to_end(debug_view, retstr, 1); }
     #endif
 
     /* We agree with ourselves to use msgtype = 1 */
@@ -6938,6 +6965,8 @@ return (init_result);
 char *gtk (char *arg)
 #elif GTK_SERVER_XF
 char *xf (char *arg)
+#elif GTK_SERVER_MOTIF
+char *motif (char *arg)
 #else
 char *cons (char *arg)
 #endif

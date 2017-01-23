@@ -7,7 +7,7 @@ function motif { print -p $1; read -p MOTIF; }
 function define { $2 "$3"; eval $1="${MOTIF}" >/dev/null 2>&1 ; }
 
 # Start GTK-server in STDIN mode
-gtk-server-motif -stdin -log=/tmp/log.txt |&
+gtk-server-motif -stdin -log=/tmp/log.txt -debug |&
 
 # Application - toplevel
 define top motif "gtk_server_toplevel"
