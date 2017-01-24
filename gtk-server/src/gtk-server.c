@@ -1227,14 +1227,14 @@ char data[MAX_LEN];
         shell = XtVaAppCreateShell (NULL, "Class", topLevelShellWidgetClass, XtDisplay(gtkserver.toplevel), NULL);
 	msgbox = XmCreateMessageDialog(shell, "message", NULL, 0);
 	XtVaSetValues(msgbox, XtVaTypedArg, XmNdialogTitle, XmRString, "GTK-server Error!", 8, XmNwidth, 350, XmNheight, 100, XtVaTypedArg, XmNmessageString, XmRString, data, strlen(data), NULL);
-	XtVaSetValues(msgbox, XmNdialogType, XmDIALOG_INFORMATION, NULL);
+	XtVaSetValues(msgbox, XmNdialogType, XmDIALOG_INFORMATION, XmNdefaultPosition, False, XmNx, WidthOfScreen(XtScreen(msgbox))/2-175, XmNy, HeightOfScreen(XtScreen(msgbox))/2-50, NULL);
 	XtAddCallback((Widget)msgbox, XmNokCallback, (XtCallbackProc)exit, NULL);
 	button = XmMessageBoxGetChild(msgbox, XmDIALOG_CANCEL_BUTTON);
 	if(button) XtDestroyWidget(button);
 	button = XmMessageBoxGetChild(msgbox, XmDIALOG_HELP_BUTTON);
 	if(button) XtDestroyWidget(button);
 	XtManageChild(msgbox);
-	XtRealizeWidget(gtkserver.toplevel);
+	XtRealizeWidget(msgbox);
 	XtAppMainLoop(gtkserver.app);
     #else
         /* Read arguments incoming in functionheader */
@@ -1560,6 +1560,8 @@ XmAnyCallbackStruct *data;
 
 Current_Object.object = w;
 Current_Object.state = (long)w;
+
+Current_Object.text = (char*)client_data;
 
 data = (XmAnyCallbackStruct*)call_data;
 
@@ -2352,6 +2354,7 @@ return Print_Result("%s%sok%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.po
     #elif GTK_SERVER_MOTIF
     char *Widget_GUI(Widget widget, CONFIG *call)
     {
+	STR *Str_Found;
     #else
     char *Widget_GUI(void *widget, CONFIG *call)
     {
@@ -2367,6 +2370,7 @@ GtkWidget *widget;		/* Temporary widget holder */
 ENUM *Enum_Found;
 FL_OBJECT *widget;
 #elif GTK_SERVER_MOTIF
+STR *Str_Found;
 Widget widget;
 #else
 void *widget;
@@ -2386,6 +2390,7 @@ GtkWidget *widget;		/* Temporary widget holder */
 ENUM *Enum_Found;
 FL_OBJECT *widget;
 #elif GTK_SERVER_MOTIF
+STR *Str_Found;
 Widget widget;
 #else
 void *widget;
@@ -2415,6 +2420,7 @@ GtkWidget *widget;		/* Temporary widget holder */
 ENUM *Enum_Found;
 FL_OBJECT *widget;
 #elif GTK_SERVER_MOTIF
+STR *Str_Found;
 Widget widget;
 #else
 void *widget;
@@ -2463,7 +2469,13 @@ if (strcmp(call->callbacktype, "NONE")) {
 	fl_register_raw_callback((FL_FORM*)widget, atoi(call->callbacktype), xforms_callback);
     }
     #elif GTK_SERVER_MOTIF
-    XtAddCallback((Widget)widget, call->callbacktype, motif_callback, NULL);
+    HASH_FIND_STR(str_protos, call->callbacktype, Str_Found);
+    if (Str_Found != NULL){
+        XtAddCallback((Widget)widget, Str_Found->value, motif_callback, List_Sigs->data);
+    }
+    else{
+        XtAddCallback((Widget)widget, call->callbacktype, motif_callback, List_Sigs->data);
+    }
     #endif
 }
 
@@ -3567,7 +3579,7 @@ if (inputdata != NULL) {
 	if ((signal = parse_data(list, ++item)) == NULL){
 	    Print_Error("%s", 1, "\nERROR: Cannot find signal type in GTK_SERVER_CONNECT!");
 	}
-	#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
+	#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_MOTIF
 	if ((arg = parse_data(list, ++item)) == NULL){
 	    Print_Error("%s", 1, "\nERROR: Cannot find response string in GTK_SERVER_CONNECT!");
 	}
@@ -3609,10 +3621,10 @@ if (inputdata != NULL) {
 	#elif GTK_SERVER_MOTIF
 	HASH_FIND_STR(str_protos, signal, Str_Found);
 	if (Str_Found != NULL){
-	    XtAddCallback((Widget)(atol(widget)), Str_Found->value, motif_callback, NULL);
+	    XtAddCallback((Widget)(atol(widget)), Str_Found->value, motif_callback, List_Sigs->data);
 	}
 	else{
-	    XtAddCallback((Widget)(atol(widget)), signal, motif_callback, NULL);
+	    XtAddCallback((Widget)(atol(widget)), signal, motif_callback, List_Sigs->data);
 	}
 	/* This function was greatly improved by Wolfgang Oertl */
 	#elif GTK_SERVER_GTK1x
@@ -3703,10 +3715,10 @@ if (inputdata != NULL) {
 	#ifdef GTK_SERVER_MOTIF
 	HASH_FIND_STR(str_protos, arg, Str_Found);
 	if (Str_Found != NULL){
-	    XtRemoveCallback((Widget)(atol(widget)), Str_Found->value, motif_callback, NULL);
+	    XtRemoveCallback((Widget)(atol(widget)), Str_Found->value, motif_callback, List_Sigs->data);
 	}
 	else{
-	    XtRemoveCallback((Widget)(atol(widget)), arg, motif_callback, NULL);
+	    XtRemoveCallback((Widget)(atol(widget)), arg, motif_callback, List_Sigs->data);
 	}
 	#else
 	/* Find signal userdata in memory */
