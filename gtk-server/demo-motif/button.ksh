@@ -52,24 +52,27 @@ gtk-server-motif -stdin -log=/tmp/log.txt -debug |&
 # Application - toplevel
 define TOPLEVEL motif "gtk_server_toplevel"
 
-# Tell GTK-server how to use 'XtVaSetValues'
-motif "gtk_server_redefine XtVaSetValues NONE NONE 4 WIDGET STRING STRING NULL"
-# Use it
-motif "XtVaSetValues $TOPLEVEL title 'Test1' NULL"
+# Set title
+motif "XtVaSetValues $TOPLEVEL s:title s:Test1 NULL"
 
-# Tell GTK-server how to use 'XtVaCreateManagedWidget'
-motif "gtk_server_redefine XtVaCreateManagedWidget NONE WIDGET 12 STRING CLASS WIDGET STRING INT STRING INT STRING INT STRING INT NULL"
-# Use it
+# Define Bulletin Board
 define BBOARD motif "XtVaCreateManagedWidget bboard xmBulletinBoardWidgetClass $TOPLEVEL \
-	resizePolicy XmRESIZE_NONE height 150 width 250 \
-	background SkyBlue NULL"
+        s:height i:150 \
+        s:width i:250 \
+	s:background e:SkyBlue \
+        NULL"
 
-# Tell GTK-server how to use 'XtVaCreateManagedWidget'
-motif "gtk_server_redefine XtVaCreateManagedWidget NONE WIDGET 19 STRING CLASS WIDGET STRING STRING STRING STRING INT STRING INT STRING INT STRING INT STRING INT STRING INT NULL"
-# Use it
+# Define button
 define BUTTON motif "XtVaCreateManagedWidget button xmPushButtonWidgetClass $BBOARD \
-	XtVaTypedArg XmNlabelString XmRString 'Push Here' 9 \
-	height 30 width 100 x 75 y 60 shadowThickness 3 NULL"
+	s:background e:Goldenrod \
+	s:foreground e:MidnightBlue \
+        s:XtVaTypedArg s:XmNlabelString s:XmRString 's:Push here' i:9 \
+	s:height i:30 \
+        s:width i:100 \
+        s:x i:75 \
+        s:y i:60 \
+        s:shadowThickness i:3 \
+        NULL"
 
 # Connect signal
 motif "gtk_server_connect $BUTTON activateCallback activateCB"

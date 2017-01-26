@@ -11,49 +11,68 @@ gtk-server-motif -stdin -log=/tmp/log.txt -debug |&
 
 # Application - toplevel
 define top motif "gtk_server_toplevel"
+motif "XtVaSetValues $top s:title 's:This is a Motif Application' NULL"
 
-motif "gtk_server_redefine XtVaSetValues NONE NONE 4 WIDGET STRING STRING NULL"
-motif "XtVaSetValues $top title 'This is a Motif Application' NULL"
+# Some fonts
+define display motif "XtDisplay $top"
+define model motif "XmFontListEntryLoad $display 12x24romankana XmFONT_IS_FONT tag"
+define font1 motif "XmFontListAppendEntry NULL $model"
+define model motif "XmFontListEntryLoad $display 8x16 XmFONT_IS_FONT tag"
+define font2 motif "XmFontListAppendEntry NULL $model"
+define model motif "XmFontListEntryLoad $display 8x13bold XmFONT_IS_FONT tag"
+define font3 motif "XmFontListAppendEntry NULL $model"
+#motif "XmFontListEntryFree $font"
 
 # Window
-define win motif "XtVaCreateManagedWidget window xmMainWindowWidgetClass $top NULL"
-
-motif "gtk_server_redefine XtVaSetValues NONE NONE 4 WIDGET STRING INT NULL"
-motif "XtVaSetValues $win XmNwidth 640 NULL"
-motif "XtVaSetValues $win XmNheight 480 NULL"
+define win motif "XtVaCreateManagedWidget window xmMainWindowWidgetClass $top \
+    s:XmNwidth i:640 \
+    s:XmNheight i:480 \
+    NULL"
 
 # Fixed board
-define layer motif "XtVaCreateManagedWidget layer xmBulletinBoardWidgetClass $win NULL"
-motif "gtk_server_redefine XtVaSetValues NONE NONE 4 WIDGET STRING INT NULL"
-motif "XtVaSetValues $layer XmNbackground Peru NULL"
-
-# Button
-define button motif "XtVaCreateManagedWidget button xmPushButtonWidgetClass $layer NULL"
-motif "gtk_server_redefine XtVaSetValues NONE NONE 7 WIDGET STRING STRING STRING STRING INT NULL"
-motif "XtVaSetValues $button XtVaTypedArg XmNlabelString XmRString 'Push the button' 15 NULL"
-
-motif "gtk_server_redefine XtVaSetValues NONE NONE 12 WIDGET STRING INT STRING INT STRING INT STRING INT STRING INT NULL"
-motif "XtVaSetValues $button XmNwidth 140 XmNheight 40 XmNx 480 XmNy 410 XmNbackground YellowGreen NULL"
+define layer motif "XtVaCreateManagedWidget layer xmBulletinBoardWidgetClass $win \
+        s:XmNbackground e:Peru \
+        NULL"
 
 # Label
-define label motif "XtVaCreateManagedWidget lbl xmLabelWidgetClass $layer NULL"
-motif "gtk_server_redefine XtVaSetValues NONE NONE 7 WIDGET STRING STRING STRING STRING INT NULL"
-motif "XtVaSetValues $label XtVaTypedArg XmNlabelString XmRString 'This is a demo with Motif!' 26 NULL"
-
-motif "gtk_server_redefine XtVaSetValues NONE NONE 12 WIDGET STRING INT STRING INT STRING INT STRING INT STRING INT NULL"
-motif "XtVaSetValues $label XmNwidth 200 XmNheight 40 XmNx 20 XmNy 20 XmNbackground Peru NULL"
+define label motif "XtVaCreateManagedWidget lbl xmLabelWidgetClass $layer \
+    s:XtVaTypedArg s:XmNlabelString s:XmRString 's:This is a demo with Motif!' i:26 \
+    s:XmNx i:20 \
+    s:XmNy i:20 \
+    s:XmNbackground e:Peru \
+    s:XmNforeground e:Yellow \
+    s:XmNfontList w:$font1 \
+    NULL"
 
 # Combo
 define combo motif "XmCreateDropDownComboBox $layer combo NULL 0"
+motif "XtVaSetValues $combo \
+    s:XmNfontList w:$font3 \
+    s:XmNwidth i:200 \
+    s:XmNheight i:40 \
+    s:XmNx i:20 \
+    s:XmNy i:100 \
+    NULL"
+
+# Add an item
 define txt motif "XmStringCreateLocalized 'Some data'"
 motif "XmComboBoxAddItem $combo $txt 0 0"
 motif "XmStringFree $txt"
 
-motif "gtk_server_redefine XtVaSetValues NONE NONE 10 WIDGET STRING INT STRING INT STRING INT STRING INT NULL"
-motif "XtVaSetValues $combo XmNwidth 200 XmNheight 40 XmNx 20 XmNy 100 NULL"
-
 # Make the combo visible
 motif "XtManageChild $combo"
+
+# Button
+define button motif "XtVaCreateManagedWidget button xmPushButtonWidgetClass $layer \
+    s:XtVaTypedArg s:XmNlabelString s:XmRString 's:Push the button' i:15 \
+    s:XmNfontList w:$font2 \
+    s:XmNheight i:40 \
+    s:XmNx i:470 \
+    s:XmNy i:410 \
+    NULL"
+
+motif "XtVaSetValues $button \
+    s:XmNbackground e:SkyBlue NULL"
 
 # Button reacts
 motif "gtk_server_connect $button XmNactivateCallback click"

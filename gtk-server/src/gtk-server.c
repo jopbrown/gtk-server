@@ -585,7 +585,7 @@ typedef struct config_struct {
     char *name;
     char *callbacktype;
     char *returnvalue;
-    char *argamount;
+    char argamount[MAX_DIG];
     char *args[MAX_ARGS];
     UT_hash_handle hh;       /* makes this structure hashable */
 } CONFIG;
@@ -1174,7 +1174,7 @@ if(msgctl(msgid, IPC_RMID, NULL) < 0) {
 void Print_Error(char * fmt, int no, ...)
 {
 va_list args;
-char data[MAX_LEN];
+char data[MAX_LEN] = { 0 };
 
 #ifdef GTK_SERVER_UNIX
     #if defined(GTK_SERVER_GTK2x) || defined(GTK_SERVER_GTK3x)
@@ -1221,14 +1221,30 @@ char data[MAX_LEN];
 	fl_do_forms();
     #elif GTK_SERVER_MOTIF
 	Widget shell, msgbox, button;
+        XmFontListEntry entry;
+        XmFontList font;
+        XmString txt;
+        Arg margs[10];
+        int n = 0;
         /* Read arguments incoming in functionheader */
         va_start(args, no);
         vsnprintf(data, MAX_LEN, fmt, args);
         shell = XtVaAppCreateShell (NULL, "Class", topLevelShellWidgetClass, XtDisplay(gtkserver.toplevel), NULL);
-	msgbox = XmCreateMessageDialog(shell, "message", NULL, 0);
-	XtVaSetValues(msgbox, XtVaTypedArg, XmNdialogTitle, XmRString, "GTK-server Error!", 8, XmNwidth, 350, XmNheight, 100, XtVaTypedArg, XmNmessageString, XmRString, data, strlen(data), NULL);
-	XtVaSetValues(msgbox, XmNdialogType, XmDIALOG_INFORMATION, XmNdefaultPosition, False, XmNx, WidthOfScreen(XtScreen(msgbox))/2-175, XmNy, HeightOfScreen(XtScreen(msgbox))/2-50, NULL);
-	XtAddCallback((Widget)msgbox, XmNokCallback, (XtCallbackProc)exit, NULL);
+        entry = XmFontListEntryLoad(XtDisplay(gtkserver.toplevel), "7x13bold" , XmFONT_IS_FONT, "tag");
+        font = XmFontListAppendEntry(NULL, entry);
+        XmFontListEntryFree(&entry);
+        txt = XmStringCreate(Trim_String(data), "tag");
+        XtSetArg(margs[n], XmNmessageString, txt); n++;
+        XtSetArg(margs[n], XmNlabelFontList, font); n++;
+        XtSetArg(margs[n], XmNbuttonFontList, font); n++;
+        XtSetArg(margs[n], XmNdialogType, XmDIALOG_INFORMATION); n++;
+        XtSetArg(margs[n], XmNdefaultPosition, False); n++;
+        XtSetArg(margs[n], XmNx, WidthOfScreen(XtScreen(shell))/2-200); n++;
+        XtSetArg(margs[n], XmNy, HeightOfScreen(XtScreen(shell))/2-50); n++;
+	msgbox = XmCreateMessageDialog(shell, "message", margs, n);
+        XtVaSetValues(msgbox, XtVaTypedArg, XmNdialogTitle, XmRString, "GTK-server Error!", 17, NULL);
+        XmStringFree(txt);
+        XtAddCallback((Widget)msgbox, XmNokCallback, (XtCallbackProc)exit, NULL);
 	button = XmMessageBoxGetChild(msgbox, XmDIALOG_CANCEL_BUTTON);
 	if(button) XtDestroyWidget(button);
 	button = XmMessageBoxGetChild(msgbox, XmDIALOG_HELP_BUTTON);
@@ -3105,7 +3121,7 @@ char *Call_Realize (char *inputdata, void* cinv_ctx)
 char *gtk_api_call;
 char *arg = NULL;			/* Temporary argument holders */
 PARSED *list;			/* This will contain the list with individual arguments */
-int i;
+int i, j;
 BODY *macro;			/* Points to the body of an individual macro */
 BODY *Body_Last;		/* For gtk_server_macro_define */
 char *buf;			/* Buffer needed to construct calls in macros */
@@ -3123,6 +3139,8 @@ char buffer[MAX_LEN];		/* Buffer to keep macro redefinitions */
 int cmd;			/* Macro-parser: what MACRO command are we currently executing? */
 int item;			/* If handle from client is given start parsing at item = 1, else item = 0 */
 struct utsname pf;              /* For gtk_server_os */
+char *arg_type;                     /* Used by VARARGS */
+int in_varargs_list = 0;        /* In case we are in a varargs list of arguments */
 
 #if GTK_SERVER_FFI || GTK_SERVER_FFCALL
     #ifdef GTK_SERVER_UNIX
@@ -3408,13 +3426,22 @@ if (inputdata != NULL) {
 	    /* Get the separate arguments */
 	    else {
 		/* Forgot to put this here - thanks to Leonardo Cecchi for finding this bug */
-		Call_Found->argamount = (char*)realloc(Call_Found->argamount, (strlen(parse_data(list, item))+1)*sizeof(char));
-		strcpy(Call_Found->argamount, Trim_String(parse_data(list, item)));
+		strncpy(Call_Found->argamount, Trim_String(parse_data(list, item)), MAX_DIG);
 		/* Now start reading the arguments */
 		for (i = 0; i < atoi(parse_data(list, item)); i++){
 		    if(parse_data(list, i + 5) != NULL) {
-			Call_Found->args[i] = (char*)realloc(Call_Found->args[i], (strlen(parse_data(list, i + 5))+1)*sizeof(char));
-			strcpy(Call_Found->args[i], Trim_String(parse_data(list, i + 5)));
+                        if(!strcmp(Trim_String(parse_data(list, i + 5)), "VARARGS")) {
+                            snprintf(Call_Found->argamount, MAX_DIG, "%d", MAX_ARGS);
+                            for(j = i; j < MAX_ARGS; j++){
+                                Call_Found->args[j] = (char*)realloc(Call_Found->args[j], 8);
+                                strcpy(Call_Found->args[j], "VARARGS");
+                            }
+                            break;
+                        }
+                        else {
+			    Call_Found->args[i] = (char*)realloc(Call_Found->args[i], (strlen(parse_data(list, i + 5))+1)*sizeof(char));
+			    strcpy(Call_Found->args[i], Trim_String(parse_data(list, i + 5)));
+                        }
 		    }
 		    else Print_Error("%s", 1, "\nERROR: Missing argument in GTK redefinition!");
 		}
@@ -3441,8 +3468,7 @@ if (inputdata != NULL) {
 	    else if (atoi(parse_data(list, item)) > MAX_ARGS)
 		Print_Error("%s%d%s", 3, "\nERROR: GTK definition cannot have more than ", MAX_ARGS, " arguments!");
 	    else {
-		Call_Found->argamount = (char*)malloc((strlen(parse_data(list, item))+1)*sizeof(char));
-		strcpy(Call_Found->argamount, Trim_String(parse_data(list, item)));
+		strncpy(Call_Found->argamount, Trim_String(parse_data(list, item)), MAX_DIG);
 		/* Arguments to NULL, then get the separate arguments */
 		for (i = 0; i < MAX_ARGS; i++){
 		    Call_Found->args[i] = NULL;
@@ -4017,8 +4043,60 @@ if (inputdata != NULL) {
 		/* Determine type of argument */
 		for (i = 0; i < atoi(Call_Found->argamount); i++) {
 		    arg = parse_data(list, i + 1 + item);
+                    /* Check if arg = NULL (no arguments provided) and we are in VARARGS list */
+                    if(arg == NULL && in_varargs_list) {
+                        snprintf(Call_Found->argamount, MAX_DIG, "%d", i);
+                        break;
+                    }
 		    /* Check if arg is not NULL there should be some value */
-		    if (arg == NULL && strcmp(Call_Found->args[i], "NULL")) Print_Error ("%s%s%s", 3, "\nERROR: No value entered where \"", gtk_api_call, "\" expects one!");
+		    if (arg == NULL && strcmp(Call_Found->args[i], "NULL")){
+                        Print_Error ("%s%s%s", 3, "\nERROR: No value entered where \"", gtk_api_call, "\" expects one!");
+                    }
+                    /* Check if this a VARARGS */
+		    if (!strcmp(Call_Found->args[i], "VARARGS")){
+                        in_varargs_list = 1;
+                        if(!strcmp(arg, "NULL")){
+                            strcpy(Call_Found->args[i], "NULL");
+                        }
+                        else {
+                            /* Isolate type */
+                            arg_type = strtok(arg, ":");
+                            switch (*arg_type){
+                                case 'i':
+                                    strcpy(Call_Found->args[i], "INT");
+                                    break;
+                                case 'e':
+                                    strcpy(Call_Found->args[i], "ENUM");
+                                    break;
+                                case 'l':
+                                    strcpy(Call_Found->args[i], "LONG");
+                                    break;
+                                case 's':
+                                    strcpy(Call_Found->args[i], "STRING");
+                                    break;
+                                case 'd':
+                                    strcpy(Call_Found->args[i], "DOUBLE");
+                                    break;
+                                case 'f':
+                                    strcpy(Call_Found->args[i], "FLOAT");
+                                    break;
+                                case 'b':
+                                    strcpy(Call_Found->args[i], "BOOL");
+                                    break;
+                                case 'w':
+                                    strcpy(Call_Found->args[i], "WIDGET");
+                                    break;
+                                case 'p':
+                                    strcpy(Call_Found->args[i], "POINTER");
+                                    break;
+                                case 'a':
+                                    strcpy(Call_Found->args[i], "ADDRESS");
+                                    break;
+                            }
+                        }
+                        /* Set the real argument */
+                        arg = strtok(NULL, ":");
+                    }
 		    /* Check if we have data to INT argument type */
 		    if (!strcmp(Call_Found->args[i], "INT") || !strcmp(Call_Found->args[i], "ENUM")){
 			/* First check if we have an enumeration */
@@ -4157,7 +4235,7 @@ if (inputdata != NULL) {
 			theargs[i].pvalue = Class_Found->ptr;
 			argvalues[i] = &theargs[i].pvalue;
 			#elif GTK_SERVER_DYNCALL
-			dcArgPointer(vm, Class_Found->ptr;
+			dcArgPointer(vm, Class_Found->ptr);
 			#endif
 		    }
 		    #endif
@@ -4449,7 +4527,13 @@ if (inputdata != NULL) {
 			dcArgPointer(vm, &str_address[i]);
 			#endif
 		    }
-		    else Print_Error ("%s%s%s", 3, "\nERROR: Unrecognized type for argument: \"", Call_Found->args[i], "\"");
+		    else {
+                        Print_Error ("%s%s%s", 3, "\nERROR: Unrecognized type for argument: \"", Call_Found->args[i], "\"");
+                    }
+                    /* Restore VARARGS prototype */
+                    if(in_varargs_list) {
+                        strcpy(Call_Found->args[i], "VARARGS");
+                    }
 		}
 		if (macro_found && Macro_Type->data == NULL) Print_Error("%s", 1, "\nERROR: No DATA found for MACRO type!");
 	    }
@@ -4578,6 +4662,10 @@ if (inputdata != NULL) {
 	    else {
 		Print_Error("%s%s", 2, "\nERROR: Unknown returnvalue found for GUI call: ", Call_Found->returnvalue);
 	    }
+            /* Restore argument amount when we are in VARARGS */
+            if(in_varargs_list) {
+                snprintf(Call_Found->argamount, MAX_DIG, "%d", MAX_ARGS);
+            }
 	}
 	/* Check if we have a macroname */
 	else {
@@ -4949,7 +5037,7 @@ char *enum_name;
 char *str_name;
 char *alias_name;
 /* Define temp variables for loops */
-int i;
+int i, j;
 #ifdef GTK_SERVER_WIN32
 /* Needed for finding the configfile */
 char filename[MAX_PATH];
@@ -5010,6 +5098,8 @@ FL_OBJECT *debug_view, *debug_close, *debug_execute, *debug_pause, *debug_next;
 char *xf_buffer;
 #elif GTK_SERVER_MOTIF
 Widget debug_window, debug_layer, debug_view, debug_close, debug_next, debug_pause, debug_execute;
+XmFontListEntry debug_entry;
+XmFontList debug_font;
 char *motif_buf;
 #endif
 #if GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_XF || GTK_SERVER_MOTIF
@@ -5413,17 +5503,20 @@ if (gtkserver.behave & 512) { fl_show_form(debug_window, FL_PLACE_CENTER, FL_FUL
 debug_window = XtVaAppCreateShell (NULL, "Class", topLevelShellWidgetClass, XtDisplay(gtkserver.toplevel), XtNtitle, "GTK-server Debugger", NULL);
 debug_layer = XtVaCreateManagedWidget("layer", xmFormWidgetClass, debug_window, NULL);
 XtVaSetValues(debug_layer, XmNwidth, 600, XmNheight, 300, NULL);
+debug_entry = XmFontListEntryLoad(XtDisplay(gtkserver.toplevel), "7x13bold" , XmFONT_IS_FONT, "tag");
+debug_font = XmFontListAppendEntry(NULL, debug_entry);
+XmFontListEntryFree(&debug_entry);
 debug_view = XmCreateScrolledText(debug_layer, "text", NULL, 0);
 XtVaSetValues(XtParent(debug_view), XmNwidth, 580, XmNheight, 220, XmNx, 10, XmNy, 10, XmNleftAttachment, XmATTACH_SELF, XmNrightAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XmNtopAttachment, XmATTACH_SELF, NULL);
-XtVaSetValues(debug_view, XmNeditMode, XmMULTI_LINE_EDIT, XmNeditable, False, XmNcursorPositionVisible, False, NULL);
+XtVaSetValues(debug_view, XmNfontList, debug_font, XmNeditMode, XmMULTI_LINE_EDIT, XmNeditable, False, XmNcursorPositionVisible, False, NULL);
 XtManageChild(debug_view);
-debug_close = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNwidth, 80, XmNheight, 40, XmNx, 10, XmNy, 250, XmNleftAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XtVaTypedArg, XmNlabelString, XmRString, "Quit", 4, NULL);
+debug_close = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNfontList, debug_font, XmNwidth, 80, XmNheight, 40, XmNx, 10, XmNy, 250, XmNleftAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XtVaTypedArg, XmNlabelString, XmRString, "Quit", 4, NULL);
 XtAddCallback((Widget)debug_close, XmNactivateCallback, (XtCallbackProc)exit, NULL);
-debug_next = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNwidth, 80, XmNheight, 40, XmNx, 330, XmNy, 250, XmNrightAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XtVaTypedArg, XmNlabelString, XmRString, "Step", 4, NULL);
+debug_next = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNfontList, debug_font, XmNwidth, 80, XmNheight, 40, XmNx, 330, XmNy, 250, XmNrightAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XtVaTypedArg, XmNlabelString, XmRString, "Step", 4, NULL);
 XtAddCallback((Widget)debug_next, XmNactivateCallback, (XtCallbackProc)switch_flag_on, &debug_step);
-debug_execute = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNwidth, 80, XmNheight, 40, XmNx, 420, XmNy, 250, XmNrightAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XtVaTypedArg, XmNlabelString, XmRString, "Run", 4, NULL);
+debug_execute = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNfontList, debug_font, XmNwidth, 80, XmNheight, 40, XmNx, 420, XmNy, 250, XmNrightAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XtVaTypedArg, XmNlabelString, XmRString, "Run", 4, NULL);
 XtAddCallback((Widget)debug_execute, XmNactivateCallback, (XtCallbackProc)switch_flag_on, &debug_run);
-debug_pause = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNwidth, 80, XmNheight, 40, XmNx, 510, XmNy, 250, XmNrightAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XtVaTypedArg, XmNlabelString, XmRString, "Pause", 4, NULL);
+debug_pause = XtVaCreateManagedWidget("button", xmPushButtonWidgetClass, debug_layer, XmNfontList, debug_font, XmNwidth, 80, XmNheight, 40, XmNx, 510, XmNy, 250, XmNrightAttachment, XmATTACH_SELF, XmNbottomAttachment, XmATTACH_SELF, XtVaTypedArg, XmNlabelString, XmRString, "Pause", 4, NULL);
 XtAddCallback((Widget)debug_pause, XmNactivateCallback, (XtCallbackProc)switch_flag_off, &debug_run);
 if (gtkserver.behave & 512) { XtRealizeWidget(debug_window); }
 
@@ -5656,7 +5749,7 @@ while (fgets (line, MAX_LEN, configfile) != NULL){
 		/* Get next term: amount of arguments */
 		cache = strtok(NULL, ",");
 		if (cache == NULL) Print_Error("%s%d", 2, "\nERROR: Missing argument amount in configfile at line: ", count_line);
-		else Gtk_Api_Config->argamount = strdup(Trim_String(cache));
+		else strncpy(Gtk_Api_Config->argamount, Trim_String(cache), MAX_DIG);
 		if (atoi(Gtk_Api_Config->argamount) > MAX_ARGS) Print_Error("%s%d%s%d", 4, "\nERROR: GTK definition cannot have more than ", MAX_ARGS, " arguments!\n\nError in configfile at line: ", count_line);
 		/* Arguments to NULL, then get the separate arguments */
 		for (i = 0; i < MAX_ARGS; i++){
@@ -5665,7 +5758,18 @@ while (fgets (line, MAX_LEN, configfile) != NULL){
 		for (i = 0; i < atoi(Gtk_Api_Config->argamount); i++){
 		    cache = strtok(NULL, ",");
 		    if (cache == NULL) Print_Error("%s%d", 2, "\nERROR: Missing argument(s) in configfile at line: ", count_line);
-		    else Gtk_Api_Config->args[i] = strdup(Trim_String(cache));
+		    else {
+                        if(!strcmp(Trim_String(cache), "VARARGS")) {
+                            snprintf(Gtk_Api_Config->argamount, MAX_DIG, "%d", MAX_ARGS);
+                            for(j = i; j < MAX_ARGS; j++){
+                                Gtk_Api_Config->args[j] = strdup("VARARGS");
+                            }
+                            break;
+                        }
+                        else {
+                            Gtk_Api_Config->args[i] = strdup(Trim_String(cache));
+                        }
+                    }
 		}
 		/* Now add to hash table */
 		HASH_ADD_KEYPTR(hh, gtk_protos, Gtk_Api_Config->name, strlen(Gtk_Api_Config->name), Gtk_Api_Config);

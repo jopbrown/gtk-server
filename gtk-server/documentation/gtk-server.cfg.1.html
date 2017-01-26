@@ -76,7 +76,8 @@ names for the GTK callback signals must be used here. Then the type of the retur
 must be specified. The type can be one of the following: NONE, VOID, WIDGET, POINTER, BOOL, STRING, INT, LONG, 
 DOUBLE, FLOAT or ADDRESS. After that, it must be clear how many arguments the GTK function needs.
 Finally, the type of each indivdual argument must be declared. The type of the arguments can
-be one of the following: NULL, WIDGET, POINTER, BOOL, STRING, INT, LONG, DOUBLE, FLOAT, ENUM, STR, CLASS, MACRO, DATA or BASE64.
+be one of the following: NULL, WIDGET, POINTER, BOOL, STRING, INT, LONG, DOUBLE, FLOAT, ENUM, STR, CLASS,
+MACRO, DATA, BASE64 or VARARGS.
 <P>
 The ADDRESS return type is used to return the address of a function in memory.
 <P>
@@ -90,16 +91,23 @@ can be specified. Macros are explained in the MACRO section of this manpage.
 The ENUM and STR argument types refer to their correspending ENUM_NAME and STR_NAME definitions (see below). Instead of
 ENUM, the types INT or LONG may be used as well. Similarly, instead of STR, it is allowed to plainly use STRING.
 <P>
-The CLASS argument type refers to Motif classes. These are hardcoded and cannot be configured in the GTK-server
+The CLASS argument type refers to Motif widget classes. These are hardcoded and cannot be configured in the GTK-server
 configuration file.
 <P>
+The VARARGS argument defines the variable arguments list. The client script can enter a variable amount of arguments,
+but each argument should be prefixed with a type indication: i means int, l means long, s means string and so on. The NULL
+does not need a prefix.
+<P>
 The 'gtk-server.cfg' file may not contain duplicate function definitions. This is verified
-by the GTK-server during startup.
+by the GTK-server during startup. Examples:
+<P>
 <BR>
 
-<P>
-Example:
 <B>FUNCTION_NAME = gtk_window_new, delete-event, WIDGET, 1, LONG</B>
+
+<BR>
+
+<B>FUNCTION_NAME = XtVaCreateWidget, NONE, WIDGET, 4, STRING, CLASS, WIDGET, VARARGS</B>
 
 <DT><B>ENUM_NAME = &lt;name&gt;, &lt;integer&gt;</B><DD>
 The GTK and also the XForms API use a lot of predefined constants and enumerations. With this optional
@@ -352,6 +360,6 @@ the sourcepackage for credits.
 This document was created by
 <A HREF="/cgi-bin/man/man2html">man2html</A>,
 using the manual pages.<BR>
-Time: 15:42:24 GMT, January 22, 2017
+Time: 20:11:39 GMT, January 26, 2017
 </BODY>
 </HTML>

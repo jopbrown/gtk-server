@@ -52,7 +52,8 @@ names for the GTK callback signals must be used here. Then the type of the retur
 must be specified. The type can be one of the following: NONE, VOID, WIDGET, POINTER, BOOL, STRING, INT, LONG, 
 DOUBLE, FLOAT or ADDRESS. After that, it must be clear how many arguments the GTK function needs.
 Finally, the type of each indivdual argument must be declared. The type of the arguments can
-be one of the following: NULL, WIDGET, POINTER, BOOL, STRING, INT, LONG, DOUBLE, FLOAT, ENUM, STR, CLASS, MACRO, DATA or BASE64.
+be one of the following: NULL, WIDGET, POINTER, BOOL, STRING, INT, LONG, DOUBLE, FLOAT, ENUM, STR, CLASS,
+MACRO, DATA, BASE64 or VARARGS.
 
 The ADDRESS return type is used to return the address of a function in memory.
 
@@ -66,15 +67,20 @@ can be specified. Macros are explained in the MACRO section of this manpage.
 The ENUM and STR argument types refer to their correspending ENUM_NAME and STR_NAME definitions (see below). Instead of
 ENUM, the types INT or LONG may be used as well. Similarly, instead of STR, it is allowed to plainly use STRING.
 
-The CLASS argument type refers to Motif classes. These are hardcoded and cannot be configured in the GTK\-server
+The CLASS argument type refers to Motif widget classes. These are hardcoded and cannot be configured in the GTK\-server
 configuration file.
 
-The 'gtk\-server.cfg' file may not contain duplicate function definitions. This is verified
-by the GTK\-server during startup.
-.br
+The VARARGS argument defines the variable arguments list. The client script can enter a variable amount of arguments,
+but each argument should be prefixed with a type indication: i means int, l means long, s means string and so on. The NULL
+does not need a prefix.
 
-Example:
+The 'gtk\-server.cfg' file may not contain duplicate function definitions. This is verified
+by the GTK\-server during startup. Examples:
+
+.br
 .B FUNCTION_NAME = gtk_window_new, delete-event, WIDGET, 1, LONG
+.br
+.B FUNCTION_NAME = XtVaCreateWidget, NONE, WIDGET, 4, STRING, CLASS, WIDGET, VARARGS
 .TP
 \fBENUM_NAME = <name>, <integer>\fP
 The GTK and also the XForms API use a lot of predefined constants and enumerations. With this optional
