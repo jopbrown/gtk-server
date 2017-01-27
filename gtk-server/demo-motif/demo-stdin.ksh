@@ -98,8 +98,6 @@ do
         echo $button
         define key motif "gtk_server_key"
         echo $key
-        define state motif "gtk_server_state"
-        echo $state
 	# works: motif "gtk_server_disconnect $button XmNactivateCallback click"
     fi
 

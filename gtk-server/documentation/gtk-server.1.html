@@ -388,7 +388,8 @@ Finally, when &lt;argument&gt; equals to 3, the direction of the scrollbutton(s)
 be returned: '0' means up, '1' down, '2' left and '3' means right. It is required to connect
 the 'scroll-event' signal to the widget.
 <P>
-For XForms it is necessary to connect the 'ButtonPressMask' and 'PointerMotion' mask to the form.
+For XForms it is necessary to connect the 'ButtonPressMask' and 'PointerMotion' mask to the form, and for
+Motif the signal 'XmNinputCallback' should be connected to the DrawingArea.
 The result is an X event type enumeration. So if the returnvalue is 256, the left mousebutton is
 pressed, if the returnvalue is 512, the middle mousebutton is pressed and with 1024 the right mousebutton
 is pressed. Also modifier keys like CTRL, ALT, SHIFT etc. are notified. Here is a complete table of
@@ -524,6 +525,13 @@ For XForms it is necessary to connect at least the 'KeyPressMask' event mask to 
 the X header files. If the 'KeyPressMask' has a value of 1, it should be connected as follows:
 <P>
 gtk_server_connect &lt;formID&gt; 1
+<P>
+<BR>
+
+For Motif, only the DrawingArea widget can capture input. The signal 'XmNinputCallback' should be connected to the DrawingArea:
+<P>
+gtk_server_connect &lt;DrawingAreaID&gt; &quot;XmNinputCallback&quot; &quot;keypressed&quot;
+<P>
 <DT><B>gtk_server_cfg</B>
 
 <DD>
@@ -536,7 +544,8 @@ gtk_server_cfg -log=/tm/gtk-server.log -post=.
 
 <DD>
 Returns the value of a state key if it is pressed. If SHIFT is pressed, a '1' is returned, if CTRL is pressed '4', if ALT is pressed '8' and so on.
-It is required to connect the 'key-press-event' to the widget first, otherwise the event is not recognized by GTK. For example:
+It is required to connect the 'key-press-event' to the widget first, otherwise the event is not recognized by GTK. This function is not available
+when the GTK-server has been compiled for the XForms or Motif backend. Example:
 <P>
 <BR>
 
@@ -614,6 +623,6 @@ the sourcepackage for credits.
 This document was created by
 <A HREF="/cgi-bin/man/man2html">man2html</A>,
 using the manual pages.<BR>
-Time: 15:42:16 GMT, January 22, 2017
+Time: 20:52:49 GMT, January 27, 2017
 </BODY>
 </HTML>
