@@ -1581,9 +1581,17 @@ Current_Object.text = (char*)client_data;
 
 data = (XmAnyCallbackStruct*)call_data;
 
-Current_Object.key = XkbKeycodeToKeysym(XtDisplay(gtkserver.toplevel), data->event->xkey.keycode, 0, 0);
+if (data->reason == XmCR_INPUT) {
+    if (data->event->xany.type == ButtonPress) {
+        Current_Object.mousex = data->event->xbutton.x;
+        Current_Object.mousey = data->event->xbutton.y;
+        Current_Object.button = data->event->xbutton.button;
+    }
+}
 
-Current_Object.key_state = 0;
+Current_Object.key = XkbKeycodeToKeysym(XtDisplay(w), data->event->xkey.keycode, 0, 0);
+Current_Object.key_state = (data->event->xkey.state)-256;
+if(Current_Object.key_state < 0) { Current_Object.key_state = 0;}
 }
 
 /*************************************************************************************************/

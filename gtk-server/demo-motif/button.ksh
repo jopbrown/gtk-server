@@ -75,7 +75,7 @@ define BUTTON motif "XtVaCreateManagedWidget button xmPushButtonWidgetClass $BBO
         NULL"
 
 # Connect signal
-motif "gtk_server_connect $BUTTON activateCallback activateCB"
+motif "gtk_server_connect $BUTTON XmNactivateCallback activateCB"
 
 # Mainloop
 until [[ $EVENT = "activateCB" ]]

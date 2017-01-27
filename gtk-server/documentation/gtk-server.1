@@ -282,7 +282,8 @@ Finally, when <argument> equals to 3, the direction of the scrollbutton(s) on th
 be returned: '0' means up, '1' down, '2' left and '3' means right. It is required to connect
 the 'scroll-event' signal to the widget.
 
-For XForms it is necessary to connect the 'ButtonPressMask' and 'PointerMotion' mask to the form.
+For XForms it is necessary to connect the 'ButtonPressMask' and 'PointerMotion' mask to the form, and for
+Motif the signal 'XmNinputCallback' should be connected to the DrawingArea.
 The result is an X event type enumeration. So if the returnvalue is 256, the left mousebutton is
 pressed, if the returnvalue is 512, the middle mousebutton is pressed and with 1024 the right mousebutton
 is pressed. Also modifier keys like CTRL, ALT, SHIFT etc. are notified. Here is a complete table of
@@ -389,6 +390,12 @@ For XForms it is necessary to connect at least the 'KeyPressMask' event mask to 
 the X header files. If the 'KeyPressMask' has a value of 1, it should be connected as follows:
 
 gtk_server_connect <formID> 1
+
+.br
+For Motif, only the DrawingArea widget can capture input. The signal 'XmNinputCallback' should be connected to the DrawingArea:
+
+gtk_server_connect <DrawingAreaID> "XmNinputCallback" "keypressed"
+
 .TP
 .B gtk_server_cfg
 When the GTK-server is compiled as a library, then this command can set the location of the log file and other options. Example:

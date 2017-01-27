@@ -30,9 +30,10 @@ define win motif "XtVaCreateManagedWidget window xmMainWindowWidgetClass $top \
     NULL"
 
 # Fixed board
-define layer motif "XtVaCreateManagedWidget layer xmBulletinBoardWidgetClass $win \
+define layer motif "XtVaCreateManagedWidget layer xmDrawingAreaWidgetClass $win \
         s:XmNbackground e:Peru \
         NULL"
+motif "gtk_server_connect $layer XmNinputCallback input"
 
 # Label
 define label motif "XtVaCreateManagedWidget lbl xmLabelWidgetClass $layer \
@@ -84,6 +85,21 @@ do
     if [[ $EVENT = "click" ]]
     then
 	echo "Button clicked"
+	# works: motif "gtk_server_disconnect $button XmNactivateCallback click"
+    fi
+
+    if [[ $EVENT = "input" ]]
+    then
+	define x motif "gtk_server_mouse 0"
+        echo $x
+	define y motif "gtk_server_mouse 1"
+        echo $y
+	define button motif "gtk_server_mouse 2"
+        echo $button
+        define key motif "gtk_server_key"
+        echo $key
+        define state motif "gtk_server_state"
+        echo $state
 	# works: motif "gtk_server_disconnect $button XmNactivateCallback click"
     fi
 
