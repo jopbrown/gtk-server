@@ -57,25 +57,19 @@ motif "XtVaSetValues $TOPLEVEL s:title s:Test1 NULL"
 
 # Define Bulletin Board
 define BBOARD motif "XtVaCreateManagedWidget bboard xmBulletinBoardWidgetClass $TOPLEVEL \
-        s:height i:150 \
-        s:width i:250 \
-	s:background e:SkyBlue \
-        NULL"
+        s:resizePolicy i:RESIZE_NONE s:height i:150 s:width i:250 \
+	s:background e:SkyBlue NULL"
 
 # Define button
-define BUTTON motif "XtVaCreateManagedWidget button xmPushButtonWidgetClass $BBOARD \
+define BUTTON motif "XtVaCreateManagedWidget 'Push here' xmPushButtonWidgetClass $BBOARD \
 	s:background e:Goldenrod \
 	s:foreground e:MidnightBlue \
-        s:XtVaTypedArg s:XmNlabelString s:XmRString 's:Push here' i:9 \
-	s:height i:30 \
-        s:width i:100 \
-        s:x i:75 \
-        s:y i:60 \
-        s:shadowThickness i:3 \
-        NULL"
+	s:height i:30 s:width i:100 s:x i:75 s:y i:60 s:shadowThickness i:3 NULL"
 
 # Connect signal
 motif "gtk_server_connect $BUTTON XmNactivateCallback activateCB"
+
+# motif "gtk_server_timeout 1000 $BUTTON XmNactivateCallback"
 
 # Mainloop
 until [[ $EVENT = "activateCB" ]]

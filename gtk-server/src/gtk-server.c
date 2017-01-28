@@ -481,6 +481,7 @@
 #ifdef GTK_SERVER_MOTIF
 #include <X11/XKBlib.h>
 #include <Xm/XmAll.h>
+#define gint int
 #endif
 
 #ifdef GTK_SERVER_USE_SSL
@@ -3105,13 +3106,15 @@ return decoded;
 
 /*************************************************************************************************/
 
-#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
+#if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_MOTIF
 static gint gtk_server_timer(TIMEOUT *data)
 {
 #ifdef GTK_SERVER_GTK1x
 gtk_signal_emit_by_name(GTK_OBJECT((GtkWidget*)data->widget), data->signal);
 #elif GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
 g_signal_emit_by_name(G_OBJECT(data->widget), data->signal);
+#elif GTK_SERVER_MOTIF
+XtCallCallbacks((Widget)data->widget, data->signal, data->signal);
 #endif
 return TRUE;
 }
@@ -3176,6 +3179,7 @@ GtkWidget *opaque; /* Needed for OPAQUE */
 ASSOC *Last_List_Sigs = NULL;
 #elif GTK_SERVER_MOTIF
 CLASS *Class_Found;
+TIMEOUT *data;
 #endif
 char *widget;
 char *signal;
@@ -3775,6 +3779,56 @@ if (inputdata != NULL) {
 	else retstr = Print_Result("%s%sWARNING: Cannot disconnect signal because userdata \"%s\" was not found.%s", 4, gtkserver.pre, gtkserver.handle, arg, gtkserver.post);
 	#endif
     }
+    /* Internal call to remove a timeout in the IDLE loop of GTK */
+    else if (!strcmp("gtk_server_timeout_remove", gtk_api_call)){
+	if ((arg = parse_data(list, ++item)) == NULL){
+	    Print_Error("%s", 1, "\nERROR: Cannot find timeout handle in GTK_SERVER_TIMEOUT_REMOVE!");
+	}
+	data = (TIMEOUT*)atol(arg);
+	#ifdef GTK_SERVER_GTK1x
+	gtk_timeout_remove(data->id);
+	#elif GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
+	g_source_remove(data->id);
+	#elif GTK_SERVER_MOTIF
+        XtRemoveTimeOut(data->id);
+	#endif
+	free(data->signal);
+	free(data);
+	retstr = Print_Result("%s%sok%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
+    }
+    /* Internal call to define a timeout in the IDLE loop of GTK */
+    else if (!strcmp("gtk_server_timeout", gtk_api_call)){
+	if ((arg = parse_data(list, ++item)) == NULL){
+	    Print_Error("%s", 1, "\nERROR: Cannot find timeout value in GTK_SERVER_TIMEOUT!");
+	}
+	if ((widget = parse_data(list, ++item)) == NULL){
+	    Print_Error("%s", 1, "\nERROR: Cannot find widget reference in GTK_SERVER_TIMEOUT!");
+	}
+	if ((signal = parse_data(list, ++item)) == NULL){
+	    Print_Error("%s", 1, "\nERROR: Cannot find signal type in GTK_SERVER_TIMEOUT!");
+	}
+	/* Save the signal to be emitted by timeout function */
+	data = (TIMEOUT*)malloc(sizeof(TIMEOUT));
+	data->signal = strdup(signal);
+	data->widget = atol(widget);
+	/* Setup the timer */
+	#ifdef GTK_SERVER_GTK1x
+	data->id = gtk_timeout_add(atoi(arg), (GtkFunction)gtk_server_timer, (gpointer)data);
+	#elif GTK_SERVER_GTK2x
+	data->id = g_timeout_add(atoi(arg), (GtkFunction)gtk_server_timer, (gpointer)data);
+	#elif GTK_SERVER_GTK3x
+	data->id = g_timeout_add(atoi(arg), (GSourceFunc)gtk_server_timer, (gpointer)data);
+	#elif GTK_SERVER_MOTIF
+	HASH_FIND_STR(str_protos, signal, Str_Found);
+        if (Str_Found != NULL) {
+	    free(data->signal);
+            data->signal = Str_Found->value;
+        }
+	data->id = (int)XtAppAddTimeOut(gtkserver.app, atoi(arg), (XtTimerCallbackProc)gtk_server_timer, (XtPointer)data);
+	#endif
+	/* Return OK */
+	retstr = Print_Result("%s%s%ld%s", 4, gtkserver.pre, gtkserver.handle, (long)data, gtkserver.post);
+    }
 #endif
 #if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
     /* Call to capture incoming callback values from callback function */
@@ -3907,47 +3961,6 @@ if (inputdata != NULL) {
 	#endif
 	/* Return OK */
 	retstr = Print_Result("%s%sok%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
-    }
-    /* Internal call to remove a timeout in the IDLE loop of GTK */
-    else if (!strcmp("gtk_server_timeout_remove", gtk_api_call)){
-	if ((arg = parse_data(list, ++item)) == NULL){
-	    Print_Error("%s", 1, "\nERROR: Cannot find timeout handle in GTK_SERVER_TIMEOUT_REMOVE!");
-	}
-	data = (TIMEOUT*)atol(arg);
-	#ifdef GTK_SERVER_GTK1x
-	gtk_timeout_remove(data->id);
-	#elif GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
-	g_source_remove(data->id);
-	#endif
-	free(data->signal);
-	free(data);
-	retstr = Print_Result("%s%sok%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
-    }
-    /* Internal call to define a timeout in the IDLE loop of GTK */
-    else if (!strcmp("gtk_server_timeout", gtk_api_call)){
-	if ((arg = parse_data(list, ++item)) == NULL){
-	    Print_Error("%s", 1, "\nERROR: Cannot find timeout value in GTK_SERVER_TIMEOUT!");
-	}
-	if ((widget = parse_data(list, ++item)) == NULL){
-	    Print_Error("%s", 1, "\nERROR: Cannot find widget reference in GTK_SERVER_TIMEOUT!");
-	}
-	if ((signal = parse_data(list, ++item)) == NULL){
-	    Print_Error("%s", 1, "\nERROR: Cannot find signal type in GTK_SERVER_TIMEOUT!");
-	}
-	/* Save the signal to be emitted by timeout function */
-	data = (TIMEOUT*)malloc(sizeof(TIMEOUT));
-	data->signal = strdup(signal);
-	data->widget = atol(widget);
-	/* Setup the timer */
-	#ifdef GTK_SERVER_GTK1x
-	data->id = gtk_timeout_add(atoi(arg), (GtkFunction)gtk_server_timer, (gpointer)data);
-	#elif GTK_SERVER_GTK2x
-	data->id = g_timeout_add(atoi(arg), (GtkFunction)gtk_server_timer, (gpointer)data);
-	#elif GTK_SERVER_GTK3x
-	data->id = g_timeout_add(atoi(arg), (GSourceFunc)gtk_server_timer, (gpointer)data);
-	#endif
-	/* Return OK */
-	retstr = Print_Result("%s%s%ld%s", 4, gtkserver.pre, gtkserver.handle, (long)data, gtkserver.post);
     }
     /* Call to create some memory for GTK widgets like ITER - request by Jean-Marc Farinas */
     else if (!strcmp("gtk_server_opaque", gtk_api_call)){
