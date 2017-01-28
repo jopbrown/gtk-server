@@ -96,30 +96,61 @@ motif "XtVaSetValues $button \
 # Button reacts
 motif "gtk_server_connect $button XmNactivateCallback click"
 
-# Set focus to window
-motif "XtSetKeyboardFocus $top $layer"
+# Verify timeout
+motif "gtk_server_timeout 1000 $button XmNactivateCallback"
 
+# Command dialog
+define comm motif "XmCreateCommand $layer command NULL 0"
+motif "XtVaSetValues $comm \
+    s:XmNbackground e:Peru \
+    s:XmNx i:400 \
+    s:XmNy i:20 \
+    NULL"
+define comm_txt motif "XmCommandGetChild $comm XmDIALOG_COMMAND_TEXT"
+motif "XtVaSetValues $comm_txt \
+    s:XmNfontList w:$font3 \
+    NULL"
+define comm_work motif "XmCommandGetChild $comm XmDIALOG_HISTORY_LIST"
+motif "XtVaSetValues $comm_work \
+    s:XmNfontList w:$font3 \
+    NULL"
+motif "XtManageChild $comm"
+
+# Xpm
+define screen motif "XtScreen $layer"
+define pixmap motif "XmGetPixmap $screen xlogo64 Black Peru" 
+define labx motif "XtVaCreateWidget labx xmLabelGadgetClass $layer \
+    s:XmNlabelType e:XmPIXMAP \
+    s:XmNlabelPixmap w:$pixmap \
+    s:XmNx i:200 \
+    s:XmNy i:100 \
+    NULL"
+motif "XtManageChild $labx"
+
+# Set focus to window
+#motif "XtSetKeyboardFocus $top $layer"
+
+msg="Button clicked by timeout"
 while true
 do
     define EVENT motif "gtk_server_callback wait"
 
     if [[ $EVENT = "click" ]]
     then
-	echo "Button clicked"
+	echo $msg
+        msg="Button clicked by user"
 	# works: motif "gtk_server_disconnect $button XmNactivateCallback click"
     fi
 
     if [[ $EVENT = "input" ]]
     then
 	define x motif "gtk_server_mouse 0"
-        echo $x
 	define y motif "gtk_server_mouse 1"
-        echo $y
-	define button motif "gtk_server_mouse 2"
-        echo $button
-        define key motif "gtk_server_key"
-        echo $key
-	# works: motif "gtk_server_disconnect $button XmNactivateCallback click"
+        echo "Xpos, Ypos: $x, $y"
+	define butnr motif "gtk_server_mouse 2"
+        echo "Button: $butnr"
+        define special motif "gtk_server_state"
+        echo "Special: $special"
     fi
 
 done

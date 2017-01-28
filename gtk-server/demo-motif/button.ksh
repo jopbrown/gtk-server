@@ -69,8 +69,6 @@ define BUTTON motif "XtVaCreateManagedWidget 'Push here' xmPushButtonWidgetClass
 # Connect signal
 motif "gtk_server_connect $BUTTON XmNactivateCallback activateCB"
 
-# motif "gtk_server_timeout 1000 $BUTTON XmNactivateCallback"
-
 # Mainloop
 until [[ $EVENT = "activateCB" ]]
 do

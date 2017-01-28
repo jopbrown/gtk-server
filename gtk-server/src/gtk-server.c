@@ -1585,8 +1585,9 @@ data = (XmAnyCallbackStruct*)call_data;
 if (data->reason == XmCR_INPUT) {
     Current_Object.mousex = data->event->xbutton.x;
     Current_Object.mousey = data->event->xbutton.y;
-    Current_Object.button = data->event->xkey.state;
+    Current_Object.button = data->event->xbutton.button;
     Current_Object.key = XkbKeycodeToKeysym(XtDisplay(w), data->event->xkey.keycode, 0, 0);
+    Current_Object.key_state = data->event->xkey.state;
 }
 
 }
@@ -3829,6 +3830,10 @@ if (inputdata != NULL) {
 	/* Return OK */
 	retstr = Print_Result("%s%s%ld%s", 4, gtkserver.pre, gtkserver.handle, (long)data, gtkserver.post);
     }
+    /* Return key state */
+    else if (!strcmp("gtk_server_state", gtk_api_call)) {
+	retstr = Print_Result("%s%s%d%s", 4, gtkserver.pre, gtkserver.handle, Current_Object.key_state, gtkserver.post);
+    }
 #endif
 #if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
     /* Call to capture incoming callback values from callback function */
@@ -3967,10 +3972,6 @@ if (inputdata != NULL) {
 	opaque = (GtkWidget*)malloc(sizeof(GtkWidget)*8);
 	if (opaque == NULL) Print_Error("%s", 1, "\nERROR: Cannot get sufficient memory for GTK_SERVER_OPAQUE!");
 	else retstr = Print_Result("%s%s%ld%s", 4, gtkserver.pre, gtkserver.handle, (long)opaque, gtkserver.post);
-    }
-    /* Return key state */
-    else if (!strcmp("gtk_server_state", gtk_api_call)) {
-	retstr = Print_Result("%s%s%d%s", 4, gtkserver.pre, gtkserver.handle, Current_Object.key_state, gtkserver.post);
     }
 #endif
 
