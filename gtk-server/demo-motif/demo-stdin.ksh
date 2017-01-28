@@ -31,8 +31,8 @@ define win motif "XtVaCreateManagedWidget window xmMainWindowWidgetClass $top \
 
 # Fixed board
 define layer motif "XtVaCreateManagedWidget layer xmDrawingAreaWidgetClass $win \
-        s:XmNbackground e:Peru \
-        NULL"
+    s:XmNbackground e:Peru \
+    NULL"
 motif "gtk_server_connect $layer XmNinputCallback input"
 
 # Label
@@ -45,18 +45,36 @@ define label motif "XtVaCreateManagedWidget lbl xmLabelWidgetClass $layer \
     s:XmNfontList w:$font1 \
     NULL"
 
+# Radio box
+define radio motif "XmCreateRadioBox $layer radio NULL 0"
+motif "XtVaSetValues $radio \
+    s:XmNbackground e:Peru \
+    s:XmNx i:20 \
+    s:XmNy i:100 \
+    NULL"
+define one motif "XtVaCreateManagedWidget One xmToggleButtonGadgetClass $radio s:XmNfontList w:$font3 NULL"
+define two motif "XtVaCreateManagedWidget Two xmToggleButtonGadgetClass $radio s:XmNfontList w:$font3 NULL"
+define three motif "XtVaCreateManagedWidget Three xmToggleButtonGadgetClass $radio s:XmNfontList w:$font3 NULL"
+
+# Make the radio box visible
+motif "XtManageChild $radio"
+
 # Combo
 define combo motif "XmCreateDropDownComboBox $layer combo NULL 0"
 motif "XtVaSetValues $combo \
     s:XmNfontList w:$font3 \
+    s:XmNbackground e:Peru \
     s:XmNwidth i:200 \
     s:XmNheight i:40 \
     s:XmNx i:20 \
-    s:XmNy i:100 \
+    s:XmNy i:400 \
     NULL"
 
 # Add an item
 define txt motif "XmStringCreateLocalized 'Some data'"
+motif "XmComboBoxAddItem $combo $txt 0 0"
+motif "XmStringFree $txt"
+define txt motif "XmStringCreateLocalized 'And more data'"
 motif "XmComboBoxAddItem $combo $txt 0 0"
 motif "XmStringFree $txt"
 
@@ -73,10 +91,13 @@ define button motif "XtVaCreateManagedWidget button xmPushButtonWidgetClass $lay
     NULL"
 
 motif "XtVaSetValues $button \
-    s:XmNbackground e:SkyBlue NULL"
+    s:XmNbackground e:Brown NULL"
 
 # Button reacts
 motif "gtk_server_connect $button XmNactivateCallback click"
+
+# Set focus to window
+motif "XtSetKeyboardFocus $top $layer"
 
 while true
 do
