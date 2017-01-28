@@ -390,7 +390,8 @@ the 'scroll-event' signal to the widget.
 <P>
 For XForms it is necessary to connect the 'ButtonPressMask' and 'PointerMotion' mask to the form, and for
 Motif the signal 'XmNinputCallback' should be connected to the DrawingArea.
-The result is an X event type enumeration. So if the returnvalue is 256, the left mousebutton is
+<P>
+For Xforms, the result is an X event type enumeration. So if the returnvalue is 256, the left mousebutton is
 pressed, if the returnvalue is 512, the middle mousebutton is pressed and with 1024 the right mousebutton
 is pressed. Also modifier keys like CTRL, ALT, SHIFT etc. are notified. Here is a complete table of
 returnvalues:
@@ -545,12 +546,14 @@ gtk_server_cfg -log=/tm/gtk-server.log -post=.
 
 <DD>
 Returns the value of a state key if it is pressed. If SHIFT is pressed, a '1' is returned, if CTRL is pressed '4', if ALT is pressed '8' and so on.
-It is required to connect the 'key-press-event' to the widget first, otherwise the event is not recognized by GTK. This function is not available
-when the GTK-server has been compiled for the XForms backend. Example:
+In GTK, it is required to connect the 'key-press-event' to the widget first, otherwise the event is not recognized by GTK. For Motif, the signal 'XmNinputCallback'
+should be connected to the DrawingArea. This function is not available when the GTK-server has been compiled for the XForms backend. Example:
 <P>
 <BR>
 
-gtk_server_connect &lt;widgetID&gt; &quot;key-press-event&quot; &quot;keypressed&quot;
+GTK: gtk_server_connect &lt;widgetID&gt; &quot;key-press-event&quot; &quot;keypressed&quot;
+<P>
+Motif: gtk_server_connect &lt;DrawingArea&gt; XmNinputCallback &quot;keypressed&quot;
 </DL>
 <A NAME="lbAJ">&nbsp;</A>
 <H2>FILES</H2>
@@ -624,6 +627,6 @@ the sourcepackage for credits.
 This document was created by
 <A HREF="/cgi-bin/man/man2html">man2html</A>,
 using the manual pages.<BR>
-Time: 20:15:31 GMT, January 28, 2017
+Time: 20:23:31 GMT, January 28, 2017
 </BODY>
 </HTML>
