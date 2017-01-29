@@ -4107,13 +4107,10 @@ if (inputdata != NULL) {
                                 case 'p':
                                     strcpy(Call_Found->args[i], "POINTER");
                                     break;
-                                case 'a':
-                                    strcpy(Call_Found->args[i], "ADDRESS");
-                                    break;
                             }
+                            /* Set the real argument */
+                            arg = strtok(NULL, ":");
                         }
-                        /* Set the real argument */
-                        arg = strtok(NULL, ":");
                     }
 		    /* Check if we have data to INT argument type */
 		    if (!strcmp(Call_Found->args[i], "INT") || !strcmp(Call_Found->args[i], "ENUM")){

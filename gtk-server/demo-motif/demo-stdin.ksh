@@ -52,9 +52,15 @@ motif "XtVaSetValues $radio \
     s:XmNx i:20 \
     s:XmNy i:100 \
     NULL"
-define one motif "XtVaCreateManagedWidget One xmToggleButtonGadgetClass $radio s:XmNfontList w:$font3 NULL"
-define two motif "XtVaCreateManagedWidget Two xmToggleButtonGadgetClass $radio s:XmNfontList w:$font3 NULL"
-define three motif "XtVaCreateManagedWidget Three xmToggleButtonGadgetClass $radio s:XmNfontList w:$font3 NULL"
+define one motif "XtVaCreateManagedWidget One xmToggleButtonGadgetClass $radio \
+    s:XmNbackground e:Peru \
+    s:XmNfontList w:$font3 NULL"
+define two motif "XtVaCreateManagedWidget Two xmToggleButtonGadgetClass $radio \
+    s:XmNbackground e:Peru \
+    s:XmNfontList w:$font3 NULL"
+define three motif "XtVaCreateManagedWidget Three xmToggleButtonGadgetClass $radio \
+    s:XmNbackground e:Peru \
+    s:XmNfontList w:$font3 NULL"
 
 # Make the radio box visible
 motif "XtManageChild $radio"
@@ -122,6 +128,7 @@ define pixmap motif "XmGetPixmap $screen xlogo64 Black Peru"
 define labx motif "XtVaCreateWidget labx xmLabelGadgetClass $layer \
     s:XmNlabelType e:XmPIXMAP \
     s:XmNlabelPixmap w:$pixmap \
+    s:XmNbackground e:Peru \
     s:XmNx i:200 \
     s:XmNy i:100 \
     NULL"

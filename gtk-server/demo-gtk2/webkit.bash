@@ -73,7 +73,7 @@ do
     if [[ $EVENT = $URL ]]
     then
 	GO=$(gtk "gtk_entry_get_text $URL")
-	if [[ $GO = +(www*) ]]
+	if [[ $GO != +(http://*) ]]
 	then
 	    GO="http://$GO"
 	    com "gtk_entry_set_text $URL $GO"
