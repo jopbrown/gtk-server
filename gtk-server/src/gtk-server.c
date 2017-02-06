@@ -449,7 +449,7 @@
 *		. Added Pause button to debug panel
 *		. Support for Motif
 *
-* CHANGES GTK-SERVER 2.4.2
+* CHANGES GTK-SERVER 2.4.3
 * ------------------------
 *		. NULL is a valid entry for POINTER and STRING arguments
 *
