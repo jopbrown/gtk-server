@@ -17,7 +17,7 @@ xf()
 }
 
 # Start GTK-server in STDIN mode
-gtk-server -fifo=$PIPE -log=/tmp/$0.log -detach -debug
+gtk-server-xf -fifo=$PIPE -log=/tmp/$0.log -detach -debug
 while [ ! -p $PIPE ]; do continue; done
 
 xf "fl_bgn_form FL_BORDER_BOX 320 240"

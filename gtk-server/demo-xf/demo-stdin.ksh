@@ -16,7 +16,7 @@ function xf
 }
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin -log=/tmp/$0.log |&
+gtk-server-xf -stdin -log=/tmp/$0.log |&
 
 xf "fl_bgn_form FL_BORDER_BOX 320 240"
 WINDOW=$RESULT

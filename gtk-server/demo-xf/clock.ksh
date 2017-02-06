@@ -13,7 +13,7 @@ function xf { print -p $1; read -p XF; }
 function define { $2 "$3"; eval $1="\"$XF\""; }
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin |&
+gtk-server-xf -stdin |&
 
 # Define the window
 define WINDOW xf "fl_bgn_form FL_UP_BOX 600 210"

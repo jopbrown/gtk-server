@@ -13,7 +13,7 @@ function xf() { echo $1 > $PI; read XF < $PI; }
 function define() { $2 "$3"; eval $1="\"$XF\""; }
 
 # Start GTK-server in STDIN mode
-gtk-server -fifo=$PI &
+gtk-server-xf -fifo=$PI &
 while [ ! -p $PI ]; do continue; done
 
 # Define the window

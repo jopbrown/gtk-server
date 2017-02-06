@@ -123,7 +123,7 @@ function expose
 }
 
 # Start GTK-server in FIFO mode
-gtk-server -fifo=$PI -log=/tmp/$0.log &
+gtk-server-xf -fifo=$PI -log=/tmp/$0.log &
 while [ ! -p $PI ]; do continue; done
 
 # Open additional GL libraries

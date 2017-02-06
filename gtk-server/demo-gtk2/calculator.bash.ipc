@@ -28,7 +28,7 @@ fi
 # Now create global functionnames from GTK API
 if [[ ! -f $HOME/.gtk4bash-ipc || $CFG -nt $HOME/.gtk4bash-ipc ]]; then
     echo "#!/bin/bash" > $HOME/.gtk4bash-ipc
-    echo "gtk-server -ipc=$IPC &" >> $HOME/.gtk4bash-ipc
+    echo "gtk-server-gtk2 -ipc=$IPC &" >> $HOME/.gtk4bash-ipc
     while read LINE
     do
 	if [[ $LINE = FUNCTION_NAME* ]]; then

@@ -6,7 +6,7 @@
 # ------------------------------------------------------------------------------------------
 
 # Setup gtk-server
-(import "libgtk-server.so" "xf")
+(import "libgtk-server-xf.so" "xf")
 
 # Optionally enable GTK logging
 (xf "gtk_server_cfg log=/tmp/gtk-server.log")

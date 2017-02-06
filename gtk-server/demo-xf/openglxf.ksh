@@ -123,7 +123,7 @@ function expose
 }
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin -log=/tmp/$0.log |&
+gtk-server-xf -stdin -log=/tmp/$0.log |&
 
 # Open additional GL libraries
 define GL xf "gtk_server_require libGL.so.1"

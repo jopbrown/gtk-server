@@ -449,6 +449,10 @@
 *		. Added Pause button to debug panel
 *		. Support for Motif
 *
+* CHANGES GTK-SERVER 2.4.2
+* ------------------------
+*		. NULL is a valid entry for POINTER and STRING arguments
+*
 *************************************************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
@@ -564,7 +568,7 @@
 #define GTK_SERVER_NONE 0
 
 /* Define GTK-server version - macro 'VERSION' also used by FFI on some platforms */
-#define GTK_SERVER_VERSION "2.4.2"
+#define GTK_SERVER_VERSION "2.4.3 beta"
 
 /* Define backlog for tcp-connections */
 #define BACKLOG 4
@@ -4183,7 +4187,6 @@ if (inputdata != NULL) {
 			    #endif
 			}
 		    }
-
 		    else if (!strcmp(Call_Found->args[i], "WIDGET")) {
 			#ifdef GTK_SERVER_FFI
 			    #ifdef GTK_SERVER_XF
@@ -4256,17 +4259,17 @@ if (inputdata != NULL) {
 		    #endif
 		    else if (!strcmp(Call_Found->args[i], "POINTER")){
 			#ifdef GTK_SERVER_FFI
-			theargs[i].pvalue = (void*)atol(arg);
+			theargs[i].pvalue = (!strcmp(arg, "NULL") ? NULL : (void*)atol(arg));
 			argtypes[i] = &ffi_type_pointer;
 			argvalues[i] = &theargs[i].pvalue;
 			#elif GTK_SERVER_FFCALL
-			av_ptr(funclist, void*, (void*)atol(arg));
+			av_ptr(funclist, void*, (!strcmp(arg, "NULL") ? NULL : (void*)atol(arg)));
 			#elif GTK_SERVER_CINV
 			strcat(argtypes, "p");
-			theargs[i].pvalue = (void*)atol(arg);
+			theargs[i].pvalue = (!strcmp(arg, "NULL") ? NULL : (void*)atol(arg));
 			argvalues[i] = &theargs[i].pvalue;
 			#elif GTK_SERVER_DYNCALL
-			dcArgPointer(vm, (void*)atol(arg));
+			dcArgPointer(vm, (!strcmp(arg, "NULL") ? NULL : (void*)atol(arg)));
 			#endif
 		    }
 		    else if (!strcmp(Call_Found->args[i], "STRING") || !strcmp(Call_Found->args[i], "STR")){
@@ -4287,20 +4290,20 @@ if (inputdata != NULL) {
 			    dcArgPointer(vm, (char*)Str_Found->value);
 			    #endif
 			}
-			/* It is a STRING */
+			/* It is a STRING or a "NULL" */
 			else {
 			    #ifdef GTK_SERVER_FFI
-			    theargs[i].pvalue = (char*)arg;
+			    theargs[i].pvalue = (!strcmp(arg, "NULL") ? NULL : (char*)arg);
 			    argtypes[i] = &ffi_type_pointer;
 			    argvalues[i] = &theargs[i].pvalue;
 			    #elif GTK_SERVER_FFCALL
-			    av_ptr(funclist, char*, (char*)arg);
+			    av_ptr(funclist, char*, (!strcmp(arg, "NULL") ? NULL : (char*)arg));
 			    #elif GTK_SERVER_CINV
 			    strcat(argtypes, "p");
-			    theargs[i].pvalue = (char*)arg;
+			    theargs[i].pvalue = (!strcmp(arg, "NULL") ? NULL : (char*)arg);
 			    argvalues[i] = &theargs[i].pvalue;
 			    #elif GTK_SERVER_DYNCALL
-			    dcArgPointer(vm, (char*)arg);
+			    dcArgPointer(vm, (!strcmp(arg, "NULL") ? NULL : (char*)arg));
 			    #endif
 			}
 		    }
