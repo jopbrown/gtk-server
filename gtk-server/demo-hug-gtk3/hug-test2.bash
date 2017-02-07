@@ -11,7 +11,7 @@ function gtk() { echo $1 > $PI; read GTK < $PI; }
 function define() { $2 "$3"; eval $1="\"$GTK\""; }
 
 # Start gtk-server in FIFO mode
-gtk-server -fifo=$PI &
+gtk-server-gtk3 -fifo=$PI &
 while [ ! -p $PI ]; do continue; done
 
 # Define GUI - mainwindow

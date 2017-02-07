@@ -61,7 +61,7 @@ let CANVASW=$SCREENW-30
 let LINEW=$SCREENW-50
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin |&
+gtk-server-gtk2 -stdin |&
 
 # Define GUI - mainwindow
 define WIN gtk "u_window \"'Graphical Disk Fill'\" $SCREENW 400"

@@ -451,7 +451,7 @@
 *
 * CHANGES GTK-SERVER 2.4.3
 * ------------------------
-*		. NULL is a valid entry for POINTER and STRING arguments
+*		. NULL is a valid entry for POINTER arguments
 *
 *************************************************************************************************************************************************/
 
@@ -4293,17 +4293,17 @@ if (inputdata != NULL) {
 			/* It is a STRING or a "NULL" */
 			else {
 			    #ifdef GTK_SERVER_FFI
-			    theargs[i].pvalue = (!strcmp(arg, "NULL") ? NULL : (char*)arg);
+			    theargs[i].pvalue = (char*)arg;
 			    argtypes[i] = &ffi_type_pointer;
 			    argvalues[i] = &theargs[i].pvalue;
 			    #elif GTK_SERVER_FFCALL
-			    av_ptr(funclist, char*, (!strcmp(arg, "NULL") ? NULL : (char*)arg));
+			    av_ptr(funclist, char*, (char*)arg);
 			    #elif GTK_SERVER_CINV
 			    strcat(argtypes, "p");
-			    theargs[i].pvalue = (!strcmp(arg, "NULL") ? NULL : (char*)arg);
+			    theargs[i].pvalue = (char*)arg;
 			    argvalues[i] = &theargs[i].pvalue;
 			    #elif GTK_SERVER_DYNCALL
-			    dcArgPointer(vm, (!strcmp(arg, "NULL") ? NULL : (char*)arg));
+			    dcArgPointer(vm, (char*)arg);
 			    #endif
 			}
 		    }

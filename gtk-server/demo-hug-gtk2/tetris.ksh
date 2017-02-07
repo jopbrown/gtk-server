@@ -1289,7 +1289,7 @@ fi
 . ${HOME}/.hug4ksh
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin |&
+gtk-server-gtk2 -stdin |&
 
 # Check if we can play music
 TIMIDITY=`which timidity 2>/dev/null`

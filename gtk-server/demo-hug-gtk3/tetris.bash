@@ -45,7 +45,7 @@ fi
 # Now create global functionnames from HUG macros
 if [[ ! -f $HOME/.hug4bash3 || $CFG -nt $HOME/.hug4bash3 ]]; then
     echo "#!/bin/bash" > $HOME/.hug4bash3
-    echo "gtk-server -fifo=$PIPE &" >> $HOME/.hug4bash3
+    echo "gtk-server-gtk3 -fifo=$PIPE &" >> $HOME/.hug4bash3
     echo "while [ ! -p $PIPE ]; do continue; done" >> $HOME/.hug4bash3
     while read LINE
     do

@@ -66,7 +66,7 @@ let CANVASW=$SCREENW-30
 let LINEW=$SCREENW-50
 
 # Start gtk-server in FIFO mode
-gtk-server -fifo=$PIPE -log=/tmp/gtk-server.log &
+gtk-server-gtk3 -fifo=$PIPE -log=/tmp/gtk-server.log &
 while [ ! -p $PIPE ]; do continue; done
 
 # Define GUI - mainwindow

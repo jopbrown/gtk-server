@@ -8,7 +8,7 @@ function gtk { print -p $1; read -p GTK; }
 function define { $2 "$3"; eval $1="\"$GTK\""; }
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin -log=/tmp/gtk-server.log |&
+gtk-server-gtk3 -stdin -log=/tmp/gtk-server.log |&
 
 # Define GUI - mainwindow
 define WIN gtk "m_window \"'Testing testing 123'\" 500 500"

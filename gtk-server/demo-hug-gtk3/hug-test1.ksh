@@ -15,7 +15,7 @@ function gtk { print -p $1; read -p GTK; }
 function define { $2 "$3"; eval $1=$GTK; }
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin -log=/tmp/hug-test1.log |&
+gtk-server-gtk3 -stdin -log=/tmp/hug-test1.log |&
 
 # Define GUI - mainwindow
 define WIN gtk "m_window \"'HUG demo'\" 400 300"
