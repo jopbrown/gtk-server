@@ -444,7 +444,7 @@
 * ------------------------
 *		. Fixed compile warning with GCC 4.8
 *		. Improved 'gtk_server_os' command
-*               . Cleanup code
+*       . Cleanup code
 *		. Added '-nonl' parameter to prevent GTK-server adding newline to responses.
 *		. Added Pause button to debug panel
 *		. Support for Motif
@@ -452,6 +452,7 @@
 * CHANGES GTK-SERVER 2.4.3
 * ------------------------
 *		. NULL is a valid entry for POINTER arguments
+*		. NULL is a valid entry for WIDGET arguments
 *
 *************************************************************************************************************************************************/
 
@@ -4190,53 +4191,52 @@ if (inputdata != NULL) {
 		    else if (!strcmp(Call_Found->args[i], "WIDGET")) {
 			#ifdef GTK_SERVER_FFI
 			    #ifdef GTK_SERVER_XF
-			    theargs[i].wvalue = (FL_OBJECT*)(atol(arg));
+			    theargs[i].wvalue = (!strcmp(arg, "NULL") ? NULL : (FL_OBJECT*)(atol(arg)));
 			    #elif GTK_SERVER_MOTIF
-			    theargs[i].wvalue = (Widget)(atol(arg));
+			    theargs[i].wvalue = (!strcmp(arg, "NULL") ? NULL : (Widget)(atol(arg)));
 			    #elif GTK_SERVER_GTK1x || GTK_SERVER_GTK2x
-			    theargs[i].wvalue = (GtkObject*)(atol(arg));
-				#elif GTK_SERVER_GTK3x
-			    theargs[i].wvalue = (GtkWidget*)(atol(arg));
+			    theargs[i].wvalue = (!strcmp(arg, "NULL") ? NULL : (GtkObject*)(atol(arg)));
+			    #elif GTK_SERVER_GTK3x
+			    theargs[i].wvalue = (!strcmp(arg, "NULL") ? NULL : (GtkWidget*)(atol(arg)));
 			    #else
-			    theargs[i].wvalue = (void*)(atol(arg));
+			    theargs[i].wvalue = (!strcmp(arg, "NULL") ? NULL : (void*)(atol(arg)));
 			    #endif
 			    argtypes[i] = &ffi_type_pointer;
 			    argvalues[i] = &theargs[i].wvalue;
 			#elif GTK_SERVER_FFCALL
 			    #ifdef GTK_SERVER_XF
-			    av_ptr(funclist, FL_OBJECT*, (FL_OBJECT*)(atol(arg)));
+			    av_ptr(funclist, FL_OBJECT*, (!strcmp(arg, "NULL") ? NULL : (FL_OBJECT*)(atol(arg))));
 			    #elif GTK_SERVER_MOTIF
-			    av_ptr(funclist, Widget, (Widget)(atol(arg)));
+			    av_ptr(funclist, Widget, (!strcmp(arg, "NULL") ? NULL : (Widget)(atol(arg))));
 			    #elif GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
-			    av_ptr(funclist, GtkObject*, (GtkObject*)(atol(arg)));
+			    av_ptr(funclist, GtkObject*, (!strcmp(arg, "NULL") ? NULL : (GtkObject*)(atol(arg))));
 			    #else
-			    av_ptr(funclist, void*, (void*)(atol(arg)));
+			    av_ptr(funclist, void*, (!strcmp(arg, "NULL") ? NULL : (void*)(atol(arg))));
 			    #endif
 			#elif GTK_SERVER_CINV
 			    #ifdef GTK_SERVER_XF
-			    theargs[i].wvalue = (FL_OBJECT*)(atol(arg));
+			    theargs[i].wvalue = (!strcmp(arg, "NULL") ? NULL : (FL_OBJECT*)(atol(arg)));
 			    #elif GTK_SERVER_MOTIF
-			    theargs[i].wvalue = (Widget)(atol(arg));
+			    theargs[i].wvalue = (!strcmp(arg, "NULL") ? NULL : (Widget)(atol(arg)));
 			    #elif GTK_SERVER_GTK1x || GTK_SERVER_GTK2x
-			    theargs[i].wvalue = (GtkObject*)(atol(arg));
+			    theargs[i].wvalue = (!strcmp(arg, "NULL") ? NULL : (GtkObject*)(atol(arg)));
 			    #elif GTK_SERVER_GTK3x
-			    theargs[i].wvalue = (GtkWidget*)(atol(arg));
+			    theargs[i].wvalue = (!strcmp(arg, "NULL") ? NULL : (GtkWidget*)(atol(arg)));
 			    #else
-			    theargs[i].wvalue = (void*)(atol(arg));
+			    theargs[i].wvalue = (!strcmp(arg, "NULL") ? NULL : (void*)(atol(arg)));
 			    #endif
 			    strcat(argtypes, "p");
 			    argvalues[i] = &theargs[i].wvalue;
 			#elif GTK_SERVER_DYNCALL
 			    #ifdef GTK_SERVER_XF
-			    dcArgPointer(vm, (FL_OBJECT*)atol(arg));
+			    dcArgPointer(vm, (!strcmp(arg, "NULL") ? NULL : (FL_OBJECT*)atol(arg)));
 			    #elif GTK_SERVER_MOTIF
-			    dcArgPointer(vm, (Widget)atol(arg));
+			    dcArgPointer(vm, (!strcmp(arg, "NULL") ? NULL : (Widget)atol(arg)));
 			    #elif GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x
-			    dcArgPointer(vm, (GtkObject*)atol(arg));
+			    dcArgPointer(vm, (!strcmp(arg, "NULL") ? NULL : (GtkObject*)atol(arg)));
 			    #else
-			    dcArgPointer(vm, (void*)atol(arg));
+			    dcArgPointer(vm, (!strcmp(arg, "NULL") ? NULL : (void*)atol(arg)));
 			    #endif
-
 			#endif
 		    }
 		    #ifdef GTK_SERVER_MOTIF
@@ -4290,7 +4290,7 @@ if (inputdata != NULL) {
 			    dcArgPointer(vm, (char*)Str_Found->value);
 			    #endif
 			}
-			/* It is a STRING or a "NULL" */
+			/* It is a STRING */
 			else {
 			    #ifdef GTK_SERVER_FFI
 			    theargs[i].pvalue = (char*)arg;
