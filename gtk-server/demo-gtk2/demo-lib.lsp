@@ -9,8 +9,8 @@
 
 # Setup gtk-server
 (if (= ostype "OSX")
-    (import "libgtk-server.dylib" "gtk")
-    (import "libgtk-server.so" "gtk")
+    (import "libgtk-server-gtk2.dylib" "gtk")
+    (import "libgtk-server-gtk2.so" "gtk")
 )
 
 # Optionally enable GTK logging

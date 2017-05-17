@@ -12,7 +12,7 @@
 alias gtk 'echo \!* > /tmp/gtk; set R = `cat /tmp/gtk`; if ($R != "ok") echo $R'
 
 # Start GTK-server
-gtk-server -fifo=/tmp/gtk -log=/tmp/gtk-server.log &
+gtk-server-gtk2 -fifo=/tmp/gtk -log=/tmp/gtk-server.log &
 
 # Make sure the PIPE file is available
 while ( ! -p /tmp/gtk)

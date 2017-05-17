@@ -152,7 +152,7 @@ gtk "gtk_gl_area_swap_buffers $GLAREA"
 #---------------------------------------------------------------------
 
 # Start gtk-server in FIFO mode
-gtk-server -fifo=$PI &
+gtk-server-gtk2 -fifo=$PI &
 while [ ! -p $PI ]; do continue; done
 
 # Check availability of GtkGlArea

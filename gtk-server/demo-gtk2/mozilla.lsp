@@ -39,7 +39,7 @@
 # Setup standalone gtk-server using STDIN
 (map set '(in gtkout) (pipe))
 (map set '(gtkin out) (pipe))
-(process "/usr/bin/gtk-server -stdin" gtkin gtkout)
+(process "/usr/bin/gtk-server-gtk2 -stdin" gtkin gtkout)
 
 # Define minimal GUI
 (gtk_init NULL NULL)

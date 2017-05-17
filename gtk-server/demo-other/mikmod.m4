@@ -5,7 +5,7 @@ divert(-1)dnl
 # Testing the new '-nonl' parameter. Peter van Eerten, Jan 2017
 #--------------------------------------------------------------
 
-syscmd(`gtk-server -fifo=/tmp/m4.fifo -detach -nonl')
+syscmd(`gtk-server-console -fifo=/tmp/m4.fifo -detach -nonl')
 
 define(mikmod, `syscmd(`echo `$@'>/tmp/m4.fifo')'`include(`/tmp/m4.fifo')')
 

@@ -26,7 +26,7 @@ function mikmod() { echo $1 > $PI; read MIKMOD < $PI; }
 function define() { $2 "$3"; eval $1="\"$MIKMOD\""; }
 
 # Start GTK-server in PIPE mode
-gtk-server -fifo=$PI &
+gtk-server-console -fifo=$PI &
 while [ ! -p $PI ]; do continue; done
 
 # Open MikMod library

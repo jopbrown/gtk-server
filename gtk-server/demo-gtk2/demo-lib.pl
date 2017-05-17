@@ -11,7 +11,7 @@
 use C::DynaLib;
 
 # Setup GTK-server connection 
-$lib = new C::DynaLib("libgtk-server.so");
+$lib = new C::DynaLib("libgtk-server-gtk2.so");
 
 # Import functions
 $gtk = $lib->DeclareSub("gtk", "p", "Z*");

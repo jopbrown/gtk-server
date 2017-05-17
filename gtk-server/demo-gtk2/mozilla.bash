@@ -32,7 +32,7 @@ else
 fi
 
 # Start gtk-server in FIFO mode
-gtk-server -fifo=$PI &
+gtk-server-gtk2 -fifo=$PI &
 while [ ! -p $PI ]; do continue; done
 
 # Define GUI

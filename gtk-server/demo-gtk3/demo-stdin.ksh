@@ -14,7 +14,7 @@ function gtk { print -p $1; read -p GTK; }
 function define { $2 "$3"; eval $1=$GTK; }
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin -log=/tmp/$0.log -debug |&
+gtk-server-gtk3 -stdin -log=/tmp/$0.log -debug |&
 
 # Define GUI
 gtk "gtk_init NULL NULL"
@@ -32,7 +32,7 @@ gtk "gtk_table_attach_defaults $TABLE $ENTRY 1 6 3 4"
 gtk "gtk_window_set_type_hint $WINDOW GDK_WINDOW_TYPE_HINT_UTILITY"
 gtk "gtk_widget_show_all $WINDOW"
 
-gtk "gtk_server_connect $WINDOW key-press-event keypressed"
+# gtk "gtk_server_connect $WINDOW key-press-event keypressed"
 
 # Mainloop
 while [[ $EVENT != $BUTTON ]]

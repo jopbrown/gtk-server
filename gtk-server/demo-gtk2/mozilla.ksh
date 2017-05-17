@@ -26,7 +26,7 @@ else
 fi
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin |&
+gtk-server-gtk2 -stdin |&
 
 # Define GUI
 gtk "gtk_init NULL NULL"

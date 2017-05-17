@@ -22,7 +22,7 @@
 # Setup gtk-server
 (map set '(myin gtkout) (pipe))
 (map set '(gtkin myout) (pipe))
-(process "/usr/local/bin/gtk-server -stdin" gtkin gtkout)
+(process "/usr/local/bin/gtk-server-gtk2 -stdin" gtkin gtkout)
 
 # Connect to the GTK-server
 (gtk "gtk_init NULL NULL")

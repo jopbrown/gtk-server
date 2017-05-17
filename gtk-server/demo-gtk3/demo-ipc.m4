@@ -11,9 +11,9 @@ divert(-1)dnl
 #  (using GTK3) in december 2016 - Peter van Eerten
 #-----------------------------------------------------------
 
-syscmd(`gtk-server -ipc=1 -debug -detach')
+syscmd(`gtk-server-gtk3 -ipc=1 -debug -detach')
 
-define(gtk, `esyscmd(`gtk-server -nonl -msg=1,`$@'')')
+define(gtk, `esyscmd(`gtk-server-gtk3 -nonl -msg=1,`$@'')')
 
 #-----------------------------------------------------------
 

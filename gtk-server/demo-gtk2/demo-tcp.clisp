@@ -21,7 +21,7 @@
   "Executes gtk-server in TCP mode, and then connects to it via a TCP socket.  On exit, tells gtk-server to quit and closes the socket."
   `(progn
     ;; start gtk-server process
-    (ext:run-program "gtk-server"
+    (ext:run-program "gtk-server-gtk2"
                      :arguments '("tcp=" ,(format nil "~a:~d" host port))
                      :wait nil)
     ;; open tcp socket to gtk-server

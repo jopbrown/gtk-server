@@ -159,7 +159,7 @@ gtk "gdk_gl_drawable_gl_end $GLDRAWABLE"
 #---------------------------------------------------------------------
 
 # Start gtk-server in FIFO mode
-gtk-server -fifo=$PI &
+gtk-server-gtk2 -fifo=$PI &
 while [ ! -p $PI ]; do continue; done
 
 # Check availability of GtkGlExt

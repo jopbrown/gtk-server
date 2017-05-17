@@ -31,7 +31,7 @@ return substr(TMP, index(TMP, " ")+1)
 #----------------------------------------------------------------------
 
 BEGIN{
-system("gtk-server -udp=localhost:50002 -handle -detach -log=/tmp/gtk-server.log")
+system("gtk-server-gtk2 -udp=localhost:50002 -handle -detach -log=/tmp/gtk-server.log")
 
 # Setup TCP socket to server
 UDP = "/inet/udp/0/localhost/50002"

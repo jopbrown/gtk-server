@@ -444,7 +444,7 @@
 * ------------------------
 *		. Fixed compile warning with GCC 4.8
 *		. Improved 'gtk_server_os' command
-*       . Cleanup code
+*		. Cleanup code
 *		. Added '-nonl' parameter to prevent GTK-server adding newline to responses.
 *		. Added Pause button to debug panel
 *		. Support for Motif
@@ -453,6 +453,8 @@
 * ------------------------
 *		. NULL is a valid entry for POINTER arguments
 *		. NULL is a valid entry for WIDGET arguments
+*		. Fixed crash when returned string is empty (thanks report Thomas Ronshof)
+*		. Updated all demo programs to point to correct GTK-server binary
 *
 *************************************************************************************************************************************************/
 
@@ -1408,8 +1410,10 @@ if (gtkserver.c_escaped & 2) {
 }
 
 /* Add terminating newline if no '-nonl' parameter was provided */
-if(!(gtkserver.behave & 1024) && retstr[amount-1] != '\n') {
-    retstr = strncat(retstr, "\n", 1);
+if(!(gtkserver.behave & 1024) ) {
+    if (amount == 0 || retstr[amount-1] != '\n') {
+	retstr = strncat(retstr, "\n", 1);
+    }
 }
 
 return retstr;

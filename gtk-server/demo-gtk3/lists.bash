@@ -17,7 +17,7 @@ NUM_COLS=2
 TRUE=1
 
 # Start gtk-server in FIFO mode
-gtk-server -fifo=$PI -detach -debug
+gtk-server-gtk3 -fifo=$PI -detach -debug
 while [ ! -p $PI ]; do continue; done
 
 # Initialize GTK

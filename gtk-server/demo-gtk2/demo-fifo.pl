@@ -30,7 +30,7 @@ return $line;
 #------------------------ Main starts here
 
 # Start gtk-server
-system("gtk-server -fifo=/tmp/perl.gtk -log=/tmp/log.txt &");
+system("gtk-server-gtk2 -fifo=/tmp/perl.gtk -log=/tmp/log.txt &");
 sleep 1;
 
 # Setup GUI

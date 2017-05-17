@@ -21,7 +21,7 @@ then
 	exit
 fi
 
-gtk-server -tcp=127.0.0.1:50000 &
+gtk-server-gtk2 -tcp=127.0.0.1:50000 &
 
 IO=/dev/tcp/127.0.0.1/50000; exec 3<>$IO
 

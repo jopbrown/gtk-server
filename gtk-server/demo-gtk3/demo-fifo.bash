@@ -28,7 +28,7 @@ read RESULT < $PIPE
 #------------------------ Main starts here
 
 # Start gtk-server
-gtk-server -fifo=$PIPE -log=/tmp/gtk-server.log &
+gtk-server-gtk3 -fifo=$PIPE -log=/tmp/gtk-server.log &
 
 # Make sure the PIPE file is available
 while [ ! -p $PIPE ]; do continue; done

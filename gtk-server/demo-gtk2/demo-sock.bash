@@ -5,7 +5,7 @@
 # 1) /etc/services: add the line 'demo 50000/tcp'
 # 2) /etc/inetd.conf: add the line 'demo stream tcp nowait nobody /some/dir/demo-sock.bash'
 # 3) kill -HUP on the inetd daemon
-# 4) from some other machine or local machine run: gtk-server -sock=host:50000
+# 4) from some other machine or local machine run: gtk-server-gtk2 -sock=host:50000
 #
 # Run a GUI from a server on a localmachine. Nov 9 2009 - (c) PvE.
 #

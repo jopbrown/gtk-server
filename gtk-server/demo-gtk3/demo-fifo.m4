@@ -6,7 +6,7 @@ divert(-1)dnl
 #  (using GTK3) in january 2017 - Peter van Eerten
 #-----------------------------------------------------------
 
-syscmd(`gtk-server -fifo=/tmp/m4.fifo -debug -detach')
+syscmd(`gtk-server-gtk3 -fifo=/tmp/m4.fifo -debug -detach')
 
 define(gtk, `syscmd(`echo `$@'>/tmp/m4.fifo')'`include(`/tmp/m4.fifo')')
 

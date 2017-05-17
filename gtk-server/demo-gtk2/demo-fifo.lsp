@@ -32,7 +32,7 @@
 )
 
 # Start the gtk-server
-(! (append "gtk-server -fifo=" PIPE " -log=/tmp/gtk-server.log &"))
+(! (append "gtk-server-gtk2 -fifo=" PIPE " -log=/tmp/gtk-server.log &"))
 
 # Make sure pipe exists
 (while (not (file? PIPE)) (sleep 10))

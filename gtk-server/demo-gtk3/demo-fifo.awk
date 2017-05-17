@@ -33,7 +33,7 @@ return $0
 BEGIN{
 
 # Start gtk-server using FIFO
-system("gtk-server -fifo=/tmp/demo &")
+system("gtk-server-gtk3 -fifo=/tmp/demo &")
 pause(1)
 
 # Build GUI

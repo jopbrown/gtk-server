@@ -22,7 +22,7 @@ function mikmod { print -p $1; read -p MIKMOD; }
 function define { $2 "$3"; eval $1="${MIKMOD}" >/dev/null 2>&1 ; }
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin -log=/tmp/gtk-server.log |&
+gtk-server-console -stdin -log=/tmp/gtk-server.log |&
 
 # Open MikMod library
 define MM mikmod "gtk_server_require libmikmod.so"

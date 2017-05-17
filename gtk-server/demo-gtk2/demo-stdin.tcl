@@ -20,7 +20,7 @@ proc gtk str {
 }
 
 # Create bidirectional pipe
-set IO [open "| gtk-server stdin" r+]
+set IO [open "| gtk-server-gtk2 stdin" r+]
 
 # Build GUI
 gtk "gtk_init NULL NULL"

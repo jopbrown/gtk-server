@@ -10,7 +10,7 @@
 #------------------------------------------------
 
 BEGIN{
-system("gtk-server -tcp=localhost:50001 -log=/tmp/log.txt &")
+system("gtk-server-gtk3 -tcp=localhost:50001 -log=/tmp/log.txt &")
 # Setup TCP socket to server
 GTK = "/inet/tcp/0/localhost/50001"
 # Now define the GUI

@@ -14,7 +14,7 @@ NUM_COLS=2
 TRUE=1
 
 # Start GTK-server
-gtk-server -stdin -log=/tmp/$0.log |&
+gtk-server-gtk3 -stdin -log=/tmp/$0.log |&
 
 # Initialize GTK
 gtk "gtk_init $NULL $NULL"

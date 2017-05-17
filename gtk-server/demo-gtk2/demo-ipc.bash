@@ -13,13 +13,13 @@
 #-------------------------------------------------
 
 # Communication function; assignment function
-function gtk() { GTK=`gtk-server -msg=$$,"$@"`; }
+function gtk() { GTK=`gtk-server-gtk2 -msg=$$,"$@"`; }
 function define() { $2 "$3"; eval $1=$GTK; }
 
 #------------------------ Main starts here
 
 # Start gtk-server in IPC mode
-gtk-server -detach -ipc=$$ -log=/tmp/$0.log
+gtk-server-gtk2 -detach -ipc=$$ -log=/tmp/$0.log
 
 # Setup GUI
 gtk "gtk_init NULL NULL"

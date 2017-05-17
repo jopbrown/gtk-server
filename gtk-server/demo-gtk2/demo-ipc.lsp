@@ -10,12 +10,12 @@
 
 # Define communication function
 (define (gtk str)
-    (set 'result (exec (append {gtk-server -msg=1,"} str {"})))
+    (set 'result (exec (append {gtk-server-gtk2 -msg=1,"} str {"})))
     (if result (first result))
 )
 
 # Setup gtk-server with IPC
-(! "gtk-server -ipc=1 -log=/tmp/gtk-server.log -detach")
+(! "gtk-server-gtk2 -ipc=1 -log=/tmp/gtk-server.log -detach")
 
 # Connect to the GTK-server
 (gtk "gtk_init NULL NULL")

@@ -29,7 +29,7 @@ fi
 # Now create global functionnames from GTK API
 if [[ ! -f $HOME/.gtk4bash || $CFG -nt $HOME/.gtk4bash ]]; then
     echo "#!/bin/bash" > $HOME/.gtk4bash
-    echo "gtk-server -fifo=$PIPE &" >> $HOME/.gtk4bash
+    echo "gtk-server-gtk2 -fifo=$PIPE &" >> $HOME/.gtk4bash
     echo "while [ ! -p $PIPE ]; do continue; done" >> $HOME/.gtk4bash
     while read LINE
     do

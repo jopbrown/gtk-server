@@ -22,7 +22,7 @@ function gtk { echo $@ > /tmp/demo; read GTK < /tmp/demo; }
 function define { $2 "$3"; eval $1=$GTK; }
 
 # Start GTK-server
-gtk-server -fifo=/tmp/demo &
+gtk-server-gtk2 -fifo=/tmp/demo &
 
 # Make sure the PIPE file is available
 while [ ! -p /tmp/demo ]; do continue; done

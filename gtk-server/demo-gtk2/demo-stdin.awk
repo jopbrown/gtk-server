@@ -19,7 +19,7 @@ return TMP
 BEGIN{
 
 # Start GTK-server in STDIN mode
-GTK_SERVER = "gtk-server -stdin"
+GTK_SERVER = "gtk-server-gtk2 -stdin"
 
 # Design GUI
 GTK("gtk_init NULL NULL")

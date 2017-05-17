@@ -22,7 +22,7 @@
     (println "Listening failed!")
     (exit))
 
-(println "Start GTK-server as 'gtk-server -sock=localhost:60000'...")
+(println "Start GTK-server as 'gtk-server-gtk2 -sock=localhost:60000'...")
 (println "Waiting for connection on: " port)
 (println)
 

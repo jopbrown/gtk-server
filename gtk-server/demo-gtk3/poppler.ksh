@@ -95,7 +95,7 @@ fi
 . $HOME/.gtk4korn
 
 # Start GTK-server
-gtk-server -stdin -log=/tmp/gtk-server.log |&
+gtk-server-gtk3 -stdin -log=/tmp/gtk-server.log |&
 
 # Check availability of Poppler library first
 define AVAIL gtk_server_require "libpoppler-glib.so"

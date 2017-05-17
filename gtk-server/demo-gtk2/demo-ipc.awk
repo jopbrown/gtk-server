@@ -9,7 +9,7 @@
 
 function GTK(str)
 {
-    RESULT="gtk-server msg="PROCINFO["pid"]",\""str"\""
+    RESULT="gtk-server-gtk2 msg="PROCINFO["pid"]",\""str"\""
     RESULT |& getline
     close(RESULT)
     return $0
@@ -17,7 +17,7 @@ function GTK(str)
 
 BEGIN{
     # Start GTK-server in IPC mode, use PID as unique number
-    system("gtk-server -detach -ipc="PROCINFO["pid"])
+    system("gtk-server-gtk2 -detach -ipc="PROCINFO["pid"])
 
     # Design GUI
     GTK("gtk_init NULL NULL")

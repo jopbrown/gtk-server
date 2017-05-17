@@ -24,7 +24,7 @@
 
 # Start the gtk-server
 (define (start)
-    (! "gtk-server -udp=localhost:50001 -detach -debug")
+    (! "gtk-server-gtk2 -udp=localhost:50001 -detach -debug")
     (set 'socket (net-listen 50002 "localhost" "udp")))
 
 # Stop the GTK-server

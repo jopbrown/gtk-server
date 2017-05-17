@@ -33,7 +33,7 @@ fi
 # Now create global functionnames from GTK API
 if [[ ! -f $HOME/.gtk3forbash || $CFG -nt $HOME/.gtk3forbash ]]; then
     echo "#!/bin/bash" > $HOME/.gtk3forbash
-    echo "gtk-server -fifo=$PIPE -log=/tmp/gtk-server.log &" >> $HOME/.gtk3forbash
+    echo "gtk-server-gtk3 -fifo=$PIPE -log=/tmp/gtk-server.log &" >> $HOME/.gtk3forbash
     echo "while [ ! -p $PIPE ]; do continue; done" >> $HOME/.gtk3forbash
     while read LINE
     do

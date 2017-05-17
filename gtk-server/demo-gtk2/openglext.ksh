@@ -156,7 +156,7 @@ gtk "gdk_gl_drawable_gl_end $GLDRAWABLE"
 #---------------------------------------------------------------------
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin |&
+gtk-server-gtk2 -stdin |&
 
 # Check availability of GtkGlExt and GLUT
 define AVAIL gtk "gtk_server_require libgtkglext-x11-1.0.so.0"

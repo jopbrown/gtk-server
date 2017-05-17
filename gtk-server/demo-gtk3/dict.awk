@@ -261,7 +261,7 @@ close(Dict)
 BEGIN{
 
 # Start GTK-server in STDIN mode
-GTK_SERVER = "gtk-server -stdin -log=/tmp/gtk-server.log -debug -signal=9"
+GTK_SERVER = "gtk-server-gtk3 -stdin -log=/tmp/gtk-server.log -debug -signal=9"
 
 # Determine total amount of DICT servers
 Servers[0] = "www.dict.org"

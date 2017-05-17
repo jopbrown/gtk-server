@@ -12,14 +12,14 @@ REM *************************************************************
 REM Communication function
 SUB GTK$(st$)
 
-RETURN SYSTEM$("gtk-server msg=1," + CHR$(34) + st$ + CHR$(34))
+RETURN SYSTEM$("gtk-server-gtk2 msg=1," + CHR$(34) + st$ + CHR$(34))
 
 END SUB
 
 REM ************* MAIN program starts here
 
 REM Start the GTK-server
-SYSTEM("gtk-server -ipc=1 -detach")
+SYSTEM("gtk-server-gtk2 -ipc=1 -detach")
 
 REM Setup GUI
 GTK$("gtk_init NULL NULL")

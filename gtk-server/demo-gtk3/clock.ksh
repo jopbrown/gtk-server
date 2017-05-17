@@ -47,7 +47,7 @@ unset CFG PIPE LINE
 function define { $2 $3 $4 $5 $6 $7 $8 $9; eval $1="$GTK"; }
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin |&
+gtk-server-gtk3 -stdin |&
 
 # Window
 gtk_init $NULL $NULL

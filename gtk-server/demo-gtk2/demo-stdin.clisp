@@ -17,7 +17,7 @@
 
 (defmacro with-gtk-server ((stream) &body body)
   "Executes gtk-server, setting up STREAM to communicate with it.  On exit, tells gtk-server to quit and closes the stream"
-  `(let ((,stream (ext:run-program "gtk-server"
+  `(let ((,stream (ext:run-program "gtk-server-gtk2"
                                     :arguments '("stdin" "log=/tmp/gtk-server.log")
                                     :input :stream
                                     :output :stream

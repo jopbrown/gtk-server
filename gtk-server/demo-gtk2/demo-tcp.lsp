@@ -18,7 +18,7 @@
     tmp)
 
 # Start the gtk-server
-(! "gtk-server -tcp=localhost:50001 -detach -debug")
+(! "gtk-server-gtk2 -tcp=localhost:50001 -detach -debug")
 
 # Connect to the GTK-server
 (set 'socket (net-connect "localhost" 50001))

@@ -23,7 +23,7 @@ return $line;
 use IPC::Open2;
 
 # Start GTK-server in STDIN mode
-open2(*GTKIN, *GTKOUT, "gtk-server stdin");
+open2(*GTKIN, *GTKOUT, "gtk-server-gtk2 stdin");
 
 # Setup GUI
 gtk "gtk_init NULL NULL";

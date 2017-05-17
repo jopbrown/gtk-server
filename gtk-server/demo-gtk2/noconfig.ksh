@@ -15,7 +15,7 @@ function gtk { print -p $1; read -p GTK; }
 function define { $2 "$3"; eval $1=$GTK; }
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin |&
+gtk-server-gtk2 -stdin |&
 
 # Check and open GTK library first
 define AVAIL gtk "gtk_server_require libgtk-x11-2.0.so"

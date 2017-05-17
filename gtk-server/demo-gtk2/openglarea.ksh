@@ -149,7 +149,7 @@ gtk "gtk_gl_area_swap_buffers $GLAREA"
 #---------------------------------------------------------------------
 
 # Start GTK-server in STDIN mode
-gtk-server -stdin |&
+gtk-server-gtk2 -stdin |&
 
 # Check availability of GtkGlArea
 define AVAIL gtk "gtk_server_require libgtkgl-2.0.so.1"

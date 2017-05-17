@@ -18,7 +18,7 @@ export LC_ALL=nl_NL
 export LD_LIBRARY_PATH=/usr/X11R6/lib
 
 # Start GTK-server in STDIN mode
-gtk-server stdin |&
+gtk-server-gtk2 stdin |&
 
 gtk "gtk_init NULL NULL"
 gtk "glade_init"
