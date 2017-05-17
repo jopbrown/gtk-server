@@ -7,7 +7,7 @@
 * Please read the documentation on how to use this program.
 * The CREDITS file lists all people who have helped improving the GTK-server.
 *
-* Original idea and design by Peter van Eerten, september 2003 - february 2017
+* Original idea and design by Peter van Eerten, september 2003 - may 2017
 * Mail: peter@gtk-server.org
 *
 * This source has become a little bit messy. What started as a quick hack,
