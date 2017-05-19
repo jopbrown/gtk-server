@@ -1111,7 +1111,7 @@ void *search_and_open_lib(char *name)
 	    strncpy(buf, name, MAX_LEN-5);
 
 	    /* Loop through library suffix numbers */
-	    for(j = 0; j < 100; j++) {
+	    for(j = 0; j < gtkserver.libseq; j++) {
 
 		buf[len] = '\0';
 		snprintf(suffix, 5, ".%d", j);
