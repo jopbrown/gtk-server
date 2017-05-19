@@ -69,6 +69,17 @@ Define an additional configuration file with additional GTK function description
 Example:
 <B>INCLUDE = /etc/gtk-extra.cfg</B>
 
+<P>
+<DT><B>SEQUENCE = &lt;maximum&gt;</B><DD>
+When opening a library, the GTK-server will search and attempt to use subsequent library version numbers up to
+this definition. The default value is 100.
+<BR>
+
+<P>
+Example:
+<B>SEQUENCE = 10</B>
+
+<P>
 <DT><B>FUNCTION_NAME = &lt;func&gt;, &lt;callback&gt;, &lt;type&gt;, &lt;amount&gt;, &lt;arg1&gt;...&lt;argx&gt;</B><DD>
 Every GTK function used by a script must be described here. First the name of
 the function itself must be mentioned, after that a callback signal if applicable. The real
@@ -360,6 +371,6 @@ the sourcepackage for credits.
 This document was created by
 <A HREF="/cgi-bin/man/man2html">man2html</A>,
 using the manual pages.<BR>
-Time: 19:18:42 GMT, February 01, 2017
+Time: 14:37:18 GMT, May 19, 2017
 </BODY>
 </HTML>

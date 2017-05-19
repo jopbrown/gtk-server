@@ -44,6 +44,16 @@ Define an additional configuration file with additional GTK function description
 
 Example:
 .B INCLUDE = /etc/gtk-extra.cfg
+
+.TP
+\fBSEQUENCE = <maximum>\fP
+When opening a library, the GTK\-server will search and attempt to use subsequent library version numbers up to
+this definition. The default value is 100.
+.br
+
+Example:
+.B SEQUENCE = 10
+
 .TP
 \fBFUNCTION_NAME = <func>, <callback>, <type>, <amount>, <arg1>...<argx>\fP
 Every GTK function used by a script must be described here. First the name of

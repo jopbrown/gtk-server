@@ -455,6 +455,7 @@
 *		. NULL is a valid entry for WIDGET arguments
 *		. Fixed crash when returned string is empty (thanks report Thomas Ronshof)
 *		. Updated all demo programs to point to correct GTK-server binary
+*               . Maximum library sequence number is configurable in config file
 *
 *************************************************************************************************************************************************/
 
@@ -806,6 +807,7 @@ struct behaviour {
 				    -use check on debug		01000000000
 				    -disable adding of newline  10000000000 */
     int mode;			/* Are we running in STDIN, FIFO, IPC, TCP, UDP mode? */
+    int libseq;			/* Sequence numbering for library */
 };
 
 /* Global instance to hold the behaviour of GTK-server */
@@ -5176,6 +5178,9 @@ gtkserver.LogDir = NULL;
 /* Initialize macro no NULL */
 gtkserver.macro = NULL;
 
+/* Sequence of libraries defaults to 100 */
+gtkserver.libseq = 100;
+
 /* Initialize SSL stuff to NULL */
 gtkserver.certificate = NULL;
 gtkserver.ca = NULL;
@@ -5889,6 +5894,13 @@ while (fgets (line, MAX_LEN, configfile) != NULL){
 	    cache = strtok(NULL, "=");
 	    if (cache == NULL) Print_Error("%s%d", 2, "\nERROR: Missing configfile in configfile at line: ", count_line);
 	    else include = fopen(Trim_String(cache), "r");
+	}
+	/* Check if we have a sequence definition */
+	else if (!strncmp(line, "SEQUENCE", 8)){
+	    strtok(line, "=");
+	    cache = strtok(NULL, "=");
+	    if (cache == NULL) Print_Error("%s%d", 2, "\nERROR: Missing library sequence number in configfile at line: ", count_line);
+	    else gtkserver.libseq = atoi(Trim_String(cache));
 	}
 	/* Is this a macro? */
 	else if (!strncmp(line, "MACRO", 5)){
