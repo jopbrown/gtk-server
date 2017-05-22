@@ -11,8 +11,7 @@ declare PIPE=/tmp/bash.gtk.$$
 gtk()
 {
     echo $@ > $PIPE
-    read RESULT < $PIPE
-    echo $RESULT
+    cat $PIPE
 }
 
 com()
@@ -34,7 +33,7 @@ REQ=$(gtk "gtk_server_require libgtkextra-x11-3.0.so")
 if [[ $REQ != "ok" ]]
 then
     echo "No GtkExtra library found!"
-    exit 1
+#exit 1
 fi
 
 # Import function

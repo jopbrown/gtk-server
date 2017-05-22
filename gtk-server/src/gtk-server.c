@@ -456,6 +456,7 @@
 *		. Fixed crash when returned string is empty (thanks report Thomas Ronshof)
 *		. Updated all demo programs to point to correct GTK-server binary
 *               . Maximum library sequence number is configurable in config file
+*               . Bug fixes in GTK-server configfile macros for LIST widget
 *
 *************************************************************************************************************************************************/
 

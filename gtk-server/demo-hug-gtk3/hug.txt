@@ -79,7 +79,7 @@ m_label_text widget text			: Set text of label
 m_combo_text widget text			: Add a line of text to combobox
 m_frame_text widget text			: Set text of frame
 m_text_text widget text				: Set text into a multiline text widget. Note: not more than 1024 chars at once.
-m_list_text widget text				: Add text to a list widget. Note: not more than 1024 chars at once.
+m_list_text widget text				: Add text to a list widget. Note: not more than 1024 chars at once. Empty text empties list.
 
 m_button_grab widget				: Get text from button
 m_radio_grab widget				: Get text from radiobutton
