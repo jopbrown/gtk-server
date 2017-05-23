@@ -127,6 +127,6 @@ m_key						: Get last key pressed on keyboard
 m_mouse arg					: Get mouse info. Notes: arg = 0 = x_coordinate, arg = 1 = y_coordinate, arg = 2 = button, arg = 3 = wheel
 
 m_event [arg]					: Wait for an event. Note: if argument is provided, this call returns immediately.
-m_timeout widget seconds			: Setup a timeout while waiting for an event. The timeout connects to the 'show'-signal belonging to a widget.
+m_timeout widget milliseconds			: Setup a timeout while waiting for an event. The timeout connects to the 'show'-signal belonging to a widget.
 						    Note: can be changed to another timeout value during runtime
 m_end						: Cleanup and exit HUG.
