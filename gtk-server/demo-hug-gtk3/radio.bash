@@ -4,10 +4,20 @@
 #
 #-----------------------------------------------------------------------------
 
-#------------------------- Start MPG123
-
 # Disable file globbing
 set -f
+
+# Set the extended globbing option in BASH
+shopt -s extglob
+
+# Save my directory
+MYDIR="."
+if [[ $0 = +(*/*) ]]
+then
+    MYDIR=${0%/*}
+fi
+
+#------------------------- Start MPG123
 
 # Name of mpg123 PIPE file
 declare FIFO=/tmp/mpg.fifo.$$
@@ -89,11 +99,21 @@ function read_config_from_file()
                     if [[ -n $WGET ]]
                     then
                         link[$COUNTER]=$($WGET --timeout=1 --tries=1 ${LINE#*url=} -O - 2>/dev/null | grep http | head -1 | cut -d= -f2)
+                        if [[ -z ${link[$COUNTER]} ]]
+                        then
+                            gtk "m_show $ERR"
+                        fi
                     else
                         link[$COUNTER]=localhost
                     fi
                 else
-                    link[$COUNTER]=${LINE#*url=}
+                    if [[ ${LINE} = +(*aac*) ]]
+                    then
+                        gtk "m_show $ERR"
+                        name[$COUNTER]=
+                    else
+                        link[$COUNTER]=${LINE#*url=}
+                    fi
                 fi
             fi
             if [[ $LINE = +(#*) && -n ${link[$COUNTER]} ]]
@@ -126,21 +146,50 @@ function add_stations_to_list()
 
 function save_stations_to_file()
 {
-    typeset -i CTR
+    typeset -i CTR SORT IDX
+    typeset NAME
 
     rm -f $CFG
 
-    let CTR=0
+    let SORT=0
 
-    until [[ $CTR -eq $COUNTER ]]
+    while [[ $SORT -lt $COUNTER ]]
     do
-        if [[ -n ${name[$CTR]} ]]
-        then
-            echo "name=${name[$CTR]}" | tr -d '\r' >> $CFG
-            echo "url=${link[$CTR]}" | tr -d '\r' >> $CFG
-            echo "#" >> $CFG
-        fi
-        ((CTR+=1))
+        let CTR=0
+
+        until [[ $CTR -eq $COUNTER ]]
+        do
+            if [[ -n ${name[$CTR]} ]]
+            then
+                break
+            else
+                ((CTR+=1))
+            fi
+        done
+        
+        NAME=${name[$CTR]}
+
+        let IDX=$CTR
+
+        let CTR=0
+            
+        until [[ $CTR -eq $COUNTER ]]
+        do
+            if [[ -n ${name[$CTR]} && ${name[$CTR]} < $NAME ]]
+            then
+                NAME=${name[$CTR]}
+                IDX=$CTR
+            fi
+            ((CTR+=1))
+        done
+
+        echo "name=${name[$IDX]}" | tr -d '\r' >> $CFG
+        name[$IDX]=
+        echo "url=${link[$IDX]}" | tr -d '\r' >> $CFG
+        link[$IDX]=
+        echo "#" >> $CFG
+
+        ((SORT+=1))
     done
 }
 
@@ -152,11 +201,11 @@ function get_title_from_stream()
 
     if [[ -n $WGET ]]
     then
-        DATA=$($WGET --timeout=1 --header='Icy-Metadata: 1' ${link[$CURRENT]} -O - 2>/dev/null | head -c 65536 | strings)
+        DATA=$($WGET --timeout=1 --tries=1 --header='Icy-Metadata: 1' ${link[$CURRENT]} -O - 2>/dev/null | head -c 65536 | strings)
         if [[ $DATA == *StreamTitle* ]]
         then
             TITLE=${DATA##*StreamTitle=}
-            RESULT=${TITLE%%;*}
+            RESULT=$(echo ${TITLE%%;*} | tr -d '\042\047')
         else
             RESULT=${link[$CURRENT]}
         fi
@@ -169,24 +218,24 @@ function get_title_from_stream()
         RESULT=${link[$CURRENT]}
     fi
 
-    echo $RESULT
+    echo "'$RESULT'"
 }
 #------------------------ Main starts here
 
 # Define GUI - mainwindow
-define WIN gtk "m_window \"'Internet Radio'\" 400 320"
+define WIN gtk "m_window \"'GTK-server Internet Radio'\" 400 320"
 # Attach frame #1
 define FRAME1 gtk "m_frame 220 260"
 gtk "m_attach $WIN $FRAME1 5 5"
 gtk "m_frame_text $FRAME1 \"' Stations '\""
 # Define list
-define LST gtk "m_list 200 200"
+define LST gtk "m_list 200 190"
 gtk "m_attach $WIN $LST 15 25"
 # Buttons
-define ADD gtk "m_stock gtk-add 90 20"
-gtk "m_attach $WIN $ADD 15 230"
-define DEL gtk "m_stock gtk-delete 90 20"
-gtk "m_attach $WIN $DEL 125 230"
+define ADD gtk "m_stock gtk-add 90 30"
+gtk "m_attach $WIN $ADD 15 225"
+define DEL gtk "m_stock gtk-delete 90 30"
+gtk "m_attach $WIN $DEL 125 225"
 # Attach frame #2
 define FRAME2 gtk "m_frame 165 60"
 gtk "m_attach $WIN $FRAME2 230 5"
@@ -230,23 +279,25 @@ gtk "m_attach $CONFIG $CANCEL 100 145"
 
 # About dialogue
 define VER gtk "gtk_server_version"
-define ABD gtk "m_dialog \"' About this program '\" \"'In memoriam of Qradio. Running with GTK-server $VER !'\" 300 100"
+define ABD gtk "m_dialog \"' About this program '\" \"'In memory of Qradio. Running with GTK-server $VER !'\" 300 100"
+
+# Error dialogue
+define ERR gtk "m_dialog \"' ERROR '\" \"'Provided link cannot be opened! Skipping it...'\" 300 100"
 
 # Attach frame #6
 define FRAME6 gtk "m_frame 390 45"
 gtk "m_attach $WIN $FRAME6 5 270"
-gtk "m_frame_text $FRAME6 \"' Stream '\""
+gtk "m_frame_text $FRAME6 \"' Stream Title '\""
 define LABEL gtk "m_label \"''\" 390 40"
-gtk "m_attach $WIN $LABEL 5 275"
+gtk "m_attach $WIN $LABEL 5 280"
 
 # Attach frame #7
 define FRAME7 gtk "m_frame 165 130"
 gtk "m_attach $WIN $FRAME7 230 70"
-#gtk "m_frame_text $FRAME7 \"' Logo '\""
 define CANVAS gtk "m_canvas 155 100"
 gtk "m_attach $WIN $CANVAS 235 90"
 gtk "m_out \"'Back to Qradio'\" #0000FF #CACACA 10 80"
-gtk "m_image qradio.xpm"
+gtk "m_image \"'$MYDIR/radio.png'\""
 
 read_config_from_file
 add_stations_to_list
@@ -265,6 +316,8 @@ do
             gtk "m_show $ABD";;
         $ABD)
             gtk "m_hide $ABD";;
+        $ERR)
+            gtk "m_hide $ERR";;
         $ADD)
             gtk "m_show $CONFIG";;
         $DEL)
@@ -307,8 +360,8 @@ do
             fi;;
         $EXIT)
             break;;
-        key-press-event)
-            # Ignore key press
+        # Ignore keyboard and mouse
+        key-press-event|motion-notify|button-press|button-release)
             ;;
         *)
             define SEL gtk "m_list_get $LST"
