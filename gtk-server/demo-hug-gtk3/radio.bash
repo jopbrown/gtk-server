@@ -1,6 +1,8 @@
 #-----------------------------------------------------------------------------
 #
-# Listen to Internet Radio. May 2017 - PvE. Tested with mpg123 version 1.22.4.
+# Listen to Internet Radio. Tested with mpg123 version 1.22.4.
+#
+# (c) Peter van Eerten, May 2017 - GPL.
 #
 #-----------------------------------------------------------------------------
 
@@ -35,7 +37,7 @@ if [[ -p $FIFO ]]
 then
     rm $FIFO
 fi
-$MPG123 -R --fifo $FIFO &
+$MPG123 -R --fifo $FIFO >/dev/null 2>&1 &
 
 # Make sure the FIFO file is available
 while [ ! -p $FIFO ]; do continue; done
@@ -46,7 +48,7 @@ while [ ! -p $FIFO ]; do continue; done
 declare PIPE=/tmp/bash.gtk.$$
 
 # Start gtk-server
-gtk-server-gtk3 -fifo=$PIPE -log=/tmp/$0.log -detach -debug
+gtk-server-gtk3 -fifo=$PIPE -detach
 
 # Make sure the PIPE file is available
 while [ ! -p $PIPE ]; do continue; done
@@ -142,7 +144,7 @@ function add_stations_to_list()
     done
 }
 
-#------------------------ Save all stations to config
+#------------------------ Save all stations to config in alphabetical order
 
 function save_stations_to_file()
 {
@@ -364,6 +366,8 @@ do
         key-press-event|motion-notify|button-press|button-release)
             ;;
         *)
+            gtk "m_event update"
+
             define SEL gtk "m_list_get $LST"
 
             # Only take action if list was changed
