@@ -36,7 +36,7 @@ u_check "label" xsize ysize			: Define a checkbutton.
 u_radio "label" xsize ysize group		: Define a radiobutton.
 u_entry "text" xsize ysize			: Define a text entry.
 u_password xsize ysize				: Define a password entry.
-u_label "text" xsize ysize [xalign yalign]	: Define a label. Optional xalign=0=left, 0.5=middle, 1=right. Optional yalign=0=up, 0.5=middle, 1=down.
+u_label "text" xsize ysize xalign yalign [max]  : Define a label. xalign=0=left, 0.5=middle, 1=right. yalign=0=up, 0.5=middle, 1=down. Optional max characters.
 u_combo "text" xsize ysize			: Define a droplist.
 u_hseparator xsize				: Define a horizontal separator.
 u_vseparator ysize				: Define a vertical separator.

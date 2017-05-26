@@ -38,7 +38,7 @@ m_check "label" xsize ysize			: Define a checkbutton.
 m_radio "label" xsize ysize group		: Define a radiobutton.
 m_entry "text" xsize ysize			: Define a text entry.
 m_password xsize ysize				: Define a password entry.
-m_label "text" xsize ysize [xalign yalign]	: Define a label. Optional xalign=0=left, 0.5=middle, 1=right. Optional yalign=0=up, 0.5=middle, 1=down.
+m_label "text" xsize ysize xalign yalign [max]  : Define a label. xalign=0=left, 0.5=middle, 1=right. yalign=0=up, 0.5=middle, 1=down. Optional max characters.
 m_combo "text" xsize ysize			: Define a droplist.
 m_hseparator xsize				: Define a horizontal separator.
 m_vseparator ysize				: Define a vertical separator.

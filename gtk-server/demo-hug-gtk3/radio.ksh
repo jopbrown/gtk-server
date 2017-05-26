@@ -9,9 +9,6 @@
 # Disable file globbing
 set -f
 
-# Set the extended globbing option in BASH
-shopt -s extglob
-
 # Save my directory
 MYDIR="."
 if [[ $0 = +(*/*) ]]
@@ -22,7 +19,7 @@ fi
 #------------------------- Start MPG123
 
 # Name of mpg123 PIPE file
-declare FIFO=/tmp/mpg.fifo.$$
+typeset FIFO=/tmp/mpg.fifo.$$
 
 # Verify availability of MPG123
 MPG123=$(which mpg123 2>/dev/null)
@@ -44,14 +41,8 @@ while [ ! -p $FIFO ]; do continue; done
 
 #------------------------- Start GTK-server
 
-# Name of GTK-server PIPE file
-declare PIPE=/tmp/bash.gtk.$$
-
 # Start gtk-server
-gtk-server-gtk3 -fifo=$PIPE -detach
-
-# Make sure the PIPE file is available
-while [ ! -p $PIPE ]; do continue; done
+gtk-server-gtk3 -stdin |&
 
 #------------------------- Check WGET
 
@@ -62,19 +53,19 @@ then
     echo "WARNING: no 'wget' binary found! Cannot show the name of current stream and .m3u .pls lists are not supported."
 fi
 
-declare CFG=~/.radio.cfg
+typeset CFG=~/.radio.cfg
 
-declare -i COUNTER=0 TOGGLE=0
+typeset -i COUNTER=0 TOGGLE=0
 
 #------------------------ Communication functions for GTK-server
 
-function gtk()
+function gtk
 {
-    echo $1 > $PIPE
-    read GTK < $PIPE
+    print -p $1
+    read -p GTK
 }
 
-function define()
+function define
 {
     $2 "$3"
     eval $1="'$GTK'"
