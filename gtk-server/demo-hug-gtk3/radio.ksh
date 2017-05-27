@@ -34,7 +34,7 @@ if [[ -p $FIFO ]]
 then
     rm $FIFO
 fi
-$MPG123 -R --fifo $FIFO >/dev/null 2>&1 &
+$MPG123 -o pulse,openal,alsa -R --fifo $FIFO >/dev/null 2>&1 &
 
 # Make sure the FIFO file is available
 while [ ! -p $FIFO ]; do continue; done
