@@ -458,6 +458,11 @@
 *               . Maximum library sequence number is configurable in config file
 *               . Bug fixes in GTK-server configfile macros for LIST widget
 *
+* CHANGES GTK-SERVER 2.4.4
+* ------------------------
+*		. Added 'gtk_server_pack' to create portable memory layouts for BASE64 argument type
+*               . The configfile now has SEQUENCE enabled by default
+*
 *************************************************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
@@ -573,7 +578,7 @@
 #define GTK_SERVER_NONE 0
 
 /* Define GTK-server version - macro 'VERSION' also used by FFI on some platforms */
-#define GTK_SERVER_VERSION "2.4.3"
+#define GTK_SERVER_VERSION "2.4.4"
 
 /* Define backlog for tcp-connections */
 #define BACKLOG 4
@@ -917,7 +922,8 @@ GCallback gtk_server_callbacks[] = {
 /* Define logfile facility */
 FILE *logfile;
 
-/* Translation Tables as described in RFC1113 - Needed for Base64 decoding */
+/* Translation Table as described in RFC1113 - Needed for Base64 encoding */
+static const char cb64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static const char cd64[]="|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
 
 char *Call_Realize (char*, void*);
@@ -3117,6 +3123,54 @@ while (cur < strlen(arg)){
 return decoded;
 }
 
+void encodeblock( unsigned char *in, unsigned char *out, int len )
+{
+    out[0] = (unsigned char) cb64[ (int)(in[0] >> 2) ];
+    out[1] = (unsigned char) cb64[ (int)(((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4)) ];
+    out[2] = (unsigned char) (len > 1 ? cb64[ (int)(((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6)) ] : '=');
+    out[3] = (unsigned char) (len > 2 ? cb64[ (int)(in[2] & 0x3f) ] : '=');
+}
+
+char *base64_enc( char *arg, int len )
+{
+static char *encoded = NULL;
+static long totalsize = MAX_LEN;
+
+unsigned char in[4], out[4];
+int i, j, cur = 0, posit = 0;
+
+/* Only executed at first-time use */
+if (encoded == NULL) {
+    encoded = (char*)malloc(totalsize*sizeof(char));
+    if (encoded == NULL) Print_Error("%s%s", 2, "\nNo sufficient memory to allocate Base64 returnvalue: ", strerror(errno));
+}
+
+while( cur < len){
+    for( i = 0; i < 3 && (cur + i < len); i++ ){
+        in[i] = (unsigned char) arg[cur+i];
+    }
+    in[i] = 0;
+    cur += i;
+    if( i > 0 ) {
+        encodeblock( in, out, i );
+
+        /* Chek if there is sufficient space */
+        if((posit + i - 1) > totalsize) {
+	    totalsize = posit + i;
+	    encoded = (char*)realloc(encoded, totalsize*sizeof(char));
+	    if (encoded == NULL) Print_Error("%s%s", 2, "\nNo sufficient memory to allocate Base64 returnvalue: ", strerror(errno));
+        }
+        for( j = 0; j < 4; j++ ) {
+            encoded[posit+j] = out[j];
+        }
+        posit += j;
+	encoded[posit] = '\0';
+    }
+}
+return( encoded );
+}
+
+
 /*************************************************************************************************/
 
 #if GTK_SERVER_GTK1x || GTK_SERVER_GTK2x || GTK_SERVER_GTK3x || GTK_SERVER_MOTIF
@@ -3156,11 +3210,13 @@ STR *Str_Found;
 int macro_found = 0;		/* Needed for MACRO arg type */
 char *retstr;			/* Result holder */
 char buffer[MAX_LEN];		/* Buffer to keep macro redefinitions */
+char pack[MAX_LEN];		/* Buffer to keep memory layouts for gtk_server_pack */
 int cmd;			/* Macro-parser: what MACRO command are we currently executing? */
 int item;			/* If handle from client is given start parsing at item = 1, else item = 0 */
 struct utsname pf;              /* For gtk_server_os */
-char *arg_type;                     /* Used by VARARGS */
+char *arg_type;                 /* Used by VARARGS */
 int in_varargs_list = 0;        /* In case we are in a varargs list of arguments */
+int position = 0;               /* For gtk_server_pack to keep position in memory layout */
 
 #if GTK_SERVER_FFI || GTK_SERVER_FFCALL
     #ifdef GTK_SERVER_UNIX
@@ -3306,6 +3362,54 @@ if (inputdata != NULL) {
     else if (!strcmp("gtk_server_version", gtk_api_call)){
 	/* Return GTK-server version */
 	retstr = Print_Result("%s%s%s%s", 4, gtkserver.pre, gtkserver.handle, GTK_SERVER_VERSION, gtkserver.post);
+    }
+    /* Internal call for packing data */
+    else if (!strcmp("gtk_server_pack", gtk_api_call)){
+	/* Yes, find the first argument */
+	if ((arg = parse_data(list, ++item)) == NULL || !strstr(arg,"%")){
+	    Print_Error("%s", 1, "\nERROR: Cannot find format in GTK_SERVER_PACK!");
+	}
+        memset(pack, 0, MAX_LEN);
+        position = 0;
+        arg_type = strtok(arg, "%");
+        /* Isolate mem type */
+        while(arg_type) {
+            /* Get argument */
+	    if ((arg = parse_data(list, ++item)) == NULL){
+	        Print_Error("%s%s%s", 3, "\nERROR: Cannot find argument for format '", arg_type, "' in GTK_SERVER_PACK!");
+	    }
+            /* Determine type */
+            switch (*arg_type){
+                case 'i':
+                    *(int*)(pack+position) = (int)atoi(arg);
+                    position += sizeof(int);
+                    break;
+                case 'l':
+                    *(long*)(pack+position) = (long)atol(arg);
+                    position += sizeof(long);
+                    break;
+                case 'f':
+                    *(float*)(pack+position) = (float)atof(arg);
+                    position += sizeof(float);
+                    break;
+                case 'd':
+                    *(double*)(pack+position) = (double)atof(arg);
+                    position += sizeof(double);
+                    break;
+                case 'c':
+                    *(char*)(pack+position) = (char)atof(arg);
+                    position += sizeof(char);
+                    break;
+                case 's':
+                    *(short*)(pack+position) = (short)atof(arg);
+                    position += sizeof(short);
+                    break;
+                default:
+	            Print_Error("%s%s%s", 3, "\nERROR: Format '", arg_type, "' in GTK_SERVER_PACK not recognized! Should be either i, l, d, f, s or c.");
+            }
+            arg_type = strtok(NULL, "%");
+        }
+	retstr = Print_Result("%s%s%s%s", 4, gtkserver.pre, gtkserver.handle, base64_enc(pack, position), gtkserver.post);
     }
     #ifdef GTK_SERVER_MOTIF
     /* Call to get toplevel widget in Motif */
