@@ -554,6 +554,22 @@ should be connected to the DrawingArea. This function is not available when the 
 GTK: gtk_server_connect &lt;widgetID&gt; &quot;key-press-event&quot; &quot;keypressed&quot;
 <P>
 Motif: gtk_server_connect &lt;DrawingArea&gt; XmNinputCallback &quot;keypressed&quot;
+<DT><B>gtk_server_pack &lt;format&gt; &lt;value1&gt; [...value n]</B>
+
+<DD>
+Returns a memory layout in a base64 encoded string. It can be used when one of the arguments in a GTK function is defined as BASE64 type,
+for example in case of an array or a struct. The &lt;format&gt; specifies the type, similar as in the 'printf' function: %c is a char, %s means short, %i means integer,
+%l means long, %f means float and %d means double. The amount of &lt;values&gt; should match the amount of format specifiers. Example creating a memory layout
+containing a struct with 4 integer members:
+<P>
+<BR>
+
+gtk_server_pack %i%i%i%i 1 1 5 6
+<P>
+<BR>
+
+The returned string AQAAAAEAAAAFAAAABgAAAA== can be passed on as an argument to the function which has BASE64 as argument type.
+<P>
 </DL>
 <A NAME="lbAJ">&nbsp;</A>
 <H2>FILES</H2>
@@ -627,6 +643,6 @@ the sourcepackage for credits.
 This document was created by
 <A HREF="/cgi-bin/man/man2html">man2html</A>,
 using the manual pages.<BR>
-Time: 19:18:34 GMT, February 01, 2017
+Time: 19:15:12 GMT, October 25, 2017
 </BODY>
 </HTML>

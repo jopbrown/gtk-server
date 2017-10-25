@@ -462,6 +462,7 @@
 * ------------------------
 *		. Added 'gtk_server_pack' to create portable memory layouts for BASE64 argument type
 *               . The configfile now has SEQUENCE enabled by default
+*               . Simplified 'select-gtk-server' script
 *
 *************************************************************************************************************************************************/
 
