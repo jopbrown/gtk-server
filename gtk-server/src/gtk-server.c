@@ -7,7 +7,7 @@
 * Please read the documentation on how to use this program.
 * The CREDITS file lists all people who have helped improving the GTK-server.
 *
-* Original idea and design by Peter van Eerten, september 2003 - may 2017
+* Original idea and design by Peter van Eerten, September 2003 - October 2017
 * Mail: peter@gtk-server.org
 *
 * This source has become a little bit messy. What started as a quick hack,
@@ -463,6 +463,7 @@
 *		. Added 'gtk_server_pack' to create portable memory layouts for BASE64 argument type
 *               . The configfile now has SEQUENCE enabled by default
 *               . Simplified 'select-gtk-server' script
+*               . Fixed bug in 'stop-gtk-server' script when using 'all' argument
 *
 *************************************************************************************************************************************************/
 

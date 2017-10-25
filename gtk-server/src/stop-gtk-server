@@ -62,7 +62,7 @@ then
 elif [ $1 = "all" -o $1 = "-all" ]
 then
     # Determine processes
-    GTK=`awk '/gtk-server / {print $2}' $PROCESS`
+    GTK=`awk '/gtk-server.*/ {print $2}' $PROCESS`
     # Determine pipe files
     FILES=`awk '{gsub(/=/, " ")} /gtk-server.*fifo/ {print $13}' $PROCESS`
     # Determine message queues
