@@ -3,6 +3,7 @@
 # Script to select GTK-server
 #
 # December 2016 - PvE.
+#
 #---------------------------------------------------------------
 
 if [[ $(whoami) != "root" ]]
@@ -15,6 +16,8 @@ echo
 echo "*** Select GTK-server binary and library ***"
 echo
 
+#---------------------------------------------------------------
+
 BINDIR=/usr/local/bin
 
 SERVER=$(ls ${BINDIR}/gtk-server-* 2>/dev/null)
@@ -24,13 +27,32 @@ then
     COUNT=1
     for i in $SERVER
     do
-        echo "(${COUNT}) $(basename $i)"
+        SV=$(basename $i)
+        echo "(${COUNT}) GTK-server for ${SV##*-}"
         BIN[$COUNT]=$i
         ((COUNT+=1))
     done
 fi
-echo
 
+#---------------------------------------------------------------
+
+LIBDIR=/usr/local/lib
+
+SERVER=$(ls ${LIBDIR}/libgtk-server-* 2>/dev/null)
+
+if [[ -n $SERVER ]]
+then
+    COUNT=1
+    for i in $SERVER
+    do
+        LIB[$COUNT]=$i
+        ((COUNT+=1))
+    done
+fi
+
+#---------------------------------------------------------------
+
+echo
 echo -n "Select GTK-server... "
 read NR
 
@@ -42,35 +64,10 @@ fi
 
 ln -sf ${BIN[$NR]} $(dirname ${BIN[$NR]})/gtk-server
 
-#---------------------------------------------------------------
-
-echo
-
-LIBDIR=/usr/local/lib
-
-SERVER=$(ls ${LIBDIR}/libgtk-server-* 2>/dev/null)
-
-if [[ -n $SERVER ]]
-then
-    COUNT=1
-    for i in $SERVER
-    do
-        echo "(${COUNT}) $(basename $i)"
-        LIB[$COUNT]=$i
-        ((COUNT+=1))
-    done
-fi
-echo
-
-echo -n "Select GTK-server library... "
-read NR
-
-if [[ $NR -lt 1 || $NR -ge $COUNT ]]
-then
-    echo "Invalid selection."
-    exit 1
-fi
-
 ln -sf ${LIB[$NR]} $(dirname ${LIB[$NR]})/libgtk-server.so
+
+echo
+echo "GTK-server for ${BIN[$NR]##*-} selected."
+echo
 
 #---------------------------------------------------------------
