@@ -464,6 +464,7 @@
 *               . The configfile now has SEQUENCE enabled by default
 *               . Simplified 'select-gtk-server' script
 *               . Fixed bug in 'stop-gtk-server' script when using 'all' argument
+*               . Added 'gtk_server_unpack' to unpack binary memory layout to s-expression
 *
 *************************************************************************************************************************************************/
 
@@ -2324,6 +2325,7 @@ for(i = 0; i < atoi(call->argamount); i++){
     if(!strcmp(call->args[i], "PTR_DOUBLE")) snprintf(buf, MAX_DIG, " %f", double_address[i]);
     if(!strcmp(call->args[i], "PTR_FLOAT")) snprintf(buf, MAX_DIG, " %f", float_address[i]);
     if(!strcmp(call->args[i], "PTR_STRING")) snprintf(buf, MAX_DIG, " %s", str_address[i]);
+    /* if(!strcmp(call->args[i], "PTR_BASE64")) buf = base64_enc(str_address[i], size); */
     strncat(ptrstr, buf, MAX_DIG);
 }
 
@@ -3213,6 +3215,9 @@ int macro_found = 0;		/* Needed for MACRO arg type */
 char *retstr;			/* Result holder */
 char buffer[MAX_LEN];		/* Buffer to keep macro redefinitions */
 char pack[MAX_LEN];		/* Buffer to keep memory layouts for gtk_server_pack */
+char *unpack;                   /* Pointer to keep binary data for gtk_server_unpack */
+char *b64 = NULL;               /* Pointer to temporarily hold base64 data fir gtk_server_unpack */
+int len;                        /* How much data was written in gtk_server_unpack */
 int cmd;			/* Macro-parser: what MACRO command are we currently executing? */
 int item;			/* If handle from client is given start parsing at item = 1, else item = 0 */
 struct utsname pf;              /* For gtk_server_os */
@@ -3399,11 +3404,11 @@ if (inputdata != NULL) {
                     position += sizeof(double);
                     break;
                 case 'c':
-                    *(char*)(pack+position) = (char)atof(arg);
+                    *(char*)(pack+position) = (char)atoi(arg);
                     position += sizeof(char);
                     break;
                 case 's':
-                    *(short*)(pack+position) = (short)atof(arg);
+                    *(short*)(pack+position) = (short)atoi(arg);
                     position += sizeof(short);
                     break;
                 default:
@@ -3412,6 +3417,56 @@ if (inputdata != NULL) {
             arg_type = strtok(NULL, "%");
         }
 	retstr = Print_Result("%s%s%s%s", 4, gtkserver.pre, gtkserver.handle, base64_enc(pack, position), gtkserver.post);
+    }
+    /* Internal call for unpacking data to S-expression */
+    else if (!strcmp("gtk_server_unpack", gtk_api_call)){
+	/* Yes, find the first argument */
+	if ((arg = parse_data(list, ++item)) == NULL || !strstr(arg,"%")){
+	    Print_Error("%s", 1, "\nERROR: Cannot find format in GTK_SERVER_UNPACK!");
+	}
+	/* Find the second argument */
+	if ((b64 = parse_data(list, ++item)) == NULL){
+	    Print_Error("%s", 1, "\nERROR: Cannot find BASE64 string data in GTK_SERVER_UNPACK!");
+	}
+        unpack = base64_dec(b64);
+        memset(pack, 0, MAX_LEN);
+        position = 0;
+        len = 1;
+        arg_type = strtok(arg, "%");
+        /* Isolate mem type */
+        while(arg_type) {
+            /* Determine type */
+            switch (*arg_type){
+                case 'i':
+                    len += snprintf(pack+len-1, MAX_LEN, "%i ", (int)(*(unpack+position)));
+                    position += sizeof(int);
+                    break;
+                case 'l':
+                    len += snprintf(pack+len-1, MAX_LEN, "%ld ", (long)(*(unpack+position)));
+                    position += sizeof(long);
+                    break;
+                case 'f':
+                    len += snprintf(pack+len-1, MAX_LEN, "%f ", (float)(*(unpack+position)));
+                    position += sizeof(float);
+                    break;
+                case 'd':
+                    len += snprintf(pack+len-1, MAX_LEN, "%f ", (double)(*(unpack+position)));
+                    position += sizeof(double);
+                    break;
+                case 'c':
+                    len += snprintf(pack+len-1, MAX_LEN, "%i ", (char)(*(unpack+position)));
+                    position += sizeof(char);
+                    break;
+                case 's':
+                    len += snprintf(pack+len-1, MAX_LEN, "%i ", (short)(*(unpack+position)));
+                    position += sizeof(short);
+                    break;
+                default:
+	            Print_Error("%s%s%s", 3, "\nERROR: Format '", arg_type, "' in GTK_SERVER_UNPACK not recognized! Should be either i, l, d, f, s or c.");
+            }
+            arg_type = strtok(NULL, "%");
+        }
+	retstr = Print_Result("%s%s%s%s", 4, gtkserver.pre, gtkserver.handle, Trim_String(pack), gtkserver.post);
     }
     #ifdef GTK_SERVER_MOTIF
     /* Call to get toplevel widget in Motif */
@@ -4642,7 +4697,7 @@ if (inputdata != NULL) {
 			dcArgPointer(vm, &obj_address[i]);
 			#endif
 		    }
-		    else if (!strcmp(Call_Found->args[i], "PTR_STRING")) {
+		    else if (!strcmp(Call_Found->args[i], "PTR_STRING") || !strcmp(Call_Found->args[i], "PTR_BASE64")) {
 			str_address[i] = (char*)arg;
 			#ifdef GTK_SERVER_FFI
 			argtypes[i] = &ffi_type_pointer;
