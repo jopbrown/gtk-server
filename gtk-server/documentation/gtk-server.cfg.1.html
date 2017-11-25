@@ -174,7 +174,14 @@ FUNCTION_NAME = gdk_window_get_pointer, NONE, WIDGET, 4, WIDGET, PTR_INT, PTR_IN
 In this case, a call to 'gdk_window_get_pointer' will return a widget but also the values stored in the
 second and third argument. The returned result will be formatted in S-expression syntax, just as
 the GTK-server also accepts S-expression syntax. Next to the type PTR_INT the types PTR_LONG, PTR_FLOAT,
-PTR_DOUBLE, PTR_STRING, PTR_BOOL and PTR_WIDGET can be used.
+PTR_DOUBLE, PTR_STRING, PTR_BOOL, PTR_WIDGET and PTR_BASE64 can be used.
+<P>
+When using PTR_BASE64, the function argument will return a Base64 encoded string which contains binary data.
+Before calling the actual function, make sure to first set the memory layout of the binary data with the internal
+gtk_server_data_format function.
+<P>
+After that, the returned Base64 string can be decoded using the internal gtk_server_unpack function.
+<P>
 <A NAME="lbAF">&nbsp;</A>
 <H2>Macros</H2>
 
@@ -371,6 +378,6 @@ the sourcepackage for credits.
 This document was created by
 <A HREF="/cgi-bin/man/man2html">man2html</A>,
 using the manual pages.<BR>
-Time: 14:37:18 GMT, May 19, 2017
+Time: 19:20:59 GMT, November 25, 2017
 </BODY>
 </HTML>

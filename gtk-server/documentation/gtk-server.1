@@ -414,6 +414,7 @@ should be connected to the DrawingArea. This function is not available when the 
 GTK: gtk_server_connect <widgetID> "key-press-event" "keypressed"
 
 Motif: gtk_server_connect <DrawingArea> XmNinputCallback "keypressed"
+
 .TP
 .B gtk_server_pack <format> <value1> [...value n]
 Returns a memory layout in a base64 encoded string. It can be used when one of the arguments in a GTK function is defined as BASE64 type,
@@ -426,6 +427,25 @@ gtk_server_pack %i%i%i%i 1 1 5 6
 
 .br
 The returned string AQAAAAEAAAAFAAAABgAAAA== can be passed on as an argument to the function which has BASE64 as argument type.
+
+.TP
+.B gtk_server_unpack <format> <base64 string>
+Returns an S-expression from a base64 encoded string. It can be used when one of the arguments in a GTK function is defined as PTR_BASE64 type,
+for example in case an argument contains a pointer to an array or a struct. The <format> specifies the type, similar as in the 'printf' function: %c is a char,
+%s means short, %i means integer, %l means long, %f means float and %d means double. Example unpacking a memory layout containing a struct with 4 integer members:
+
+.br
+gtk_server_unpack %i%i%i%i AQAAAAEAAAAFAAAABgAAAA==
+
+.br
+This will return the string "1 1 5 6".
+
+.TP
+.B gtk_server_data_format <format>
+Defines the memory layout for PTR_BASE64 arguments. It should be set before the actual function with PTR_BASE64 argument types is used. Example:
+
+.br
+gtk_server_data_format %i%i%i%i
 
 .SH "FILES"
 .I gtk-server.cfg

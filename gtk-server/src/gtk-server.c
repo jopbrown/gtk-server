@@ -465,6 +465,7 @@
 *               . Simplified 'select-gtk-server' script
 *               . Fixed bug in 'stop-gtk-server' script when using 'all' argument
 *               . Added 'gtk_server_unpack' to unpack binary memory layout to s-expression
+*               . Added PTR_BASE64 argument type and 'gtk_server_data_format' to unpack binary structures returned in arguments
 *
 *************************************************************************************************************************************************/
 
@@ -929,7 +930,12 @@ FILE *logfile;
 static const char cb64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static const char cd64[]="|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
 
+/* Global to hold memory size for PTR_BASE64 */
+int PTR_BASE64 = 0;
+
+/* Function prototypes */
 char *Call_Realize (char*, void*);
+char *base64_enc(char *arg, int len);
 
 #ifdef GTK_SERVER_LIBRARY
 
@@ -2315,18 +2321,23 @@ static char ptrstr[MAX_ARGS*MAX_DIG];
 char buf[MAX_DIG];
 int i;
 
-strcpy(ptrstr, "");
+memset(ptrstr, 0, MAX_ARGS*MAX_DIG);
 
 for(i = 0; i < atoi(call->argamount); i++){
-    strcpy(buf, "");
+    memset(buf, 0, MAX_DIG);
     if(!strcmp(call->args[i], "PTR_LONG")) snprintf(buf, MAX_DIG, " %ld", long_address[i]);
     if(!strcmp(call->args[i], "PTR_INT") || !strcmp(call->args[i], "PTR_BOOL")) snprintf(buf, MAX_DIG, " %d", int_address[i]);
     if(!strcmp(call->args[i], "PTR_WIDGET")) snprintf(buf, MAX_DIG, " %ld", (long)obj_address[i]);
     if(!strcmp(call->args[i], "PTR_DOUBLE")) snprintf(buf, MAX_DIG, " %f", double_address[i]);
     if(!strcmp(call->args[i], "PTR_FLOAT")) snprintf(buf, MAX_DIG, " %f", float_address[i]);
     if(!strcmp(call->args[i], "PTR_STRING")) snprintf(buf, MAX_DIG, " %s", str_address[i]);
-    /* if(!strcmp(call->args[i], "PTR_BASE64")) buf = base64_enc(str_address[i], size); */
-    strncat(ptrstr, buf, MAX_DIG);
+
+    if(!strcmp(call->args[i], "PTR_BASE64")) {
+        strncat(ptrstr, base64_enc(str_address[i], PTR_BASE64), MAX_DIG);
+    }
+    else {
+        strncat(ptrstr, buf, MAX_DIG);
+    }
 }
 
 /* Return memory pointer */
@@ -3438,27 +3449,27 @@ if (inputdata != NULL) {
             /* Determine type */
             switch (*arg_type){
                 case 'i':
-                    len += snprintf(pack+len-1, MAX_LEN, "%i ", (int)(*(unpack+position)));
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%i ", (int)(*(unpack+position)));
                     position += sizeof(int);
                     break;
                 case 'l':
-                    len += snprintf(pack+len-1, MAX_LEN, "%ld ", (long)(*(unpack+position)));
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%ld ", (long)(*(unpack+position)));
                     position += sizeof(long);
                     break;
                 case 'f':
-                    len += snprintf(pack+len-1, MAX_LEN, "%f ", (float)(*(unpack+position)));
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%f ", (float)(*(unpack+position)));
                     position += sizeof(float);
                     break;
                 case 'd':
-                    len += snprintf(pack+len-1, MAX_LEN, "%f ", (double)(*(unpack+position)));
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%f ", (double)(*(unpack+position)));
                     position += sizeof(double);
                     break;
                 case 'c':
-                    len += snprintf(pack+len-1, MAX_LEN, "%i ", (char)(*(unpack+position)));
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%i ", (char)(*(unpack+position)));
                     position += sizeof(char);
                     break;
                 case 's':
-                    len += snprintf(pack+len-1, MAX_LEN, "%i ", (short)(*(unpack+position)));
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%i ", (short)(*(unpack+position)));
                     position += sizeof(short);
                     break;
                 default:
@@ -3467,6 +3478,43 @@ if (inputdata != NULL) {
             arg_type = strtok(NULL, "%");
         }
 	retstr = Print_Result("%s%s%s%s", 4, gtkserver.pre, gtkserver.handle, Trim_String(pack), gtkserver.post);
+    }
+    else if (!strcmp("gtk_server_data_format", gtk_api_call)) {
+	/* Yes, find the first argument */
+	if ((arg = parse_data(list, ++item)) == NULL || !strstr(arg,"%")){
+	    Print_Error("%s", 1, "\nERROR: Cannot find format in GTK_SERVER_DATA_FORMAT!");
+	}
+        position = 0;
+        arg_type = strtok(arg, "%");
+        /* Isolate mem type */
+        while(arg_type) {
+            /* Determine type */
+            switch (*arg_type){
+                case 'i':
+                    position += sizeof(int);
+                    break;
+                case 'l':
+                    position += sizeof(long);
+                    break;
+                case 'f':
+                    position += sizeof(float);
+                    break;
+                case 'd':
+                    position += sizeof(double);
+                    break;
+                case 'c':
+                    position += sizeof(char);
+                    break;
+                case 's':
+                    position += sizeof(short);
+                    break;
+                default:
+	            Print_Error("%s%s%s", 3, "\nERROR: Format '", arg_type, "' in GTK_SERVER_DATA_FORMAT not recognized! Should be either i, l, d, f, s or c.");
+            }
+            arg_type = strtok(NULL, "%");
+        }
+        PTR_BASE64 = position;
+	retstr = Print_Result("%sok%s", 2, gtkserver.pre, gtkserver.post);
     }
     #ifdef GTK_SERVER_MOTIF
     /* Call to get toplevel widget in Motif */
