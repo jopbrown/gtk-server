@@ -7,23 +7,21 @@
 # Name of PIPE file
 declare PIPE=/tmp/bash.gtk.$$
 
-# Communicate with GTK-server
-gtk()
-{
-    echo $@ > $PIPE
-    cat $PIPE
-}
-
-com()
+function gtk
 {
     echo $@ > $PIPE
     read RESULT < $PIPE
+
+    if [[ $RESULT != "ok" || $@ = +(*gtk_server_require*) ]]
+    then
+        echo $RESULT
+    fi
 }
 
 #------------------------ Main starts here
 
 # Start gtk-server
-gtk-server-gtk2 -fifo=$PIPE -log=/tmp/gtk-server.log &
+gtk-server-gtk2 -fifo=$PIPE -log=/tmp/gtk-server.log -detach
 
 # Make sure the PIPE file is available
 while [ ! -p $PIPE ]; do continue; done
@@ -36,27 +34,38 @@ then
     exit 1
 fi
 
-# Import function
-com "gtk_server_define gtk_sheet_new NONE WIDGET 3 INT INT STRING"
+# Import functions
+gtk "gtk_server_define gtk_sheet_new activate WIDGET 3 INT INT STRING"
+gtk "gtk_server_define gtk_sheet_get_selection NONE BOOL 3 WIDGET PTR_INT PTR_BASE64"
+
+# Important: define data format
+gtk "gtk_server_data_format %i%i%i%i"
 
 # Setup GUI
-com "gtk_init NULL NULL"
+gtk "gtk_init NULL NULL"
 WIN=$(gtk "gtk_window_new GTK_WINDOW_TOPLEVEL")
-com "gtk_window_set_default_size $WIN 600 400"
+gtk "gtk_window_set_default_size $WIN 600 400"
 BOX=$(gtk "gtk_vbox_new 0 1")
 SCROLL=$(gtk "gtk_scrolled_window_new NULL NULL")
-com "gtk_container_add $WIN $BOX"
-com "gtk_box_pack_start $BOX $SCROLL 1 1 1"
+gtk "gtk_container_add $WIN $BOX"
+gtk "gtk_box_pack_start $BOX $SCROLL 1 1 1"
 SHEET=$(gtk "gtk_sheet_new 5 5 'Edit table'")
-com "gtk_container_add $SCROLL $SHEET"
-com "gtk_widget_show_all $WIN"
+gtk "gtk_container_add $SCROLL $SHEET"
+gtk "gtk_widget_show_all $WIN"
 
 EVENT=0
 
+# Mainloop
 while [[ $EVENT -ne $WIN ]]
 do 
     EVENT=$(gtk "gtk_server_callback WAIT")
+
+    # At each event obtain the cell selected
+    CHECK=$(gtk "gtk_sheet_get_selection ${SHEET} 0 0")
+
+    # Decode returned range
+    echo $(gtk "gtk_server_unpack %i%i%i%i ${CHECK##* }")
 done
 
 # Exit GTK
-com "gtk_server_exit"
+gtk "gtk_server_exit"
