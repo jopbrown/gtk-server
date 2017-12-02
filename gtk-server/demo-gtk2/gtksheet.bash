@@ -38,7 +38,7 @@ fi
 gtk "gtk_server_define gtk_sheet_new activate WIDGET 3 INT INT STRING"
 gtk "gtk_server_define gtk_sheet_get_selection NONE BOOL 3 WIDGET PTR_INT PTR_BASE64"
 
-# Important: define data format
+# Important: define data format for PTR_BASE64
 gtk "gtk_server_data_format %i%i%i%i"
 
 # Setup GUI
@@ -60,7 +60,7 @@ while [[ $EVENT -ne $WIN ]]
 do 
     EVENT=$(gtk "gtk_server_callback WAIT")
 
-    # At each event obtain the cell selected
+    # At each event obtain the cell selected, use dummy args
     CHECK=$(gtk "gtk_sheet_get_selection ${SHEET} 0 0")
 
     # Decode returned range

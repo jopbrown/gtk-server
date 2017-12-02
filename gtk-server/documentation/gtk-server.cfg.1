@@ -145,11 +145,15 @@ second and third argument. The returned result will be formatted in S-expression
 the GTK-server also accepts S-expression syntax. Next to the type PTR_INT the types PTR_LONG, PTR_FLOAT,
 PTR_DOUBLE, PTR_STRING, PTR_BOOL, PTR_WIDGET and PTR_BASE64 can be used.
 
-When using PTR_BASE64, the function argument will return a Base64 encoded string which contains binary data.
-Before calling the actual function, make sure to first set the memory layout of the binary data with the internal
-gtk_server_data_format function.
+When actually invoking the defined function, a dummy argument can be used in case of the numeric PTR argument
+types. Also the PTR_BASE64 type should have a dummy argument in place.
 
-After that, the returned Base64 string can be decoded using the internal gtk_server_unpack function.
+The PTR_STRING and PTR_WIDGET argument types however assume a pointer with sufficiently allocated memory.
+
+In case of the PTR_BASE64 type, the function argument will return a Base64 encoded string which contains binary data.
+Before invoking the actual function, make sure to first set the memory layout of the binary data with the internal
+gtk_server_data_format function. After that, the returned Base64 string can be decoded using the internal
+gtk_server_unpack function.
 
 .SH "Macros"
 In GTK sometimes more than one function is needed to define a widget. These functions can be
