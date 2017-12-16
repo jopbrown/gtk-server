@@ -466,6 +466,7 @@
 *               . Fixed bug in 'stop-gtk-server' script when using 'all' argument
 *               . Added 'gtk_server_unpack' to unpack binary memory layout to s-expression
 *               . Added PTR_BASE64 argument type and 'gtk_server_data_format' to unpack binary structures returned in arguments
+*               . Added PTR_SHORT argument type
 *
 *************************************************************************************************************************************************/
 
@@ -716,6 +717,7 @@ typedef union {
 	to return results in */
     long		*p_lvalue;
     int			*p_ivalue;
+    short		*p_hvalue;
     float		*p_fvalue;
     double		*p_dvalue;
     char		*p_svalue;
@@ -853,6 +855,7 @@ ASSOC *Start_List_Sigs = NULL;
 /* These variable names are addresses by themselves and used by GTK to store returnvalues */
 long long_address[MAX_ARGS];
 int int_address[MAX_ARGS];
+short short_address[MAX_ARGS];
 float float_address[MAX_ARGS];
 double double_address[MAX_ARGS];
 char *str_address[MAX_ARGS];
@@ -2327,6 +2330,7 @@ for(i = 0; i < atoi(call->argamount); i++){
     memset(buf, 0, MAX_DIG);
     if(!strcmp(call->args[i], "PTR_LONG")) snprintf(buf, MAX_DIG, " %ld", long_address[i]);
     if(!strcmp(call->args[i], "PTR_INT") || !strcmp(call->args[i], "PTR_BOOL")) snprintf(buf, MAX_DIG, " %d", int_address[i]);
+    if(!strcmp(call->args[i], "PTR_SHORT")) snprintf(buf, MAX_DIG, " %hd", short_address[i]);
     if(!strcmp(call->args[i], "PTR_WIDGET")) snprintf(buf, MAX_DIG, " %ld", (long)obj_address[i]);
     if(!strcmp(call->args[i], "PTR_DOUBLE")) snprintf(buf, MAX_DIG, " %f", double_address[i]);
     if(!strcmp(call->args[i], "PTR_FLOAT")) snprintf(buf, MAX_DIG, " %f", float_address[i]);
@@ -4684,6 +4688,22 @@ if (inputdata != NULL) {
 			argvalues[i] = &theargs[i].p_ivalue;
 			#elif GTK_SERVER_DYNCALL
 			dcArgPointer(vm, &int_address[i]);
+			#endif
+		    }
+		    else if (!strcmp(Call_Found->args[i], "PTR_SHORT")) {
+			short_address[i]=(short)atoi(arg);
+			#ifdef GTK_SERVER_FFI
+			argtypes[i] = &ffi_type_pointer;
+			theargs[i].p_hvalue = &short_address[i];		/* Assign real variable address */
+			argvalues[i] = &theargs[i].p_hvalue;
+			#elif GTK_SERVER_FFCALL
+			av_ptr(funclist, short*, &short_address[i]);
+			#elif GTK_SERVER_CINV
+			strcat(argtypes, "p");
+			theargs[i].p_hvalue = &short_address[i];		/* Assign real variable address */
+			argvalues[i] = &theargs[i].p_hvalue;
+			#elif GTK_SERVER_DYNCALL
+			dcArgPointer(vm, &short_address[i]);
 			#endif
 		    }
 		    else if (!strcmp(Call_Found->args[i], "PTR_FLOAT")) {
