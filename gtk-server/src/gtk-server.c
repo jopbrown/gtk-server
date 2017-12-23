@@ -467,6 +467,7 @@
 *               . Added 'gtk_server_unpack' to unpack binary memory layout to s-expression
 *               . Added PTR_BASE64 argument type and 'gtk_server_data_format' to unpack binary structures returned in arguments
 *               . Added PTR_SHORT argument type
+*		. Upgraded to uthash 2.0.2 (https://troydhanson.github.io)
 *
 *************************************************************************************************************************************************/
 
