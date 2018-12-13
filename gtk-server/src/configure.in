@@ -12,18 +12,18 @@ AC_PROG_INSTALL
 AC_CANONICAL_HOST
 case $host in
     *mingw* )	AC_DEFINE_UNQUOTED(GTK_SERVER_WIN32)
-		LDFLAGS="-lws2_32 -ladvapi32 -lshlwapi -mwindows"
+		LDFLAGS="${LDFLAGS} -lws2_32 -ladvapi32 -lshlwapi -mwindows"
 		win32=yes
 		;;
     *bsd* )	AC_DEFINE_UNQUOTED(GTK_SERVER_UNIX)
 		AC_DEFINE_UNQUOTED(GTK_SERVER_BSD)
-		LDFLAGS="-lpthread"
+		LDFLAGS="${LDFLAGS} -lpthread"
 		unix=yes
 		bsd=yes
 		;;
     *solaris* )	AC_DEFINE_UNQUOTED(GTK_SERVER_UNIX)
 		AC_DEFINE_UNQUOTED(GTK_SERVER_SOLARIS)
-		LDFLAGS="-lsocket -lnsl"
+		LDFLAGS="${LDFLAGS} -lsocket -lnsl"
 		unix=yes
 		solaris=yes
 		;;
@@ -49,24 +49,24 @@ esac
 
 # OS dependent settings - add compileflags for MacOSX
 if test "$darwin" = yes; then
-    CFLAGS="-fno-common"
+    CFLAGS="${CFLAGS} -fno-common"
 fi
 
 # OS dependent settings - add compileflags for Tru64Unix
 if test "$osf" = yes; then
-    CFLAGS="-D_POSIX_PII_SOCKET -I/usr/local/include"
+    CFLAGS="${CFLAGS} -D_POSIX_PII_SOCKET -I/usr/local/include"
     AC_DEFINE_UNQUOTED(GTK_SERVER_SOCK_LONG)
 fi
 
 # OS dependent settings - check if we are on 64bit
 if test "$x86_64" = yes; then
-    CFLAGS="-fPIC"
-    LDFLAGS="$LDFLAGS -L/usr/lib64"
+    CFLAGS="${CFLAGS} -fPIC"
+    LDFLAGS="${LDFLAGS} -L/usr/lib64"
 fi
 
 # OS dependent settings - add compileflags for Solaris
 if test "$solaris" = yes; then
-    CFLAGS="-fPIC"
+    CFLAGS="${CFLAGS} -fPIC"
 fi
 
 # Checks for library functions.
@@ -170,7 +170,7 @@ AC_ARG_WITH(motif,
 # Check parameter: force compilation for console?
 AC_ARG_WITH(console,
     [AC_HELP_STRING([--with-console], [force compilation for console (default: GUESS)])],
-    [CFLAGS="" gtk1x=no gtk2x=no gtk3x=no xf=no console=yes])
+    [gtk1x=no gtk2x=no gtk3x=no xf=no console=yes])
 
 # Guess all toolkits if none was provided
 if test "$console" != yes -a "$motif" != yes -a "$xf" != yes -a "$gtk1x" != yes -a "$gtk2x" != yes -a "$gtk3x" != yes
@@ -257,19 +257,19 @@ fi
 # Check parameter: force compilation for which Foreign Func Interface?
 AC_ARG_WITH(ffi,
     [AC_HELP_STRING([--with-ffi], [force compilation with libffi (default: GUESS)])],
-	[AC_DEFINE_UNQUOTED(GTK_SERVER_FFI) LDFLAGS="$LDFLAGS -lffi -ldl" ffi=yes ffcall=no cinv=no dyncall=no])
+	[AC_DEFINE_UNQUOTED(GTK_SERVER_FFI) LDFLAGS="${LDFLAGS} -lffi -ldl" ffi=yes ffcall=no cinv=no dyncall=no])
 
 AC_ARG_WITH(ffcall,
     [AC_HELP_STRING([--with-ffcall], [force compilation with libffcall (default: GUESS)])],
-	[AC_DEFINE_UNQUOTED(GTK_SERVER_FFCALL) LDFLAGS="$LDFLAGS -lavcall -ldl" ffi=no ffcall=yes cinv=no dyncall=no])
+	[AC_DEFINE_UNQUOTED(GTK_SERVER_FFCALL) LDFLAGS="${LDFLAGS} -lavcall -ldl" ffi=no ffcall=yes cinv=no dyncall=no])
 
 AC_ARG_WITH(cinv,
     [AC_HELP_STRING([--with-cinv], [force compilation with c/invoke (default: GUESS)])],
-	[AC_DEFINE_UNQUOTED(GTK_SERVER_CINV) LDFLAGS="$LDFLAGS -lcinvoke -ldl" ffi=no ffcall=no cinv=yes dyncall=no])
+	[AC_DEFINE_UNQUOTED(GTK_SERVER_CINV) LDFLAGS="${LDFLAGS} -lcinvoke -ldl" ffi=no ffcall=no cinv=yes dyncall=no])
 
 AC_ARG_WITH(dyncall,
     [AC_HELP_STRING([--with-dyncall], [force compilation with dyncall (default: GUESS)])],
-	[AC_DEFINE_UNQUOTED(GTK_SERVER_DYNCALL) LDFLAGS="$LDFLAGS -ldynload_s -ldyncall_s -ldl" ffi=no ffcall=no cinv=no dyncall=yes])
+	[AC_DEFINE_UNQUOTED(GTK_SERVER_DYNCALL) LDFLAGS="${LDFLAGS} -ldynload_s -ldyncall_s -ldl" ffi=no ffcall=no cinv=no dyncall=yes])
 
 # GTK-server as generic shared object
 library=yes
@@ -277,7 +277,7 @@ library=yes
 if test "$library" = yes; then
     if test "$darwin" = yes; then
 	SOTARGET="libgtk-server.dylib"
-	LDFLAGS="$LDFLAGS -dynamiclib"
+	LDFLAGS="${LDFLAGS} -dynamiclib"
     fi
 fi
 
@@ -289,7 +289,7 @@ AC_ARG_ENABLE(slang,
     [AC_HELP_STRING([--enable-slang], [add support to library for S-Lang (default: NO)])],
 	[AC_DEFINE_UNQUOTED(GTK_SERVER_SLANG)
 	AC_DEFINE_UNQUOTED(GTK_SERVER_LIBRARY)
-	LDFLAGS="$LDFLAGS -shared"
+	LDFLAGS="${LDFLAGS} -shared"
 	library=yes
 	 slang=yes])
 
@@ -302,7 +302,7 @@ AC_ARG_ENABLE(scriptbasic,
     [AC_HELP_STRING([--enable-scriptbasic], [add support to library for ScriptBasic (default: NO)])],
 	[AC_DEFINE_UNQUOTED(GTK_SERVER_SCRIPTBASIC)
 	AC_DEFINE_UNQUOTED(GTK_SERVER_LIBRARY)
-	LDFLAGS="$LDFLAGS -shared"
+	LDFLAGS="${LDFLAGS} -shared"
 	library=yes
 	 scriptbasic=yes])
 
@@ -318,14 +318,14 @@ AC_ARG_ENABLE(sb-source,
 	else
 	    sbsrc=$enableval
 	fi
-	 CFLAGS="$CFLAGS -I$sbsrc"])
+	 CFLAGS="${CFLAGS} -I$sbsrc"])
 
 # Check parameter: support for KSH93 module?
 AC_ARG_ENABLE(ksh93,
     [AC_HELP_STRING([--enable-ksh93], [add support to library for Kornshell93 (default: NO)])],
 	[AC_DEFINE_UNQUOTED(GTK_SERVER_KSH93)
-	CFLAGS="$CFLAGS -Iksh93"
-	LDFLAGS="$LDFLAGS -shared -Lksh93 -lshell -ldll -lcmd -last"
+	CFLAGS="${CFLAGS} -Iksh93"
+	LDFLAGS="${LDFLAGS} -shared -Lksh93 -lshell -ldll -lcmd -last"
 	library=yes
 	 ksh93=yes])
 
@@ -337,7 +337,7 @@ AC_ARG_ENABLE(ksh93-source,
 	else
 	    kshsrc=$enableval
 	fi
-	 CFLAGS="$CFLAGS -I$kshsrc"])
+	 CFLAGS="${CFLAGS} -I$kshsrc"])
 
 # Check parameter: force compilation with SSL (for -sock standalone only)
 AC_ARG_WITH(ssl, [AC_HELP_STRING([--with-ssl], [force support for SSL (default: GUESS)])], [ssl=yes])
@@ -353,29 +353,29 @@ fi
 # Always export local symbols
 if test "$CC" = gcc; then
     if test "$darwin" = yes || test "$solaris" = yes || test "$bsd" = yes; then
-	LDFLAGS="--export-dynamic $LDFLAGS"
+	LDFLAGS="--export-dynamic ${LDFLAGS}"
     else
-	LDFLAGS="-export-dynamic $LDFLAGS"
+	LDFLAGS="-export-dynamic ${LDFLAGS}"
     fi
 fi
 
 # Autodetect FFI if none was given
 if test "$ffi" != yes -a "$ffcall" != yes -a "$cinv" != yes -a "$dyncall" != yes
 then
-AC_CHECK_HEADER(ffi.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_FFI) LDFLAGS="$LDFLAGS -lffi -ldl"] ffi=yes,
-    [AC_CHECK_HEADER(avcall.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_FFCALL) LDFLAGS="$LDFLAGS -lavcall -ldl"]	ffcall=yes,
-	[AC_CHECK_HEADER(cinvoke.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_CINV) LDFLAGS="$LDFLAGS -lcinvoke -ldl"] cinv=yes,
-	    [AC_CHECK_HEADER(dyncall.h,	[AC_DEFINE_UNQUOTED(GTK_SERVER_DYNCALL) LDFLAGS="$LDFLAGS -ldynload_s -ldyncall_s -ldl"] dyncall=yes,
+AC_CHECK_HEADER(ffi.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_FFI) LDFLAGS="${LDFLAGS} -lffi -ldl"] ffi=yes,
+    [AC_CHECK_HEADER(avcall.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_FFCALL) LDFLAGS="${LDFLAGS} -lavcall -ldl"]	ffcall=yes,
+	[AC_CHECK_HEADER(cinvoke.h, [AC_DEFINE_UNQUOTED(GTK_SERVER_CINV) LDFLAGS="${LDFLAGS} -lcinvoke -ldl"] cinv=yes,
+	    [AC_CHECK_HEADER(dyncall.h,	[AC_DEFINE_UNQUOTED(GTK_SERVER_DYNCALL) LDFLAGS="${LDFLAGS} -ldynload_s -ldyncall_s -ldl"] dyncall=yes,
 		    [AC_MSG_ERROR(Cannot compile - no foreign function headers found! Please check 'README.1ST' for details.)]) ]) ]) ])
 fi
 
 # Check CC, options for GCC/TCC
 if test "$CC" = tcc
 then
-    CFLAGS="-DHASH_FUNCTION=HASH_JEN $CFLAGS"
+    CFLAGS="-DHASH_FUNCTION=HASH_JEN ${CFLAGS}"
     STRIP=touch
 else
-    CFLAGS="-pedantic $CFLAGS"
+    CFLAGS="-pedantic ${CFLAGS}"
     STRIP=strip
 fi
 

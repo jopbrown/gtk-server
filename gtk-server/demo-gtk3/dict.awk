@@ -1,4 +1,4 @@
-#!/bin/gawk -f
+#!/usr/bin/gawk -f
 #
 # Demonstration on how to use the GTK-server with Gnu AWK by STDIN.
 # Tested with Gnu AWK 3.1.5 on Zenwalk Linux.

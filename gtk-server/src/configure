@@ -683,6 +683,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -769,6 +770,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1021,6 +1023,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1158,7 +1169,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1311,6 +1322,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -3152,7 +3164,7 @@ case $host in
 #define GTK_SERVER_WIN32 1
 _ACEOF
 
-		LDFLAGS="-lws2_32 -ladvapi32 -lshlwapi -mwindows"
+		LDFLAGS="${LDFLAGS} -lws2_32 -ladvapi32 -lshlwapi -mwindows"
 		win32=yes
 		;;
     *bsd* )	cat >>confdefs.h <<_ACEOF
@@ -3163,7 +3175,7 @@ _ACEOF
 #define GTK_SERVER_BSD 1
 _ACEOF
 
-		LDFLAGS="-lpthread"
+		LDFLAGS="${LDFLAGS} -lpthread"
 		unix=yes
 		bsd=yes
 		;;
@@ -3175,7 +3187,7 @@ _ACEOF
 #define GTK_SERVER_SOLARIS 1
 _ACEOF
 
-		LDFLAGS="-lsocket -lnsl"
+		LDFLAGS="${LDFLAGS} -lsocket -lnsl"
 		unix=yes
 		solaris=yes
 		;;
@@ -3222,12 +3234,12 @@ esac
 
 # OS dependent settings - add compileflags for MacOSX
 if test "$darwin" = yes; then
-    CFLAGS="-fno-common"
+    CFLAGS="${CFLAGS} -fno-common"
 fi
 
 # OS dependent settings - add compileflags for Tru64Unix
 if test "$osf" = yes; then
-    CFLAGS="-D_POSIX_PII_SOCKET -I/usr/local/include"
+    CFLAGS="${CFLAGS} -D_POSIX_PII_SOCKET -I/usr/local/include"
     cat >>confdefs.h <<_ACEOF
 #define GTK_SERVER_SOCK_LONG 1
 _ACEOF
@@ -3236,13 +3248,13 @@ fi
 
 # OS dependent settings - check if we are on 64bit
 if test "$x86_64" = yes; then
-    CFLAGS="-fPIC"
-    LDFLAGS="$LDFLAGS -L/usr/lib64"
+    CFLAGS="${CFLAGS} -fPIC"
+    LDFLAGS="${LDFLAGS} -L/usr/lib64"
 fi
 
 # OS dependent settings - add compileflags for Solaris
 if test "$solaris" = yes; then
-    CFLAGS="-fPIC"
+    CFLAGS="${CFLAGS} -fPIC"
 fi
 
 # Checks for library functions.
@@ -4367,7 +4379,7 @@ fi
 
 # Check whether --with-console was given.
 if test "${with_console+set}" = set; then :
-  withval=$with_console; CFLAGS="" gtk1x=no gtk2x=no gtk3x=no xf=no console=yes
+  withval=$with_console; gtk1x=no gtk2x=no gtk3x=no xf=no console=yes
 fi
 
 
@@ -4649,7 +4661,7 @@ if test "${with_ffi+set}" = set; then :
   withval=$with_ffi; cat >>confdefs.h <<_ACEOF
 #define GTK_SERVER_FFI 1
 _ACEOF
- LDFLAGS="$LDFLAGS -lffi -ldl" ffi=yes ffcall=no cinv=no dyncall=no
+ LDFLAGS="${LDFLAGS} -lffi -ldl" ffi=yes ffcall=no cinv=no dyncall=no
 fi
 
 
@@ -4659,7 +4671,7 @@ if test "${with_ffcall+set}" = set; then :
   withval=$with_ffcall; cat >>confdefs.h <<_ACEOF
 #define GTK_SERVER_FFCALL 1
 _ACEOF
- LDFLAGS="$LDFLAGS -lavcall -ldl" ffi=no ffcall=yes cinv=no dyncall=no
+ LDFLAGS="${LDFLAGS} -lavcall -ldl" ffi=no ffcall=yes cinv=no dyncall=no
 fi
 
 
@@ -4669,7 +4681,7 @@ if test "${with_cinv+set}" = set; then :
   withval=$with_cinv; cat >>confdefs.h <<_ACEOF
 #define GTK_SERVER_CINV 1
 _ACEOF
- LDFLAGS="$LDFLAGS -lcinvoke -ldl" ffi=no ffcall=no cinv=yes dyncall=no
+ LDFLAGS="${LDFLAGS} -lcinvoke -ldl" ffi=no ffcall=no cinv=yes dyncall=no
 fi
 
 
@@ -4679,7 +4691,7 @@ if test "${with_dyncall+set}" = set; then :
   withval=$with_dyncall; cat >>confdefs.h <<_ACEOF
 #define GTK_SERVER_DYNCALL 1
 _ACEOF
- LDFLAGS="$LDFLAGS -ldynload_s -ldyncall_s -ldl" ffi=no ffcall=no cinv=no dyncall=yes
+ LDFLAGS="${LDFLAGS} -ldynload_s -ldyncall_s -ldl" ffi=no ffcall=no cinv=no dyncall=yes
 fi
 
 
@@ -4689,7 +4701,7 @@ library=yes
 if test "$library" = yes; then
     if test "$darwin" = yes; then
 	SOTARGET="libgtk-server.dylib"
-	LDFLAGS="$LDFLAGS -dynamiclib"
+	LDFLAGS="${LDFLAGS} -dynamiclib"
     fi
 fi
 
@@ -4707,7 +4719,7 @@ _ACEOF
 #define GTK_SERVER_LIBRARY 1
 _ACEOF
 
-	LDFLAGS="$LDFLAGS -shared"
+	LDFLAGS="${LDFLAGS} -shared"
 	library=yes
 	 slang=yes
 fi
@@ -4728,7 +4740,7 @@ _ACEOF
 #define GTK_SERVER_LIBRARY 1
 _ACEOF
 
-	LDFLAGS="$LDFLAGS -shared"
+	LDFLAGS="${LDFLAGS} -shared"
 	library=yes
 	 scriptbasic=yes
 fi
@@ -4746,7 +4758,7 @@ if test "${enable_sb_source+set}" = set; then :
 	else
 	    sbsrc=$enableval
 	fi
-	 CFLAGS="$CFLAGS -I$sbsrc"
+	 CFLAGS="${CFLAGS} -I$sbsrc"
 fi
 
 
@@ -4757,8 +4769,8 @@ if test "${enable_ksh93+set}" = set; then :
 #define GTK_SERVER_KSH93 1
 _ACEOF
 
-	CFLAGS="$CFLAGS -Iksh93"
-	LDFLAGS="$LDFLAGS -shared -Lksh93 -lshell -ldll -lcmd -last"
+	CFLAGS="${CFLAGS} -Iksh93"
+	LDFLAGS="${LDFLAGS} -shared -Lksh93 -lshell -ldll -lcmd -last"
 	library=yes
 	 ksh93=yes
 fi
@@ -4772,7 +4784,7 @@ if test "${enable_ksh93_source+set}" = set; then :
 	else
 	    kshsrc=$enableval
 	fi
-	 CFLAGS="$CFLAGS -I$kshsrc"
+	 CFLAGS="${CFLAGS} -I$kshsrc"
 fi
 
 
@@ -4837,9 +4849,9 @@ fi
 # Always export local symbols
 if test "$CC" = gcc; then
     if test "$darwin" = yes || test "$solaris" = yes || test "$bsd" = yes; then
-	LDFLAGS="--export-dynamic $LDFLAGS"
+	LDFLAGS="--export-dynamic ${LDFLAGS}"
     else
-	LDFLAGS="-export-dynamic $LDFLAGS"
+	LDFLAGS="-export-dynamic ${LDFLAGS}"
     fi
 fi
 
@@ -4851,28 +4863,28 @@ if test "x$ac_cv_header_ffi_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define GTK_SERVER_FFI 1
 _ACEOF
- LDFLAGS="$LDFLAGS -lffi -ldl" ffi=yes
+ LDFLAGS="${LDFLAGS} -lffi -ldl" ffi=yes
 else
   ac_fn_c_check_header_mongrel "$LINENO" "avcall.h" "ac_cv_header_avcall_h" "$ac_includes_default"
 if test "x$ac_cv_header_avcall_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define GTK_SERVER_FFCALL 1
 _ACEOF
- LDFLAGS="$LDFLAGS -lavcall -ldl"	ffcall=yes
+ LDFLAGS="${LDFLAGS} -lavcall -ldl"	ffcall=yes
 else
   ac_fn_c_check_header_mongrel "$LINENO" "cinvoke.h" "ac_cv_header_cinvoke_h" "$ac_includes_default"
 if test "x$ac_cv_header_cinvoke_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define GTK_SERVER_CINV 1
 _ACEOF
- LDFLAGS="$LDFLAGS -lcinvoke -ldl" cinv=yes
+ LDFLAGS="${LDFLAGS} -lcinvoke -ldl" cinv=yes
 else
   ac_fn_c_check_header_mongrel "$LINENO" "dyncall.h" "ac_cv_header_dyncall_h" "$ac_includes_default"
 if test "x$ac_cv_header_dyncall_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define GTK_SERVER_DYNCALL 1
 _ACEOF
- LDFLAGS="$LDFLAGS -ldynload_s -ldyncall_s -ldl" dyncall=yes
+ LDFLAGS="${LDFLAGS} -ldynload_s -ldyncall_s -ldl" dyncall=yes
 else
   as_fn_error $? "Cannot compile - no foreign function headers found! Please check 'README.1ST' for details." "$LINENO" 5
 fi
@@ -4892,10 +4904,10 @@ fi
 # Check CC, options for GCC/TCC
 if test "$CC" = tcc
 then
-    CFLAGS="-DHASH_FUNCTION=HASH_JEN $CFLAGS"
+    CFLAGS="-DHASH_FUNCTION=HASH_JEN ${CFLAGS}"
     STRIP=touch
 else
-    CFLAGS="-pedantic $CFLAGS"
+    CFLAGS="-pedantic ${CFLAGS}"
     STRIP=strip
 fi
 
