@@ -1171,9 +1171,10 @@ else
 
 /* Return OK */
 if (sockfd >= 0) {
-    write (sockfd, "ok\n", strlen("ok\n"));
-    /* Close socket again */
-    close(sockfd);
+    if(write (sockfd, "ok\n", strlen("ok\n"))) {
+        /* Close socket again */
+        close(sockfd);
+    }
 }
 
 /* Wait 0.1 second before removing the pipe - :-) */
@@ -3224,9 +3225,9 @@ char *Call_Realize (char *inputdata, void* cinv_ctx)
 char *gtk_api_call;
 char *arg = NULL;			/* Temporary argument holders */
 PARSED *list;			/* This will contain the list with individual arguments */
-int i, j;
+int i = 0, j;
 BODY *macro;			/* Points to the body of an individual macro */
-BODY *Body_Last;		/* For gtk_server_macro_define */
+BODY *Body_Last = NULL;		/* For gtk_server_macro_define */
 char *buf;			/* Buffer needed to construct calls in macros */
 PARSED *command;		/* Contains the macro textlines */
 char* sym = NULL;		/* Contains individual symbols on a line in a macro */
@@ -3237,7 +3238,7 @@ MACRO_ASSOC *M_Assocs;		/* Struct to define Macro Assocs */
 ENUM *Enum_Found;
 STR *Str_Found;
 int macro_found = 0;		/* Needed for MACRO arg type */
-char *retstr;			/* Result holder */
+char *retstr = NULL;		/* Result holder */
 char buffer[MAX_LEN];		/* Buffer to keep macro redefinitions */
 char pack[MAX_LEN];		/* Buffer to keep memory layouts for gtk_server_pack */
 char *unpack;                   /* Pointer to keep binary data for gtk_server_unpack */
@@ -5145,7 +5146,7 @@ if (inputdata != NULL) {
 				if(*buf == 36 && *(buf+1) > 96 && *(buf+1) < 123){
 				    M_Assocs = (MACRO_ASSOC*)malloc(sizeof(MACRO_ASSOC));
 				    /* Save the assoc'ed value */
-				    strncpy(M_Assocs->assoc, Macro_Found->var[*(buf+1) - 97], LONG_SIZE+1);
+				    strncpy(M_Assocs->assoc, Macro_Found->var[*(buf+1) - 97], LONG_SIZE);
 				    /* Determine key */
 				    M_Assocs->key = strdup(Macro_Found->var[*sym - 97]);
 				    /* Add to hash table */
@@ -5157,7 +5158,7 @@ if (inputdata != NULL) {
 				if(*buf == 36 && *(buf+1) > 96 && *(buf+1) < 123){
 				    M_Assocs = (MACRO_ASSOC*)malloc(sizeof(MACRO_ASSOC));
 				    /* Save the assoc'ed value */
-				    strncpy(M_Assocs->assoc, Macro_Found->var[*(buf+1) - 97], LONG_SIZE+1);
+				    strncpy(M_Assocs->assoc, Macro_Found->var[*(buf+1) - 97], LONG_SIZE);
 				    /* Determine key */
 				    M_Assocs->key = strdup(Macro_Found->args[*sym - 48]);
 				    /* Add to hash table */
@@ -5336,7 +5337,7 @@ CONFIG *Gtk_Api_Config;
 /* Define list for macro definitions */
 MACRO *Macro_Defs;
 BODY *Body_Text;
-BODY *Body_Last;
+BODY *Body_Last = NULL;
 /* Define list for enum definitions */
 ENUM *Enum_Defs;
 STR *Str_Defs;
@@ -5357,7 +5358,7 @@ struct sockaddr_in my_addr;             /* my address information */
 struct sockaddr_in their_addr;		/* connector's address information (UDP) */
 int new_fd;
 int yes = 1;
-int numbytes, page;
+int numbytes = 0, page;
 char buf[MAX_LEN];			/* Buffer containing data from socket */
 
 #ifdef GTK_SERVER_USE_SSL
