@@ -5363,7 +5363,7 @@ char buf[MAX_LEN];			/* Buffer containing data from socket */
 
 #ifdef GTK_SERVER_USE_SSL
 SSL_CTX *ctx;
-SSL *ssl;
+SSL *ssl = NULL;
 BIO *sbio;
 #endif
 
