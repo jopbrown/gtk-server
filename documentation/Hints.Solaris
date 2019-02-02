@@ -1,0 +1,28 @@
+--------------------------------------
+
+Hints to install GTK-server on OpenSolaris 2008.11
+
+1) Compile and install 'pkg-config' from http://pkg-config.freedesktop.org/wiki/
+2) Add '/usr/local/bin' to PATH
+3) Set the PKG_CONFIG_PATH to the directory with GTK configuration files:
+
+    export PKG_CONFIG_PATH=/usr/lib/pkgconfig/
+
+4) Install FFI using packagemanager
+
+5) Set the environment variable CPPFLAGS to the location of the FFI headerfiles prior
+    to running the configure-script:
+
+    export CPPFLAGS=-I/usr/lib/libffi-3.0.5/include
+
+6) pkg install SUNWxwinc SUNWxorg-headers
+
+7) If compilation of GTK-server as shared object is required, run the configure-script with the
+    optional argument '--enable-library':
+
+    ./configure --<your other options> --enable-library
+
+--------------------------------------
+
+After the configurescript has completed sucessfully, run 'make' and 'make install' to compile and
+install the GTK-server.

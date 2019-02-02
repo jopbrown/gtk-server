@@ -1,0 +1,319 @@
+----------------------------------------------------------
+Introduction
+----------------------------------------------------------
+
+This is the GTK-server. The GTK-server is a small tool
+to enable GUI access for shell scripts and interpreted
+programming languages.
+
+It offers a stream-oriented interface which uses the
+S-expression syntax. Please consult the manpages and
+demonstration programs for details.
+
+----------------------------------------------------------
+Force compilation with GTK
+----------------------------------------------------------
+
+To compile, change to the 'src' subdirectory first.
+
+Then run './configure'.
+
+If you have trouble detecting GTK3 with './configure', please try
+to run the './configure'-script with the following option:
+
+./configure --with-gtk3
+
+Similarly, compilation with GTK2 or GTK1 can be forced as well:
+
+./configure --with-gtk2
+./configure --with-gtk1
+
+The default installation procedure will try to install all
+versions of GTK-server.
+
+The script 'select-gtk-server' can be used to select the active
+GTK-server. It  needs to be executed as 'root' and will create 
+a symlink called 'gtk-server' to the correct binary.
+
+You can test if compilation and installation was successfull by
+trying the following:
+
+GTK3:
+echo screensaver3 | gtk-server -stdin
+
+GTK2:
+echo screensaver | gtk-server -stdin
+
+XForms:
+echo xscreensaver | gtk-server -stdin
+
+----------------------------------------------------------
+Shared Object, S-Lang, ScriptBasic, Kornshell93
+----------------------------------------------------------
+
+To compile the GTK-server as a shared object, run the
+configure script as follows:
+
+./configure --enable-library
+
+To compile the GTK-server as a module for S-Lang, install
+S-Lang first and then run the configure script as follows:
+
+./configure --enable-slang
+
+To compile the GTK-server as a module for ScriptBasic,
+copy the SciptBasic sourcedirectory into the "scriptbasic"
+subdirectory of your GTK-server installation. Then run:
+
+./configure --enable-scriptbasic --libdir=/usr/local/lib/scriba --includedir=/usr/share/scriba/include
+
+Adjust the locations to the situation of your system.
+
+To compile the GTK-server as a module for Kornshell93, download
+the Kornshell Development Kit (KDK) from www.kornshell.com, copy the
+header files and the static libraries into the ksh93 subdirectory, then
+run the configure script as follows:
+
+./configure --enable-ksh93
+
+----------------------------------------------------------
+Foreign Function Interfaces
+----------------------------------------------------------
+
+Starting from GTK-server 2.0, a Foreign Function interface
+is required. Four interfaces are supported (but you only
+need one of these for the GTK-server).
+
+
+1) Foreign Function Call library (FFCALL)
+
+The FFCALL library also has been ported to many platforms.
+The canonical website for FFCALL is:
+
+http://www.haible.de/bruno/packages-ffcall.html
+
+The latest package can also be obtained from
+www.gtk-server.org in the section 'Download'.
+
+
+2) C/Invoke (CINV)
+
+Homepage of C/Invoke:
+
+http://www.nongnu.org/cinvoke/
+
+The latest package can also be obtained from
+www.gtk-server.org in the section 'Download'.
+
+
+3) Foreign Function Interface library (FFI)
+
+The FFI library has been ported to many platforms. It is
+part of GCC since version 3.x and should be available
+in most modern Linux distributions. More info about FFI
+can be found here:
+
+http://sourceware.org/libffi/
+
+The latest package can also be obtained from
+www.gtk-server.org in the section 'Download'.
+
+
+4) DynCall (DYNCALL)
+
+Homepage of DynCall:
+
+http://dyncall.org/
+
+The latest package can also be obtained from
+www.gtk-server.org in the section 'Download'.
+
+
+First install FFI, FFCALL, CINV or DYNCALL, after which
+compilation of the GTK-server should be successfull.
+
+----------------------------------------------------------
+Other backend - XForms
+----------------------------------------------------------
+
+If you do not have GTK on your system, or you think
+the installbase for GTK is too big, it is possible
+to use the GTK-server with XForms instead (only possible
+with Linux/Unix/BSD).
+
+To compile with XForms, run:
+
+./configure --with-xforms
+
+All GTK and Glade support will be disabled.
+
+The latest version of the XForms library can be
+obtained from:
+
+http://savannah.nongnu.org/projects/xforms/
+
+Unoffical XForms package patched by me so it compiles
+with newer GCC versions can be obtained from
+www.gtk-server.org in the section 'Download'.
+
+----------------------------------------------------------
+Other backend - Console
+----------------------------------------------------------
+
+If there is no graphical backend on your machine, it is possible
+to compile the GTK-server for console:
+
+./configure --with-console
+
+The GTK-server will not have a dependency to any X-related
+library but is able to use console-based libraries like
+nCurses.
+
+----------------------------------------------------------
+Other compiler
+----------------------------------------------------------
+
+The GTK-server can be compiled with the Tiny C Compiler
+also. Homepage of this compiler: http://bellard.org/tcc/
+
+This allows fast compilation on small or slow machines.
+
+TCC version 0.9.24 was tested successfully.
+
+In order to compile with the Tiny C Compiler, first
+set the environment variable 'CC' and then run the
+configure script.
+
+So first:
+
+export CC=tcc
+
+
+Then run:
+
+./configure <...options...>
+
+
+Please note that compiling the GTK-server as a shared object with
+TCC delivers an unusable library. From the TCC documentation:
+
+"Dynamic ELF libraries can be output but the C compiler does not
+generate position independent code (PIC). It means that the dynamic
+library code generated by TCC cannot be factorized among processes
+yet."
+
+----------------------------------------------------------
+Testing SSL
+----------------------------------------------------------
+
+The GTK-server can handle SSL connections when it runs in
+'-sock' mode.
+
+The SSL library should be available on your system in order
+to compile with support for SSL.
+
+To troubleshoot SSL problems, the following procedure can
+be performed.
+
+1) Create a key file.
+===> openssl genrsa -out server.key 1024
+
+2a) Optionally, create CSR file - send it to some commercial Certificate Authority.
+Use returned certificate to create PEM file at step (3).
+===> openssl req -new -key server.key -out server.csr
+
+2b) Or create a self-signed certificate. Make sure 'Common Name', this MUST be your hostname!
+If not using Certificate Authority use this self-signed certificate to create PEM file at step (3).
+===> openssl req -x509 -new -days 3650 -key server.key -out server.crt
+
+3) Create the final PEM file
+===> cat server.key server.crt > server.pem
+
+
+
+*** Test verification of the remote certificate. ***
+
+1) Start an SSL server.
+===> openssl s_server -cert server.pem
+
+2) Start GTK-server in other shell.
+===> gtk-server -sock=localhost:4433 -ca=server.pem -log=/tmp/log.txt
+
+Now, in the SSL server, start typing GTK commands.
+
+
+*** Test verification of my local certificate. ***
+
+1) Start an SSL server.
+===> openssl s_server -CAfile server.pem -Verify 5
+
+2) Start GTK-server in other shell.
+===> gtk-server -sock=localhost:4433 -ssl=server.pem -log=/tmp/log.txt
+
+Now, in the SSL server, start typing GTK commands.
+
+If the key in the certificate is encrypted, optionally the GTK-server
+can be started with the password to decrypt it:
+
+gtk-server -sock=localhost:4433 -ssl=server.pem -password=passwd -log=/tmp/log.txt
+
+
+*** Test SSL using 'stunnel' ***
+
+1) Edit the 'stunnel.conf' file as follows:
+
+[sdemo]
+accept  = 50001
+; connect = 60000
+exec = /some/dir/gtk-server/demo-gtk/demo-sock.bash
+execargs = demo-sock.bash
+
+2) Start stunnel: stunnel /etc/stunnel/stunnel.conf
+
+3) Run GTK-server in SSL mode: gtk-server -sock=localhost:50001 -ssl -nodetach
+
+4) Comment 'exec' and 'execargs', uncomment 'connect'. Restart stunnel.
+
+5) Start the 'demo-sock.lsp' demoprogram, it listens to port 60000
+
+3) Run GTK-server in SSL mode: gtk-server -sock=localhost:50001 -ssl -nodetach
+
+----------------------------------------------------------
+Recommended configure flags for your platform
+----------------------------------------------------------
+
+./configure --prefix=/usr --sysconfdir=/etc
+
+This will put the GTK-server binary into '/usr/bin', the
+GTK-server library into '/usr/lib' and the default configfile
+into '/etc' .
+
+Please combine with any of the other flags mentioned
+above, if needed.
+
+The 'build' script will configure, compile and install the
+GTK-server with these recommended options.
+
+----------------------------------------------------------
+License
+----------------------------------------------------------
+
+The UTHASH library was released under the BSD license.
+Visit the UTHASH homepage for details:
+
+https://troydhanson.github.io/uthash/
+
+Formerly:
+http://uthash.sourceforge.net/
+
+
+The GTK-server is released under the GPL license.
+Visit the GTK-server site for details:
+
+http://www.gtk-server.org/
+
+
+Greetings
+Peter van Eerten
+
+----------------------------------------------------------

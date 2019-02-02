@@ -1,0 +1,132 @@
+#---------------------------------------------------------------------------
+#
+#  HHHHHHHHH     HHHHHHHHHUUUUUUUU     UUUUUUUU       GGGGGGGGGGGGG
+#  H:::::::H     H:::::::HU::::::U     U::::::U    GGG::::::::::::G
+#  H:::::::H     H:::::::HU::::::U     U::::::U  GG:::::::::::::::G
+#  HH::::::H     H::::::HHUU:::::U     U:::::UU G:::::GGGGGGGG::::G
+#    H:::::H     H:::::H   U:::::U     U:::::U G:::::G       GGGGGG
+#    H:::::H     H:::::H   U:::::D     D:::::UG:::::G
+#    H::::::HHHHH::::::H   U:::::D     D:::::UG:::::G
+#    H:::::::::::::::::H   U:::::D     D:::::UG:::::G    GGGGGGGGGG
+#    H:::::::::::::::::H   U:::::D     D:::::UG:::::G    G::::::::G
+#    H::::::HHHHH::::::H   U:::::D     D:::::UG:::::G    GGGGG::::G
+#    H:::::H     H:::::H   U:::::D     D:::::UG:::::G        G::::G
+#    H:::::H     H:::::H   U::::::U   U::::::U G:::::G       G::::G
+#  HH::::::H     H::::::HH U:::::::UUU:::::::U  G:::::GGGGGGGG::::G
+#  H:::::::H     H:::::::H  UU:::::::::::::UU    GG:::::::::::::::G
+#  H:::::::H     H:::::::H    UU:::::::::UU        GGG::::::GGG:::G
+#  HHHHHHHHH     HHHHHHHHH      UUUUUUUUU             GGGGGG   GGGG
+#
+#---------------------------------------------------------------------------
+
+This is some documentation for the High-level Universal GUI (HUG).
+
+HUG was created to provide elementary access to GTK widgets without needing
+a lot of code in a client script to achieve this. With HUG it is possible
+to create userinterfaces and also to have access to graphical functions. 
+
+For GTK3, the macro prefix has changed to "m_".
+
+#==========================================================================================================================================================================================
+# Widgets
+#==========================================================================================================================================================================================
+
+m_window "title" xsize ysize			: Define a new window.
+m_button "label" xsize ysize [toggle]		: Define a button. If optional [toggle] unequal 0 then button is a togglebutton.
+m_stock "stock-label" xsize ysize		: Define a stock button.
+m_check "label" xsize ysize			: Define a checkbutton.
+m_radio "label" xsize ysize group		: Define a radiobutton.
+m_entry "text" xsize ysize			: Define a text entry.
+m_password xsize ysize				: Define a password entry.
+m_label "text" xsize ysize xalign yalign [max]  : Define a label. xalign=0=left, 0.5=middle, 1=right. yalign=0=up, 0.5=middle, 1=down. Optional max characters.
+m_combo "text" xsize ysize			: Define a droplist.
+m_hseparator xsize				: Define a horizontal separator.
+m_vseparator ysize				: Define a vertical separator.
+m_frame xsize ysize				: Define a frame.
+m_text xsize ysize				: Define a multiline text.
+m_list xsize ysize				: Define a multiline list widget.
+m_dialog "title" "text" xsize ysize		: Define a dialog. Notes: if the dialogID occurs as event, it means button or window was clicked
+
+#==========================================================================================================================================================================================
+# Graphical stuff for GTK3
+#==========================================================================================================================================================================================
+
+m_canvas xsize ysize [color]			: Define a drawing canvas. Notes: color is optional, default=white. Default canvas is last one created.
+m_draw canvas					: Define the default canvas where we are drawing
+m_circle color x y xsize ysize fill		: Draw a circle on a canvas.
+m_pixel color x y				: Draw a pixel on a canvas.
+m_line color xstart ystart xend yend		: Draw a line on a canvas.
+m_square color x y xsize ysize fill		: Draw a rectangle on a canvas.
+m_out "text" fgcolor bgcolor x y		: Draw some text on a canvas.
+m_image "file"					: Load a picture from a file into a canvas
+
+#==========================================================================================================================================================================================
+# Methods (setting and getting properties)
+#==========================================================================================================================================================================================
+
+m_bgcolor widget color [state] ...		: Set background color of widget for a state. Color example: "#00FF00" or "Red". States are NORMAL (default), ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
+m_fgcolor widget color [state] ...		: Set foreground color of widget for a state. Color example: "#00FFA0" or "Yellow". States are NORMAL (default), ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
+m_textcolor widget color [state] ...		: Set textcolor of widget for a state. Color example "#BB0000" or "Blue". States are NORMAL (default), ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
+m_basecolor widget color [state] ...		: Set baseground color of widget for a state. Color example "#12EE11" or "Green". States are NORMAL (default), ACTIVE, PRELIGHT, SELECTED, INSENSITIVE
+
+m_button_text widget text			: Set text into button
+m_radio_text widget text			: Set text into radiobutton
+m_check_text widget text			: Set text into checkbutton
+m_window_text widget text			: Set text into titlebar of window
+m_entry_text widget text			: Set text into entry widget
+m_password_text widget text			: Set text into password widget
+m_label_text widget text			: Set text of label
+m_combo_text widget text			: Add a line of text to combobox
+m_frame_text widget text			: Set text of frame
+m_text_text widget text				: Set text into a multiline text widget. Note: not more than 1024 chars at once.
+m_list_text widget text				: Add text to a list widget. Note: not more than 1024 chars at once. Empty text empties list.
+
+m_button_grab widget				: Get text from button
+m_radio_grab widget				: Get text from radiobutton
+m_check_grab widget				: Get text from checkbutton
+m_window_grab widget				: Get text from titlebar of window
+m_entry_grab widget				: Get text from entry widget
+m_password_grab widget				: Get text from password widget
+m_label_grab widget				: Get text from label
+m_combo_grab widget				: Get active line of text from combobox
+m_frame_grab widget				: Get text from frame
+m_text_grab widget				: Get text from multine text widget
+m_list_grab widget				: Get current selected text from list widget
+
+m_button_get widget				: Get status of button, in case of a togglebutton
+m_check_get widget				: Get status of checkbutton
+m_radio_get widget				: Get status of radiobutton
+m_combo_get wiget				: Get indexnr of currently selected text
+m_text_get widget				: Get amount of lines in multiline text widget
+m_list_get widget				: Get current selected linenumber of list widget
+
+m_button_set widget value			: Set the button, in case of a togglebutton: 0=normal, 1=pressed
+m_check_set widget value			: Set the checkbutton: 0=normal, 1=selected
+m_radio_set widget value			: Set the radiobutton: 0=normal, 1=selected
+m_combo_set widget indexnr			: Select this line of the combobox
+m_text_set widget linenr			: Scroll the multiline text widget to this linenr
+m_list_set widget nr				: Select this line in list widget
+
+m_font widget font				: Set font in widget. Font examples: "Arial 15", "Luxi Mono 12".
+
+#==========================================================================================================================================================================================
+# Generic functions
+#==========================================================================================================================================================================================
+
+m_attach window widget x y			: Attach a widget on a parent Window at x,y
+
+m_focus widget					: Give focus to widget
+m_unfocus widget				: Disable focus on widget
+
+m_disable widget				: Disable widget
+m_enable widget					: Enable widget
+m_hide widget					: Hide widget
+m_show widget					: Show widget
+
+m_key						: Get last key pressed on keyboard
+m_mouse arg					: Get mouse info. Notes: arg = 0 = x_coordinate, arg = 1 = y_coordinate, arg = 2 = button, arg = 3 = wheel
+
+m_event [arg]					: Wait for an event. Note: if argument is provided, this call returns immediately.
+m_timeout widget milliseconds			: Setup a timeout while waiting for an event. The timeout connects to the 'show'-signal belonging to a widget.
+						    Note: can be changed to another timeout value during runtime
+m_end						: Cleanup and exit HUG.

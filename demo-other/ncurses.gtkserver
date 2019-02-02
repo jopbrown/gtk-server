@@ -1,0 +1,69 @@
+#!/usr/bin/gtk-server -this
+#---------------------------------------------------------------------
+#
+# Using the GTK-server you can also run a standalone program.
+#
+# This program can be run in console and executed with GTK-server
+#   compiled in console-mode.
+#
+# Run this file as follows:
+#
+#	gtk-server -cfg=ncurses.gtkserver -start=ncurses
+#
+# or:
+#	./ncurses.gtkserver
+#
+#
+# Console based GUI's with nCurses! Based upon newLisp example by nodep.
+# December 2008, PvE - tested with GTK-server 2.3.1 on Linux. GPL.
+#
+#---------------------------------------------------------------------
+
+FUNCTION_NAME = initscr, NONE, WIDGET, 0
+FUNCTION_NAME = newwin, NONE, WIDGET, 4, INT, INT, INT, INT
+FUNCTION_NAME = delwin, NONE, INT, 1, WIDGET
+FUNCTION_NAME = box, NONE, INT, 3, WIDGET, INT, INT
+FUNCTION_NAME = endwin, NONE, INT, 0
+FUNCTION_NAME = wrefresh, NONE, INT, 1, WIDGET
+FUNCTION_NAME = wgetch, NONE, INT, 1, WIDGET
+FUNCTION_NAME = mvwprintw, NONE, INT, 5, WIDGET, INT, INT, STRING, STRING
+FUNCTION_NAME = printf, NONE, NONE, 1, STRING
+
+#---------------------------------------------------------------------
+
+MACRO ncurses
+
+# Open Ncurses library
+$ncurses : gtk_server_require libncurses.dylib
+$ncurses COMPARE ok
+$z EMPTY 6
+$ncurses : gtk_server_require libncurses.so
+$ncurses COMPARE ok
+$z EMPTY 3
+printf "'No NCurses library found on this system! Exiting...\n'"
+gtk_server_exit
+
+initscr
+$win : newwin 3 80 0 0
+box $win 0 0
+mvwprintw $win 1 1 "%s" "'Hello world!!!'"
+wrefresh $win
+wgetch $win
+delwin $win
+endwin
+
+# Exit GTK-server
+gtk_server_exit
+
+ENDMACRO
+
+#---------------------------------------------------------------------
+# Define 'main' if we run from a shebang
+
+MACRO main
+
+ncurses
+
+ENDMACRO
+
+#---------------------------------------------------------------------

@@ -1,0 +1,347 @@
+#!/bin/bash
+#
+# Script to generate configfile for GTK-server
+#
+# Use at own risk. 
+# PvE - GPL.
+#
+# April 2008:	initial release (GTK 2.10)
+#----------------------------------------------------------------------------
+
+TMPDIR=/tmp
+CFG=gtk-server.cfg
+
+# Check on arguments
+if [[ $1 = "-?" || $1 = "-h" || $1 = "-help" ]]
+then
+    echo
+    echo "Usage: gen_config <gtk or gdk header file(s)>"
+    echo
+    echo "Examples:"
+    echo "  gen_config /usr/include/gtk-2.0/gtk/gtk.h"
+    echo "  gen_config /usr/include/gtk-2.0/gtk/gtk.h /usr/include/gtk-2.0/gdk/gdk.h"
+    echo
+    exit 1
+fi
+
+# Check if configfile already exists
+if [[ -f $CFG ]]
+then
+    read -p "Overwrite existing configfile (y/n)? " ANSWER
+    if [[ $ANSWER = "n" || $ANSWER = "N" ]]
+    then
+	exit 0
+    fi
+fi
+
+# Create empty GTK-server configfile
+echo "#" > $CFG
+echo "# Automagically generated at `date`." >> $CFG
+echo "#" >> $CFG
+echo "LIB_NAME = libgtk-x11-2.0.so" >> $CFG
+echo "LIB_NAME = libgdk-x11-2.0.so" >> $CFG
+echo "LIB_NAME = libglib-2.0.so" >> $CFG
+echo "LIB_NAME = libgobject-2.0.so" >> $CFG
+echo "LIB_NAME = libatk-1.0.so" >> $CFG
+echo "LIB_NAME = libpango-1.0.so" >> $CFG
+echo "LIB_NAME = libgdk_pixbuf_xlib-2.0.so" >> $CFG
+echo "LIB_NAME = libglade-2.0.so" >> $CFG
+
+# Add GTK-server internal calls
+echo "#" >> $CFG
+echo "# GTK-server internal calls, used in language bindings" >> $CFG
+echo "#" >> $CFG
+echo "FUNCTION_NAME = gtk_server_version, NONE, STRING, 0" >> $CFG
+echo "FUNCTION_NAME = gtk_server_ffi, NONE, STRING, 0" >> $CFG
+echo "FUNCTION_NAME = gtk_server_toolkit, NONE, STRING, 0" >> $CFG
+echo "FUNCTION_NAME = gtk_server_os, NONE, STRING, 0" >> $CFG
+echo "FUNCTION_NAME = gtk_server_callback, NONE, STRING, 1, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_callback_value, NONE, STRING, 2, STRING, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_connect, NONE, STRING, 3, STRING, STRING, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_connect_after, NONE, STRING, 3, STRING, STRING, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_disconnect, NONE, STRING, 0" >> $CFG
+echo "FUNCTION_NAME = gtk_server_enable_c_string_escaping, NONE, STRING, 0" >> $CFG
+echo "FUNCTION_NAME = gtk_server_disable_c_string_escaping, NONE, STRING, 0" >> $CFG
+echo "FUNCTION_NAME = gtk_server_set_c_string_escaping, NONE, STRING, 1, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_mouse, NONE, STRING, 1, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_define, NONE, STRING, 1, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_redefine, NONE, STRING, 1, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_require, NONE, STRING, 1, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_timeout, NONE, STRING, 3, STRING, STRING, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_timeout_remove, NONE, STRING, 1, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_echo, NONE, STRING, 1, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_cfg, NONE, STRING, 1, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_exit, NONE, NONE, 0" >> $CFG
+echo "FUNCTION_NAME = gtk_server_pid, NONE, STRING, 0" >> $CFG
+echo "FUNCTION_NAME = gtk_server_key, NONE, STRING, 0" >> $CFG
+echo "FUNCTION_NAME = gtk_server_macro_var, NONE, STRING, 2, STRING, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_macro_define, NONE, STRING, 1, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_macro_redefine, NONE, STRING, 1, STRING" >> $CFG
+echo "FUNCTION_NAME = gtk_server_opaque, NONE, STRING, 0" >> $CFG
+
+# No header file as argument? Exit
+if [[ $# -eq 0 ]]
+then
+    echo
+    echo "Preliminary configfile 'gtk-server.cfg' created."
+    echo
+    echo "Please run this script with the -h argument to see full usage!"
+    echo
+    exit
+fi
+
+# Total amount of files to be parsed
+TOTAL=""
+
+# Start parsing file
+while [[ -n $1 ]]
+do
+    # Get directory of headerfile
+    DIR=${1%/*}
+
+    # Also the file itself should be parsed
+    FILES="${1##*/}"
+
+    # Find other includes
+    while read LINE
+    do
+	if [[ $LINE = *\<gtk/* || $LINE = *\<gdk/* ]]
+	then
+	    LINE=${LINE#*/}
+	    # Can we read the file?
+	    if [[ -f $DIR/${LINE%>} ]]
+	    then
+		FILES=$FILES" "${LINE%>}
+	    fi
+	fi
+    done < $1
+
+    # Preserve total
+    TOTAL=$TOTAL" "$FILES
+
+    # Now parse the header files
+    for I in $FILES
+    do
+	echo "Parsing $I, please wait..."
+	awk 'BEGIN  {
+			flag = 0
+			in_comment = 0
+			in_struct = 0
+			in_body = 0
+		    }
+
+	/\/\*/	    {
+			in_comment = 1
+		    }
+
+	/\*\//	    {
+			in_comment = 0
+			next
+		    }
+
+	/struct/    {
+			in_struct = 1
+		    }
+
+	/{/	    {
+			if(in_struct) in_body = 1
+		    }
+
+	/}/	    {
+			if(in_struct) {
+			    in_body = 0
+			    in_struct = 0
+			}
+		    }
+
+	/;/	    {
+			if (in_struct && !in_body) in_struct = 0
+		    }
+
+	/[\t *]gtk_/ {
+			if ($1 !~ /gtk_/ && !in_struct && !in_comment && $0 !~ "#" && $0 !~ /^GType/ && $0 ~ /\(/) {
+			    if($0 !~ ";") {
+				flag = 1
+				printf $0
+			    }
+			    else print $0
+			}
+			next
+		    }
+
+	/[\t *]gdk_/ {
+			if ($1 !~ /gdk_/ && !in_struct && !in_comment && $0 !~ "#" && $0 !~ /^GType/ && $0 ~ /\(/) {
+			    if($0 !~ ";") {
+				flag = 1
+				printf $0
+			    }
+			    else print $0
+			}
+			next
+		    }
+
+		    {
+			if(flag) {
+			    if ($0 ~ ";") {
+				flag=0
+				print
+			    }
+			    else printf $0
+			}
+		    }' $DIR/$I > $TMPDIR/$I
+    done
+
+    # Get the next headerfile
+    shift
+
+done
+
+# Now generate GTK-server configfile
+for I in $TOTAL
+do
+    # Write some comments
+    echo "#" >> $CFG
+    echo "# "$I >> $CFG
+    echo "#" >> $CFG
+    # Generate prototypes
+    awk 'BEGIN {
+	    FS="[ \t(]+"
+	}
+
+	{
+	    # Extract the function name
+	    if ($2 ~ "gtk_" || $2 ~ "gdk_") {
+		if ($2 ~ /\*\*/) printf "FUNCTION_NAME = " substr($2, 3) ", NONE"
+		else if ($2 ~ /\*/) printf "FUNCTION_NAME = " substr($2, 2) ", NONE"
+		else printf "FUNCTION_NAME = " $2 ", NONE"
+		rest = substr($0, index($0, $3))
+	    }
+	    else if ($3 ~ "gtk_" || $3 ~ "gdk_") {
+		if ($3 ~ /\*\*/) printf "FUNCTION_NAME = " substr($3, 3) ", NONE"
+		else if ($3 ~ /\*/) printf "FUNCTION_NAME = " substr($3, 2) ", NONE"
+		else printf "FUNCTION_NAME = " $3 ", NONE"
+		rest = substr($0, index($0, $4))
+	    }
+	    else if ($4 ~ "gtk_" || $4 ~ "gdk_") {
+		if ($4 ~ /\*\*/) printf "FUNCTION_NAME = " substr($4, 3) ", NONE"
+		else if ($4 ~ /\*/) printf "FUNCTION_NAME = " substr($4, 2) ", NONE"
+		else printf "FUNCTION_NAME = " $4 ", NONE"
+		rest = substr($0, index($0, $5))
+	    }
+	    else if ($5 ~ "gtk_" || $5 ~ "gdk_") {
+		if ($5 ~ /\*\*/) printf "FUNCTION_NAME = " substr($5, 3) ", NONE"
+		else if ($5 ~ /\*/) printf "FUNCTION_NAME = " substr($5, 2) ", NONE"
+		else printf "FUNCTION_NAME = " $5 ", NONE"
+		rest = substr($0, index($0, $6))
+	    }
+
+	    # Get the returnvalue
+	    if ($1 ~ "Gtk" && ($1 ~ "*" || $2 ~ "*")) printf ", WIDGET"
+	    else if ($1 ~ "Gdk" && ($1 ~ "*" || $2 ~ "*")) printf ", WIDGET"
+	    else if ($1 ~ "Pango" && ($1 ~ "*" || $2 ~ "*")) printf ", WIDGET"
+	    else if ($1 ~ "void" || $2 ~ "void") printf ", NONE"
+	    else if ($1 ~ "gboolean" || $2 ~ "gboolean") printf ", BOOL"
+	    else if ($1 ~ "float" || $2 ~ "float") printf ", FLOAT"
+	    else if ($1 ~ "double" || $2 ~ "double") printf ", DOUBLE"
+	    else if ($1 ~ "char" || $2 ~ "char") printf ", STRING"
+	    else if ($1 ~ "int" || $2 ~ "int") printf ", INT"
+	    else if ($1 ~ "long" || $2 ~ "int") printf ", LONG"
+	    else if ($1 ~ "G" || $2 ~ "G") printf ", INT"
+	    else if ($1 ~ "time" || $2 ~ "time") printf ", LONG"
+	    else if ($1 ~ "cairo" || $2 ~ "cairo") printf ", WIDGET"
+	    else printf ", NONE"
+
+	    # Replace commas for spaces and count arguments
+	    amount = split(rest, args, ",")
+
+	    if (args[1] ~ "void") {
+		printf ", 0"
+	    }
+	    else {
+		total = amount
+		for (i=1; i<=amount; i++) {
+		    if (args[i] ~ /\.\.\./) total+=2
+		    else if (args[i] ~ /[0123456789]/ && args[i] !~ /guint32/) total-=1
+		}
+		printf ", " total
+	    }
+
+	    # Now generate argument types, order below is important
+	    for (i=1; i<=amount; i++) {
+		gsub(/[\t ]/, "", args[i])
+		if (args[i] ~ "Gtk" && args[i] ~ "*") printf ", WIDGET"
+		else if (args[i] ~ "Gtk" && args[i] !~ "*") printf ", INT"
+		else if (args[i] ~ "Gdk" && args[i] ~ "*") printf ", WIDGET"
+		else if (args[i] ~ "Gdk" && args[i] !~ "*") printf ", INT"
+		else if (args[i] ~ "Pango" && args[i] ~ "*") printf ", WIDGET"
+		else if (args[i] ~ "Pango" && args[i] !~ "*") printf ", INT"
+		else if (args[i] ~ /\*\*/) printf ", NULL"
+		else if (args[i] ~ "char") printf ", STRING"
+		else if (args[i] ~ "float" && args[i] ~ "*") printf ", PTR_FLOAT"
+		else if (args[i] ~ "float" && args[i] !~ "*") printf ", FLOAT"
+		else if (args[i] ~ "double" && args[i] ~ "*") printf ", PTR_DOUBLE"
+		else if (args[i] ~ "double" && args[i] !~ "*") printf ", DOUBLE"
+		else if (args[i] ~ "boolean") printf ", BOOL"
+		else if (args[i] ~ "int" && args[i] ~ "*") printf ", PTR_INT"
+		else if (args[i] ~ "int" && args[i] !~ "*") printf ", INT"
+		else if (args[i] ~ "long" && args[i] ~ "*") printf ", PTR_LONG"
+		else if (args[i] ~ "long" && args[i] !~ "*") printf ", LONG"
+		else if (args[i] ~ "time" && args[i] ~ "*") printf ", PTR_LONG"
+		else if (args[i] ~ "time" && args[i] !~ "*") printf ", LONG"
+		else if (args[i] ~ "cairo" && args[i] ~ "*") printf ", PTR_WIDGET"
+		else if (args[i] ~ "cairo" && args[i] !~ "*") printf ", WIDGET"
+		else if (args[i] ~ "GError") printf ", NULL"
+		else if (args[i] ~ /\.\.\./) printf ", STRING, INT, NULL"
+		else if (args[i] ~ "G" && args[i] ~ "*") printf ", WIDGET"
+		else if (args[i] ~ "G" && args[i] !~ "*") printf ", INT"
+		else if (args[i] ~ "g" && args[i] ~ "*") printf ", PTR_INT"
+		else if (args[i] ~ "g" && args[i] !~ "*") printf ", INT"
+		else if (args[i] !~ "void" && args[i] !~ /[0123456789]/) printf args[i]
+	    }
+
+	    # New line
+	    print ""
+
+	}' $TMPDIR/$I >> $CFG
+done
+
+# Merge
+read -p "Merge with existing configfile (y/n)? " ANSWER
+if [[ $ANSWER = "y" ]]
+then
+    read -p "Location and name of existing configfile...[/etc/gtk-server.cfg]? " ANSWER
+    if [[ -z $ANSWER ]]
+    then
+	ANSWER=/etc/gtk-server.cfg
+    fi
+    if [[ ! -f $ANSWER ]]
+    then
+	echo "The configuration file does not exist!"
+    else
+	echo "Merging, please wait..."
+	GTK=`awk '/FUNCTION_NAME/ {print $3}' $CFG`
+	while read LINE
+	do
+	    if [[ $LINE = *FUNCTION_NAME* ]]
+	    then
+		FOUND=0
+		if [[ $GTK = *`echo $LINE | cut -d' ' -f3`* ]]
+		then
+		    FOUND=1
+		fi
+		if [[ $FOUND -eq 0 ]]
+		then
+		    echo $LINE >> $CFG
+		fi
+	    fi
+	done < $ANSWER
+    fi
+    echo "New configfile $CFG merged with $ANSWER."
+else
+    echo "Preliminary configfile 'gtk-server.cfg' created."
+fi
+
+# Cleanup
+rm -f $TMPDIR/*.h
+
+exit 0

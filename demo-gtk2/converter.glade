@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
+<!--Generated with glade3 3.4.1 on Fri Oct 10 14:49:46 2008 -->
+<glade-interface>
+  <widget class="GtkWindow" id="window">
+    <property name="visible">True</property>
+    <property name="title" translatable="yes">BASH Numeric Converter</property>
+    <property name="window_position">GTK_WIN_POS_CENTER</property>
+    <property name="icon_name">calc</property>
+    <child>
+      <widget class="GtkTable" id="table1">
+        <property name="visible">True</property>
+        <property name="n_rows">5</property>
+        <property name="n_columns">5</property>
+        <property name="homogeneous">True</property>
+        <child>
+          <widget class="GtkButton" id="buttonBin">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">_BIN</property>
+            <property name="use_underline">True</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">4</property>
+            <property name="right_attach">5</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="button0">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">0</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="buttonD">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">D</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">4</property>
+            <property name="right_attach">5</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="buttonA">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">A</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="right_attach">4</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="button3">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">3</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="right_attach">3</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="button2">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">2</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="button1">
+            <property name="width_request">0</property>
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">1</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="top_attach">2</property>
+            <property name="bottom_attach">3</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="buttonE">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">E</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">4</property>
+            <property name="right_attach">5</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="buttonB">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">B</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="right_attach">4</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="button6">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">6</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="right_attach">3</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="button5">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">5</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="button4">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">4</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="top_attach">3</property>
+            <property name="bottom_attach">4</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="buttonF">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">F</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">4</property>
+            <property name="right_attach">5</property>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="buttonC">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">C</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="right_attach">4</property>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="button9">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">9</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="right_attach">3</property>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="button8">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">8</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="button7">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">7</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkEntry" id="entry">
+            <property name="visible">True</property>
+            <property name="editable">False</property>
+            <property name="xalign">1</property>
+          </widget>
+          <packing>
+            <property name="right_attach">5</property>
+            <property name="x_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="buttonDec">
+            <property name="visible">True</property>
+            <property name="has_focus">True</property>
+            <property name="label" translatable="yes">_DEC</property>
+            <property name="use_underline">True</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">3</property>
+            <property name="right_attach">4</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="buttonHex">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">_HEX</property>
+            <property name="use_underline">True</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">2</property>
+            <property name="right_attach">3</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="buttonClr">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">_CLEAR</property>
+            <property name="use_underline">True</property>
+            <property name="response_id">0</property>
+          </widget>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+            <property name="x_padding">4</property>
+            <property name="y_padding">4</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
+</glade-interface>

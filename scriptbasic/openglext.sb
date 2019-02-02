@@ -1,0 +1,228 @@
+#!/usr/bin/scriba
+REM
+REM Demo with gtkglext - May - August 2008, (c) PvE.
+REM
+REM Run with the free Scriptbasic interpreter from http://www.scriptbasic.com
+REM
+REM ---------------------------------------------------------------------
+REM Some constants
+REM ---------------------------------------------------------------------
+
+REM Get GTK definitions
+IMPORT gtk.bas
+
+ESCAPE = 65307
+
+REM These hex values are retrieved from the GL header files
+GL_DEPTH_BUFFER_BIT=0x100
+GL_COLOR_BUFFER_BIT=0x4000
+
+GL_LIGHT0=0x4000
+GL_MODELVIEW=0x1700
+GL_POSITION=0x1203
+GL_AMBIENT=0x1200
+GL_DIFFUSE=0x1201
+GL_SPECULAR=0x1202
+GL_SMOOTH=0x1D01
+GL_DEPTH_TEST=0x0B71
+GL_LIGHTING=0x0B50
+GL_FRONT=0x0404
+GL_AMBIENT_AND_DIFFUSE=0x1602
+
+REM These are from the GtkGlExt enumerations
+GDK_GL_RGBA_TYPE=0
+GDK_GL_MODE_RGB=0
+GDK_GL_MODE_DOUBLE=2
+GDK_GL_MODE_DEPTH=16
+
+REM ---------------------------------------------------------------------
+REM Draw bitmapped text on the screen, character by character
+REM ---------------------------------------------------------------------
+
+FUNCTION bitmap_text(txt$)
+
+FOR idx = 1 TO LEN(txt$)
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ASC(MID(txt$, idx, 1)))
+NEXT idx
+
+END FUNCTION
+
+REM ---------------------------------------------------------------------
+REM Draw stroked text on the screen, character by character
+REM ---------------------------------------------------------------------
+
+FUNCTION stroke_text(txt$)
+
+FOR idx = 1 TO LEN(txt$)
+    glutStrokeCharacter(GLUT_STROKE_ROMAN, ASC(MID(txt$, idx, 1)))
+NEXT idx
+
+END FUNCTION
+
+REM ---------------------------------------------------------------------
+REM Draw and expose the picture
+REM
+REM Note: colors in OpenGL are mostly defined as an array of floats.
+REM Such an array cannot be passed to the GTK-server, therefore we pass 
+REM a binary structure which is Base64 encoded. To create a Base64
+REM encoded float array structure, I used the following:
+REM
+REM newlisp -e '(base64-enc (pack "fff" 1 1 0))'
+REM
+REM In this example the float array {1.0 1.0 0.0} is shown in Base64 
+REM and can be passed to the GTK-server. Of course the datatype for the 
+REM argument in the GL-function in the configfile should be set to
+REM BASE64 also.
+REM
+REM NewLisp can be obtained for free from http://www.newlisp.org
+REM---------------------------------------------------------------------
+
+FUNCTION expose
+
+REM Setup the drawing area
+GLCONTEXT = gtk_widget_get_gl_context(DA)
+GLDRAWABLE = gtk_widget_get_gl_window(DA)
+gdk_gl_drawable_gl_begin(GLDRAWABLE, GLCONTEXT)
+
+REM Define clearing color
+glClearColor(0.5, 1, 1, 0)
+REM Clear screen
+FLAG = GL_COLOR_BUFFER_BIT OR GL_DEPTH_BUFFER_BIT
+glClear(FLAG)
+REM Enable shading, depth and lighting
+glShadeModel(GL_SMOOTH)
+glEnable(GL_DEPTH_TEST)
+glEnable(GL_LIGHTING)
+glEnable(GL_LIGHT0)
+REM Setup lighting
+glLightfv(GL_LIGHT0, GL_POSITION, "AAAAQAAAAEAAAADBAAAAAA==")
+glLightfv(GL_LIGHT0, GL_DIFFUSE, "AACAPwAAgD8AAIA/AACAPw==")
+glLightfv(GL_LIGHT0, GL_AMBIENT, "mpkZPpqZGT6amRk+")
+glLightfv(GL_LIGHT0, GL_SPECULAR, "AACAPwAAgD8AAIA/AACAPw==")
+REM Setup reflected color of object
+glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, "zczMPTMzMz/NzMw9AAAAPw==")
+REM Make sure we see the model
+glMatrixMode(GL_MODELVIEW)
+REM Save current matrix
+glPushMatrix()
+REM Rotate
+glRotatef(ROTX, 0, 1, 0)
+glRotatef(ROTY, 1, 0, 0)
+REM Dump rotated image
+glutSolidTeapot(SIZE)
+REM Undo the last rotation
+glLoadIdentity()
+REM Setup reflected color of font
+glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, "AACAP83MzD4AAIA/AAAAAA==")
+REM Determine position of bitmapped text
+glRasterPos2f(0, -0.8)
+REM Draw some bitmapped text
+bitmap_text("OpenGL demo with Scriptbasic")
+REM Setup reflected color of font
+glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, "AAAAAAAAAAAAAIA/AAAAAA==")
+REM Determine position of STROKED text -> drawed so translate
+glTranslatef(-0.9, 0.8, 0.0)
+REM Setup scaling -> stroked characters are large, make smaller
+glScalef(0.0005, 0.0006, 0)
+REM Draw some stroked text
+stroke_text("Using GTK-server with GtkGlExt!")
+REM Now put back the matrix
+glPopMatrix()
+
+REM Now swap buffers and draw
+gdk_gl_drawable_swap_buffers(GLDRAWABLE)
+gdk_gl_drawable_gl_end(GLDRAWABLE)
+
+END FUNCTION
+
+REM ---------------------------------------------------------------------
+REM Main program
+REM ---------------------------------------------------------------------
+REM gtk_server_cfg("-log=/tmp/log.txt")
+
+REM Check availability of GtkGlExt and GLUT
+AVAIL = gtk_server_require("libgtkglext-x11-1.0.so")
+IF AVAIL <> "ok" THEN
+    PRINT "Install the GtkGlExt libraries from gtkglext.sourceforge.net first, and run this demo again.\n"
+    gtk_server_exit()
+    END
+END IF
+AVAIL = gtk_server_require("libglut.so.3")
+IF AVAIL <> "ok" THEN
+    PRINT "Install the GLUT libraries from freeglut.sourceforge.net first, and run this demo again.\n"
+    gtk_server_exit()
+    END
+END IF
+
+REM Initialize libs
+gtk_init("NULL", "NULL")
+gtk_gl_init("NULL", "NULL")
+glutInit(1, "' '")
+
+REM Window
+win = gtk_window_new(0)
+gtk_window_set_default_size(win, 640, 480)
+gtk_window_set_title(win, "This is a teapot demo with ScriptBasic")
+gtk_window_set_position(win, 1)
+REM Signal every 100 msecs
+gtk_server_connect(win, "show", "idle")
+gtk_server_timeout(75, win, "show")
+gtk_server_connect(win, "key-press-event", "key-press-event")
+REM Drawing area
+DA = gtk_drawing_area_new()
+gtk_container_add(win, DA)
+
+FLAG = GDK_GL_MODE_RGB OR GDK_GL_MODE_DOUBLE OR GDK_GL_MODE_DEPTH
+GLCONFIG = gdk_gl_config_new_by_mode(FLAG)
+gtk_widget_set_gl_capability(DA, GLCONFIG, "NULL", 1, GDK_GL_RGBA_TYPE)
+gtk_server_connect(DA, "expose-event", "expose")
+gtk_widget_show_all(win)
+
+REM Initialize variables
+EVENT=0
+ROTX=0
+ROTY=330
+REM size of teapot
+SIZE=0.5
+
+GLUT_BITMAP_HELVETICA_18 = glutBitmapHelvetica18()
+GLUT_STROKE_ROMAN = glutStrokeRoman()
+
+REM Mainloop
+REPEAT
+
+    EVENT = gtk_server_callback("wait")
+
+    REM Rotate
+    ROTX = ROTX + 3
+    ROTY = ROTY + 2
+    IF ROTX > 359 THEN
+	ROTX=0
+    END IF
+    IF ROTX < 0 THEN
+	ROTX=360
+    END IF
+    IF ROTY > 359 THEN
+	ROTY=0
+    END IF
+    IF ROTY < 0 THEN
+	ROTY=360
+    END IF
+
+    REM Check events
+    IF EVENT = "idle" THEN
+	expose()
+    END IF
+
+    IF EVENT = "expose" THEN
+	expose()
+    END IF
+
+    IF EVENT = "key-press-event" THEN
+	keyb = gtk_server_key()
+    END IF
+
+UNTIL EVENT = win OR keyb = ESCAPE
+
+REM Exit GTK
+gtk_server_exit()

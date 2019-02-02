@@ -1,0 +1,113 @@
+#!/usr/bin/gtk-server -this
+#---------------------------------------------------------------------
+#
+# Using the GTK-server you can also run a standalone program.
+# This program can be executed with GTK-server compiled in console-mode.
+#
+# Run this file as follows:
+#
+#	gtk-server -cfg=mikmod.gtkserver -start=mikmod
+#
+# or:
+#	./mikmod.gtkserver
+#
+#
+# Enjoy nice music from www.modarchive.org!
+# December 2008, PvE - tested with GTK-server 2.3.1 on Linux. GPL.
+# December 2016, PvE - tested with GTK-server 2.4 on Linux Mint 18.
+#
+#---------------------------------------------------------------------
+
+LIB_NAME = libc.so.6
+
+FUNCTION_NAME = MikMod_Exit, NONE, NONE, 0
+FUNCTION_NAME = MikMod_Init, NONE, BOOL, 1, STRING
+FUNCTION_NAME = MikMod_RegisterAllDrivers, NONE, NONE, 0
+FUNCTION_NAME = MikMod_RegisterAllLoaders, NONE, NONE, 0
+FUNCTION_NAME = MikMod_Update, NONE, NONE, 0
+FUNCTION_NAME = Player_Active, NONE, BOOL, 0
+FUNCTION_NAME = Player_Free, NONE, NONE, 1, POINTER
+FUNCTION_NAME = Player_Load, NONE, POINTER, 3, STRING, INT, BOOL
+FUNCTION_NAME = Player_Start, NONE, NONE, 1, POINTER
+FUNCTION_NAME = Player_Stop, NONE, NONE, 0
+FUNCTION_NAME = printf, NONE, INT, 1, STRING
+FUNCTION_NAME = usleep, NONE, INT, 1, INT
+
+#---------------------------------------------------------------------
+
+MACRO mikmod
+
+# File to load and play
+$file : &welcome.mod
+
+# Open MikMod library
+$mm : gtk_server_require libmikmod.so.2
+$mm COMPARE ok
+$z EMPTY 6
+$mm : gtk_server_require libmikmod.so.3
+$mm COMPARE ok
+$z EMPTY 3
+printf "'No MikMod found on this system! Please install from http://mikmod.raphnet.net/. Exiting...\n'"
+gtk_server_exit
+
+# Register all the drivers
+MikMod_RegisterAllDrivers
+
+# Register all the module loaders
+MikMod_RegisterAllLoaders
+
+# initialize the library
+$init : MikMod_Init "''"
+$init COMPARE 0
+$z EMPTY 3
+# could not initialize? Exit
+printf "'Could not initialize sound.\n'"
+gtk_server_exit
+
+# Load module using 64 channels
+$module : Player_Load $file 64 0
+
+# Play music
+$module COMPARE 0
+$z EMPTY 13
+
+# Start module
+Player_Start $module
+
+$active : Player_Active
+
+# We're playing
+$active COMPARE 0
+$z EMPTY 6
+$active : Player_Active
+
+# Lower the sleep value if your sound stutters
+usleep 200
+
+MikMod_Update
+$active COMPARE 0
+$z VALUE -4
+
+Player_Stop
+Player_Free $file
+JUMP 2
+printf "'Could not play module!\n'"
+
+# Close MikMod
+MikMod_Exit
+
+# Exit GTK-server
+gtk_server_exit
+
+ENDMACRO
+
+#---------------------------------------------------------------------
+# Define 'main' if we run from a shebang
+
+MACRO main
+
+mikmod
+
+ENDMACRO
+
+#---------------------------------------------------------------------

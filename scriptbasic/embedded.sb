@@ -1,0 +1,64 @@
+#!/usr/bin/scriba
+REM
+REM Demoprogram for Scriptbasic with embedded GTK
+REM Tested with Scriptbasic 2.0 Slackware Linux 10.2
+REM 
+REM --------------------------------------------------------------------------
+
+REM Import GTK stuff
+IMPORT gtk.bas
+
+GLOBAL CONST NL = "\n"
+
+REM Enable logging (optional)
+gtk_server_cfg("log=/tmp/gtk-server.log")
+gtk_init("NULL", "NULL")
+win = gtk_window_new(0)
+gtk_window_set_title(win, "Scriptbasic Demo program")
+gtk_widget_set_usize(win, 450, 400)
+table = gtk_table_new(50, 50, 1)
+gtk_container_add(win, table)
+button = gtk_button_new_with_label("Exit")
+gtk_table_attach_defaults(table, button, 41, 49, 45, 49)
+userinput = gtk_entry_new()
+gtk_table_attach_defaults(table, userinput, 1, 40, 45, 49)
+REM Define TEXTVIEW
+txtbuf = gtk_text_buffer_new("NULL")
+entry = gtk_text_view_new_with_buffer(txtbuf)
+gtk_text_view_set_wrap_mode(entry, 0)
+sw = gtk_scrolled_window_new("NULL", "NULL")
+gtk_scrolled_window_set_policy(sw, 1, 1)
+gtk_scrolled_window_set_shadow_type(sw, 1)
+gtk_container_add(sw, entry)
+gtk_text_view_set_editable(entry, 0)
+gtk_text_view_set_cursor_visible(entry, 0)
+gtk_table_attach_defaults(table, sw, 1, 49, 8, 44)
+REM Define iter
+iter = gtk_frame_new()
+
+radio1 = gtk_radio_button_new_with_label_from_widget("NULL", "Yes")
+gtk_table_attach_defaults(table, radio1, 1, 10, 1, 4)
+radio2 = gtk_radio_button_new_with_label_from_widget(radio1, "No")
+gtk_table_attach_defaults(table, radio2, 1, 10, 4, 7)
+
+gtk_widget_show_all(win)
+gtk_widget_grab_focus(userinput)
+
+REPEAT
+    event = gtk_server_callback("wait")
+    IF event = userinput THEN
+	tmp = gtk_entry_get_text(userinput)
+	gtk_text_buffer_get_end_iter(txtbuf, iter)
+	gtk_text_buffer_insert(txtbuf, iter, tmp & "\n", -1)
+	REM Scroll to end
+	mark = gtk_text_buffer_create_mark(txtbuf, "mymark", iter, 0)
+	gtk_text_view_scroll_to_mark(entry, mark, 0, 1, 0.0, 1.0)
+	gtk_text_buffer_delete_mark(txtbuf, mark)
+	REM Empty entry field
+	gtk_editable_delete_text(userinput, 0, -1)
+    END IF
+UNTIL event = button OR event = win
+
+gtk_exit(0)
+
+END

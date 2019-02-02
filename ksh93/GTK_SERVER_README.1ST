@@ -1,0 +1,34 @@
+-------------
+Howto compile
+-------------
+
+1) Comment the line in the file 'prototyped.h' of the KDK.
+
+2) Start the GTK-server configure script as follows:
+
+./configure --sysconfdir=/etc --prefix=/usr --enable-ksh93 --enable-ksh93-source=/home/account/source/kdk
+
+
+Explanation of the options:
+
+'--sysconfdir=/etc'
+    install the GTK-server configfile into the '/etc' directory
+
+--prefix=/usr
+    install the GTK-server library into the '/usr/lib' directory
+
+'--enable-ksh93'
+    enables support for Kornshell93 library interface
+
+'--enable-ksh93-source=/home/account/source/kdk'
+    points to the sourcetree of your KDK installation, if left empty the current subdirectory 'ksh93' will be used
+
+Change the directory arguments to the situation of your system.
+
+
+3) Start compilation of the GTK-server with the command 'make'. After that 'make install'.
+
+4) Run the testprogram in the 'ksh93' subdirectory: 'demo-lib.ksh'.
+
+
+The resulting module is tested with Kornshell93 KDK release "ast-base.2008-02-02.linux.i386.tgz" from www.kornshell.com.

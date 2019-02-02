@@ -1,0 +1,1144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>The GTK-server Tutorial</title>
+  <meta name="author" content="Peter van Eerten">
+</head>
+<body>
+<h1>The GTK-server Tutorial: a "Hello world" application.</h1>
+<h2>Contents:</h2>
+<a href="#introduction">Introduction.</a><br>
+<a href="#chapter1">Chapter 1. Setting up your environment.</a><br>
+<a href="#chapter2">Chapter 2. First steps.</a><br>
+<a href="#chapter3">Chapter 3. GTK programming - the main window.</a><br>
+<a href="#chapter4">Chapter 4. GTK programming - containers.</a><br>
+<a href="#chapter5">Chapter 5: GTK programming - labels.</a><br>
+<a href="#chapter6">Chapter 6: GTK programming - buttons.</a><br>
+<a href="#chapter7">Chapter 7. GTK programming - the mainloop.</a><br>
+<a href="#chapter8">Chapter 8. GTK programming - closing the main window.</a><br>
+<a href="#chapter9">Chapter 9. Using colors.</a><br>
+<a href="#chapter10">Chapter 10. Connecting to the GTK-server with TCP or UDP.</a><br>
+<a href="#chapter11">Chapter 11. Connecting to the GTK-server with FIFO.</a><br>
+<a href="#chapter12">Chapter 12. Logging.</a><br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="introduction"></a>
+<h2>Introduction.</h2>
+In this tutorial we will create a simple window containing the message
+"Hello world!". We will mainly be using GNU AWK to do that. Basic
+knowledge of the AWK script language is recommended. If you are unknown
+to AWK, please consult the excellent GNU AWK manual at <a
+ href="http://www.gnu.org/software/gawk/manual/gawk.html">http://ww.gnu.org/software/gawk/manual/gawk.html</a>.
+Also, this tutorial will focus on the Linux operating system.<br>
+<br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="chapter1"></a>
+<h2>Chapter 1. Setting up your environment.<br>
+</h2>
+Before starting to use the GTK-server, you have to check your
+environment variables. AWK will be the main script language in this
+tutorial, and the AWK script will invoke the GTK-server with the
+argument 'stdin'. Now, in order for the GTK widgets to be displayed
+correctly, it is necessary to set your language environment, since the
+GTK library will use this setting to display it's widgets. You can use
+the variable LC_ALL to accomplish this. To find out what the current
+settings are of your environment variables, you can use the command
+'set' (BASH, or 'setenv' for CSHELL). This command will list all your
+variables. On my system, LC_ALL is put to Dutch. In the Linux BASH
+shell, perform:<br>
+<br style="font-family: courier new,courier,monospace;">
+<small><span style="font-family: courier new,courier,monospace;">export
+LC_ALL=nl_NL</span></small><br>
+<br>
+to set the variable. But this is not all. Also the library path should
+be set. It must point to the X11R6 library's. This is needed to display
+text entry widgets for example. In the BASH shell, make sure that the
+LD_LIBRARY_PATH is set:<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">export
+LD_LIBRARY_PATH=/usr/X11R6/lib</span></small><br>
+<br>
+Or if this environment variable already has some other value:<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">export
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/X11R6/lib</span></small><br>
+<br>
+Now your shell environment is setup properly for scripts using the
+GTK-server with 'stdin'.<br>
+<br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="chapter2"></a>
+<h2>Chapter 2. First steps.<br>
+</h2>
+During the process of creating the AWK script, also the GTK-server
+configfile will be created. Every time a GTK function is used, this
+function must be specified in the configfile as well. But first, let's
+program a few default AWK lines to get started:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#!/usr/bin/gawk
+-f</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"># AWK Hello
+world application using GTK</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">BEGIN{</span><br
+ style="font-family: courier new,courier,monospace;">
+<br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">GTK =
+"gtk-server -stdin"</span></small> <br>
+<br>
+------------------<br>
+<br>
+Now, from this piece of code we can see that the interpreter is called
+in the first line (gawk). Then there are some commentlines starting
+with
+a "#", after that the BEGIN rule is defined, and finally the variable
+GTK is declared as the GTK-server with the stdin argument. It is NOT
+necessary to have the GTK-server binary in the same directory as your
+script. The GTK-server will
+search for the configfile in the "/usr/local/etc" and "/etc" directory. If 
+the configfile
+isn't available there, the server will exit.<br>
+<br>
+Now, before starting to use the GTK-server, the configfile must be
+defined. The name of this file MUST be "gtk-server.cfg". There are 3
+setting types which must be defined. The first one is "LIB_NAME".
+You need to specify the actual Shared Object name of your GTK library.
+Most likely this will be something like "libgtk-1.2.so" or
+"libgtk-x11-2.0.so". So the first entry in our configfile will look
+similar to this:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#<br>
+LIB_NAME = libgtk-x11-2.0.so<br
+ style="font-family: courier new,courier,monospace;">
+</span></small> <span
+ style="font-family: courier new,courier,monospace;"><small>#</small><br>
+</span><br>
+------------------<br>
+<br>
+It is allowed to use "#" in the configfile as well, so you can put your
+comments there. The next setting we are going to use, is
+FUNCTION_NAME. In order to use the GTK library, we must initialize
+first. This is done with the GTK function "gtk_init". Now, we will put
+this function into our configfile as follows:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#<br>
+LIB_NAME = libgtk-x11-2.0.so<br
+ style="font-family: courier new,courier,monospace;">
+</span></small> <span
+ style="font-family: courier new,courier,monospace;"><small>#<br>
+FUNCTION_NAME = gtk_init, NONE, NONE, 2, NULL, NULL<br>
+#</small><br>
+</span><br>
+------------------<br>
+<br>
+Next to the name of the GTK function, more definitions are encountered.
+First a 'NONE' is defined. This first NONE defines the callback signal.
+Callback signals occur when you click with your mouse on a button, for
+example. The initialization of the GTK library however has no callback
+signal of itself. The second NONE defines the returnvalue of the
+"gtk_init" function; it means that the function does not have a return
+value. Then the number '2', this number defines the amount of arguments
+to the "gtk_init" function. And finally, the last two definitions
+specify the type of the arguments. If 'NULL' is defined, it means that
+the argument has no specific type.<br>
+<br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="chapter3"></a>
+<h2>Chapter 3. GTK programming - the main window.</h2>
+Well, so far so good! We have a start with our AWK script, and we have
+a first setup of the gtk-server.cfg file. Now, let's go on with the
+real
+programming and put the "gtk_init" into our AWK script:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#!/usr/bin/gawk
+-f</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"># AWK Hello
+world application using GTK</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">BEGIN{</span><br
+ style="font-family: courier new,courier,monospace;">
+<br style="font-family: courier new,courier,monospace;">
+</small> <span style="font-family: courier new,courier,monospace;"><small>GTK
+= "gtk-server -stdin"<br>
+<br>
+print "gtk_init NULL NULL" |&amp; GTK; GTK |&amp; getline</small> <br>
+</span> <br>
+------------------<br>
+<br>
+The line starting with 'print' will actually create a 2-way pipe to the
+GTK-server. This is a genuine AWK technique. The pipe operator "|&amp;"
+was borrowed from KSH. It sets up a communication channel on which
+plain
+data can be sent and received. As you can see, the AWK script sends the
+GTK function name as plain text towards the server, and after that, the
+server will send information back.<br>
+<br>
+This is an important thing to remember: every time information is sent
+to the GTK-server, the server will send information back! If the GTK
+function has no returnvalue (like "gtk_init"), the server will return a
+plain "ok" to the script. If the GTK function was not recognized, the
+server will return a "-1". Please keep in mind that the GTK-server
+always will return a string.<br>
+<br>
+Okay, we are ready to create our main window. The GTK function we will
+use is called "gtk_window_new". This function however will return an
+identifier referring to the created window. If a GTK function returns
+an
+identifier for a widget, this must be defined as WIDGET in the
+configfile. But also, it has a "GtkWindowType"-argument which is a C
+typedefinition. How to explain this in our configfile?<br>
+<br>
+The C typedefinitions are a little bit tricky. There are a lot of GTK
+typedefinitions, and to define all these in the GTK-server would be
+extremely redundant. The C programming language however uses an
+internal
+integer numbering for the typedefinitions. If you look at the
+typedefinitions for "GtkWindowType", there are 2 types defined:
+GTK_WINDOW_TOPLEVEL and GTK_WINDOW_POPUP. Now, the C language will
+refer
+to the first type with '0' and to the second type with '1'. These are
+regular integer numbers. In that case, we can define the argument type
+for "gtk_window_new" as LONG. The gtk-server configfile will now look
+like
+this:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#<br>
+LIB_NAME = libgtk-x11-2.0.so<br
+ style="font-family: courier new,courier,monospace;">
+</span><span style="font-family: courier new,courier,monospace;">#<br>
+FUNCTION_NAME = gtk_init, NONE, NONE, 2, NULL, NULL<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_window_new, NONE, WIDGET, 1, LONG</span><br>
+</small> <span style="font-family: courier new,courier,monospace;"><small>
+#</small><br>
+</span><br>
+------------------<br>
+<br>
+We will not yet define a callback signal for the window. All right,
+let's go to the AWK script!<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#!/usr/bin/gawk
+-f</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"># AWK Hello
+world application using GTK</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">BEGIN{</span><br
+ style="font-family: courier new,courier,monospace;">
+<br style="font-family: courier new,courier,monospace;">
+</small> <span style="font-family: courier new,courier,monospace;"><small>GTK
+= "gtk-server -stdin"<br>
+<br>
+print "gtk_init NULL NULL" |&amp; GTK; GTK |&amp; getline<br>
+print "gtk_window_new 0" |&amp; GTK; GTK |&amp; getline WINDOW</small>
+<br>
+</span> <br>
+------------------<br>
+<br>
+You can see that the returnvalue of the GTK function is captured in the
+variable "WINDOW". Later on, we can use the variable to perform actions
+on our window. Let's do that right now; let's define a name in the
+titlebar of our window. The GTK function for this is called
+"gtk_window_set_title". It has no returnvalue, and it uses 2 arguments:
+the window of which the title must be set, and the title itself. This
+is
+our configfile now:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#<br>
+LIB_NAME = libgtk-x11-2.0.so<br
+ style="font-family: courier new,courier,monospace;">
+</span><span style="font-family: courier new,courier,monospace;">#<br>
+FUNCTION_NAME = gtk_init, NONE, NONE, 2, NULL, NULL<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_window_new, NONE, WIDGET, 1, LONG<br>
+FUNCTION_NAME = gtk_window_set_title, NONE, NONE, 2, WIDGET, STRING<br>
+</span></small> <span
+ style="font-family: courier new,courier,monospace;"><small> #</small><br>
+</span><br>
+------------------<br>
+<br>
+And the AWK script will look like this:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#!/usr/bin/gawk
+-f</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"># AWK Hello
+world application using GTK</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">BEGIN{</span><br
+ style="font-family: courier new,courier,monospace;">
+<br style="font-family: courier new,courier,monospace;">
+</small> <span style="font-family: courier new,courier,monospace;"><small>GTK
+= "gtk-server -stdin"<br>
+<br>
+print "gtk_init NULL NULL" |&amp; GTK; GTK |&amp; getline<br>
+print "gtk_window_new 0" |&amp; GTK; GTK |&amp; getline WINDOW<br>
+print "gtk_window_set_title " WINDOW " \"This is a title\"" |&amp; GTK;
+GTK |&amp; getline</small> <br>
+</span> <br>
+------------------<br>
+<br>
+Pretty easy, isn't it?<br>
+<br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="chapter4"></a>
+<h2>Chapter 4. GTK programming - containers.</h2>
+According to the original GTK principles, we must define a container to
+pack our widgets. It is possible to define the window as a container,
+but personally, I prefer to use tables. If a table is defined, it is
+easy to define your widgets using relational coordinates. To create a
+table on the window, the function "gtk_table_new" must be used. This
+function returns a widget and uses 3 arguments (we will use no callback
+signals for the table). The first 2 arguments determine the amount of
+rows and columns in the table. The third argument is a boolean
+argument.
+We can workaround this by using the same trick as we did for the
+typedefinitions: using '0' for 'false' and '1' for 'true'.<br>
+<br>
+Also, the table must be nailed to the window. This is done with
+"gtk_container_add". This function uses 2 arguments: the widget
+(Window)
+on which the other widget (Table) will be nailed. Our configfile now
+will look like:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#<br>
+LIB_NAME = libgtk-x11-2.0.so<br
+ style="font-family: courier new,courier,monospace;">
+</span><span style="font-family: courier new,courier,monospace;">#<br>
+FUNCTION_NAME = gtk_init, NONE, NONE, 2, NULL, NULL<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_window_new, NONE, WIDGET, 1, LONG<br>
+FUNCTION_NAME = gtk_window_set_title, NONE, NONE, 2, WIDGET, STRING<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_table_new, NONE, WIDGET, 3, LONG, LONG, LONG<br>
+FUNCTION_NAME = gtk_container_add, NONE, NONE, 2, WIDGET, WIDGET<br>
+</span></small> <span
+ style="font-family: courier new,courier,monospace;"><small> #</small><br>
+</span><br>
+------------------<br>
+<br>
+This is the AWK script:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#!/usr/bin/gawk
+-f</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"># AWK Hello
+world application using GTK</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">BEGIN{</span><br
+ style="font-family: courier new,courier,monospace;">
+<br style="font-family: courier new,courier,monospace;">
+</small> <span style="font-family: courier new,courier,monospace;"><small>GTK
+= "gtk-server -stdin"<br>
+<br>
+print "gtk_init NULL NULL" |&amp; GTK; GTK |&amp; getline<br>
+print "gtk_window_new 0" |&amp; GTK; GTK |&amp; getline WINDOW<br>
+print "gtk_window_set_title " WINDOW " \"This is a title\"" |&amp; GTK;
+GTK |&amp; getline<br>
+print "gtk_table_new 30 30 1" |&amp; GTK; GTK |&amp; getline TABLE<br>
+print "gtk_container_add " WINDOW " " TABLE |&amp; GTK; GTK |&amp;
+getline</small> <br>
+</span> <br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="chapter5"></a>
+<h2>Chapter 5: GTK programming - labels.</h2>
+Now, the message "Hello world" must appear in our window. We have to
+define a label. There is a very convenient GTK function for this:
+"gtk_label_new", with only 1 argument containing the text to be
+displayed.<br>
+<br>
+But also, this widget has to be 'packed' onto the table. We will use
+the "gtk_table_attach_defaults" function. The first argument determines
+the table we want to use, the second the widget to pack, then the left
+x
+and right x coordinate (related to the table) are mentioned, and
+finally
+the upper and lower y coordinate are mentioned.<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#<br>
+LIB_NAME = libgtk-x11-2.0.so<br
+ style="font-family: courier new,courier,monospace;">
+</span><span style="font-family: courier new,courier,monospace;">#<br>
+FUNCTION_NAME = gtk_init, NONE, NONE, 2, NULL, NULL<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_window_new, NONE, WIDGET, 1, LONG<br>
+FUNCTION_NAME = gtk_window_set_title, NONE, NONE, 2, WIDGET, STRING<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_table_new, NONE, WIDGET, 3, LONG, LONG, LONG<br>
+FUNCTION_NAME = gtk_container_add, NONE, NONE, 2, WIDGET, WIDGET<br>
+FUNCTION_NAME = gtk_label_new, NONE, WIDGET, 1, STRING<br>
+FUNCTION_NAME = gtk_table_attach_defaults, NONE, NONE, 6, WIDGET,
+WIDGET, LONG, LONG, LONG, LONG<br>
+</span></small> <span
+ style="font-family: courier new,courier,monospace;"><small>#</small><br>
+</span><br>
+------------------<br>
+<br>
+And the AWK script:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#!/usr/bin/gawk
+-f</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"># AWK Hello
+world application using GTK</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">BEGIN{</span><br
+ style="font-family: courier new,courier,monospace;">
+<br style="font-family: courier new,courier,monospace;">
+</small> <span style="font-family: courier new,courier,monospace;"><small>GTK
+= "gtk-server -stdin"<br>
+<br>
+print "gtk_init NULL NULL" |&amp; GTK; GTK |&amp; getline<br>
+print "gtk_window_new 0" |&amp; GTK; GTK |&amp; getline WINDOW<br>
+print "gtk_window_set_title " WINDOW " \"This is a title\"" |&amp; GTK;
+GTK |&amp; getline<br>
+print "gtk_table_new 30 30 1" |&amp; GTK; GTK |&amp; getline TABLE<br>
+print "gtk_container_add " WINDOW " " TABLE |&amp; GTK; GTK |&amp;
+getline<br>
+print "gtk_label_new \"Hello world\"" |&amp; GTK; GTK |&amp; getline LABEL<br>
+print "gtk_table_attach_defaults " TABLE " " LABEL " 1 29 3 7"
+|&amp; GTK; GTK |&amp; getline</small> <br>
+</span> <br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="chapter6"></a>
+<h2>Chapter 6: GTK programming - buttons.</h2>
+We will also create an "Exit" button. Clicking on this button will exit
+our "Hello world" application. We must capture the click signal so the
+AWK script can exit. The GTK function "gtk_button_new_with_label" will
+create a button, and it also will put some text on it. However, it must
+be clear that the 'click' signal must be captured.<br>
+<br>
+Well, we are ready now with creating widgets. Finally all widgets must
+be shown to the world. This is achieved by the GTK function
+"gtk_widget_show". This function takes only 1 argument, namely, the
+widget to be shown.<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#<br>
+LIB_NAME = libgtk-x11-2.0.so<br
+ style="font-family: courier new,courier,monospace;">
+</span><span style="font-family: courier new,courier,monospace;">#<br>
+FUNCTION_NAME = gtk_init, NONE, NONE, 2, NULL, NULL<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_window_new, NONE, WIDGET, 1, LONG<br>
+FUNCTION_NAME = gtk_window_set_title, NONE, NONE, 2, WIDGET, STRING<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_table_new, NONE, WIDGET, 3, LONG, LONG, LONG<br>
+FUNCTION_NAME = gtk_container_add, NONE, NONE, 2, WIDGET, WIDGET<br>
+FUNCTION_NAME = gtk_label_new, NONE, WIDGET, 1, STRING<br>
+FUNCTION_NAME = gtk_table_attach_defaults, NONE, NONE, 6, WIDGET,
+WIDGET, LONG, LONG, LONG, LONG<br>
+FUNCTION_NAME = gtk_button_new_with_label, clicked, WIDGET, 1, STRING<br>
+FUNCTION_NAME = gtk_widget_show, NONE, NONE, 1, WIDGET<br>
+</span><span style="font-family: courier new,courier,monospace;"></span></small><br>
+------------------<br>
+<br>
+So the button will return an identifier, and it has 1 argument
+containing the text to be printed on the button. The callback signal is
+defined as "clicked". In the GTK documentation all signals which can be
+emitted by
+a button are described. The term 'clicked' is a real GTK term for the
+'click'-signal. Let's put the button on the window and make it visible.
+Please note that also the TABLE container must be shown!<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#!/usr/bin/gawk
+-f</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"># AWK Hello
+world application using GTK</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">BEGIN{</span><br
+ style="font-family: courier new,courier,monospace;">
+<br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">GTK =
+"gtk-server -stdin"<br>
+<br>
+print "gtk_init NULL NULL" |&amp; GTK; GTK |&amp; getline<br>
+print "gtk_window_new 0" |&amp; GTK; GTK |&amp; getline WINDOW<br>
+print "gtk_window_set_title " WINDOW " \"This is a title\"" |&amp; GTK;
+GTK |&amp; getline<br>
+print "gtk_table_new 30 30 1" |&amp; GTK; GTK |&amp; getline TABLE<br>
+print "gtk_container_add " WINDOW " " TABLE |&amp; GTK; GTK |&amp;
+getline<br>
+print "gtk_label_new \"Hello world\"" |&amp; GTK; GTK |&amp; getline LABEL<br>
+print "gtk_table_attach_defaults " TABLE " " LABEL " 1 29 3 7"
+|&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;"> print
+"gtk_button_new_with_label Exit" |&amp; GTK; GTK |&amp; getline BUTTON<br>
+print "gtk_table_attach_defaults " TABLE " " BUTTON " 20 28 23
+27" |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " LABEL |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " BUTTON |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " TABLE |&amp; GTK; GTK |&amp; getline</span><br>
+</small> <span style="font-family: courier new,courier,monospace;"><small>print
+"gtk_widget_show " WINDOW |&amp; GTK; GTK |&amp; getline</small><br>
+</span><br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="chapter7"></a>
+<h2>Chapter 7. GTK programming - the mainloop.</h2>
+We enter the final stage: defining the mainloop. With GTK you have the
+possibility to run through all GTK events once. This is performed by
+the GTK function "gtk_main_iteration". In this iteration the GTK library
+will check if any event has occured. In our program we want to check if
+the "click"-signal was emitted by the button. Below the final
+configfile and AWK program:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#<br>
+LIB_NAME = libgtk-x11-2.0.so<br
+ style="font-family: courier new,courier,monospace;">
+</span><span style="font-family: courier new,courier,monospace;">#<br>
+FUNCTION_NAME = gtk_init, NONE, NONE, 2, NULL, NULL<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_window_new, NONE, WIDGET, 1, LONG<br>
+FUNCTION_NAME = gtk_window_set_title, NONE, NONE, 2, WIDGET, STRING<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_table_new, NONE, WIDGET, 3, LONG, LONG, LONG<br>
+FUNCTION_NAME = gtk_container_add, NONE, NONE, 2, WIDGET, WIDGET<br>
+FUNCTION_NAME = gtk_label_new, NONE, WIDGET, 1, STRING<br>
+FUNCTION_NAME = gtk_table_attach_defaults, NONE, NONE, 6, WIDGET,
+WIDGET, LONG, LONG, LONG, LONG<br>
+FUNCTION_NAME = gtk_button_new_with_label, clicked, WIDGET, 1, STRING<br>
+FUNCTION_NAME = gtk_widget_show, NONE, NONE, 1, WIDGET<br>
+FUNCTION_NAME = gtk_main_iteration, NONE, WIDGET, 0<br>
+</span></small> <span
+ style="font-family: courier new,courier,monospace;"><small></small></span><br>
+------------------<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#!/usr/bin/gawk
+-f</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"># AWK Hello
+world application using GTK</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">BEGIN{</span><br
+ style="font-family: courier new,courier,monospace;">
+<br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">GTK =
+"gtk-server -stdin"<br>
+<br>
+print "gtk_init NULL NULL" |&amp; GTK; GTK |&amp; getline<br>
+print "gtk_window_new 0" |&amp; GTK; GTK |&amp; getline WINDOW<br>
+print "gtk_window_set_title " WINDOW " \"This is a title\"" |&amp; GTK;
+GTK |&amp; getline<br>
+print "gtk_table_new 30 30 1" |&amp; GTK; GTK |&amp; getline TABLE<br>
+print "gtk_container_add " WINDOW " " TABLE |&amp; GTK; GTK |&amp;
+getline<br>
+print "gtk_label_new \"Hello world\"" |&amp; GTK; GTK |&amp; getline LABEL<br>
+print "gtk_table_attach_defaults " TABLE " " LABEL " 1 29 3 7"
+|&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;"> print
+"gtk_button_new_with_label Exit" |&amp; GTK; GTK |&amp; getline BUTTON<br>
+print "gtk_table_attach_defaults " TABLE " " BUTTON " 20 28 23
+27" |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " LABEL |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " BUTTON |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " TABLE |&amp; GTK; GTK |&amp; getline</span><br>
+</small> <span style="font-family: courier new,courier,monospace;"><small>print
+"gtk_widget_show " WINDOW |&amp; GTK; GTK |&amp; getline<br>
+<br>
+EVENT = 0<br>
+<br>
+do {<br>
+<br>
+&nbsp;&nbsp;&nbsp; print "gtk_main_iteration" |&amp; GTK; GTK |&amp;
+getline<br>
+&nbsp;&nbsp;&nbsp; print "gtk_server_callback 0" |&amp; GTK;
+GTK |&amp; getline EVENT<br>
+<br>
+} while (EVENT != BUTTON)<br>
+<br>
+close(GTK)<br>
+fflush("")<br>
+}</small> <br>
+</span><br>
+------------------<br>
+<br>
+Let's take a closer look at the mainloop. We have defined the GTK
+function "gtk_main_iteration" in the configfile. It will run once,
+triggered by any GTK event, and update all GTK widgets accordingly. But
+the function "gtk_server_callback" cannot be found in the configfile!
+Why not? Because this is an internal function of the GTK-server. It
+retrieved the last occured signal from the GTK library. If a signal was
+emitted, the GTK-server returns the widget ID. Else a '0' is returned. In the
+AWK script above the return value is captured in a variable, which is checked
+in the 'while' of the mainloop.<br>
+<br>
+If the mainloop closes, the 2-way pipe to the GTK-server will be closed
+as well. Finally, all AWK buffers are flushed.<br>
+<br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="chapter8"></a>
+<h2>Chapter 8. GTK programming - closing the main window.</h2>
+You may find that it is not possible to close your window with the
+regular closing facility's of your windowmanager. In Windows you cannot
+use the cross at the right top of the window. However, this is
+perfectly
+ok since the 'delete' signal emitted by the main window is not captured
+in the AWK script!<br>
+<br>
+In order to close the window in a regular way (without the EXIT
+button), we must define a callback signal for our main window. The name
+of the signal when we try to close the window, is called
+"delete-event".
+Our configfile must be changed to this:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#<br>
+LIB_NAME = libgtk-x11-2.0.so<br
+ style="font-family: courier new,courier,monospace;">
+</span><span style="font-family: courier new,courier,monospace;">#<br>
+FUNCTION_NAME = gtk_init, NONE, NONE, 2, NULL, NULL<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_window_new, delete-event, WIDGET, 1, LONG<br>
+FUNCTION_NAME = gtk_window_set_title, NONE, NONE, 2, WIDGET, STRING<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_table_new, NONE, WIDGET, 3, LONG, LONG, LONG<br>
+FUNCTION_NAME = gtk_container_add, NONE, NONE, 2, WIDGET, WIDGET<br>
+FUNCTION_NAME = gtk_label_new, NONE, WIDGET, 1, STRING<br>
+FUNCTION_NAME = gtk_table_attach_defaults, NONE, NONE, 6, WIDGET,
+WIDGET, LONG, LONG, LONG, LONG<br>
+FUNCTION_NAME = gtk_button_new_with_label, CLICK, WIDGET, 1, STRING<br>
+FUNCTION_NAME = gtk_widget_show, NONE, NONE, 1, WIDGET<br>
+FUNCTION_NAME = gtk_main_iteration, NONE, WIDGET, 0<br>
+</span><span style="font-family: courier new,courier,monospace;"></span></small><small><span
+ style="font-family: courier new,courier,monospace;"></span></small><small><span
+ style="font-family: courier new,courier,monospace;"></span><span
+ style="font-family: courier new,courier,monospace;"></span></small><br>
+------------------<br>
+<br>
+As you can see, the GTK function "gtk_window_new" is redefined with the
+callback signal "delete-event". Please make
+sure you do not use capitals for the GTK signal!<br>
+<br>
+If we run our AWK script now, the main window will listen to the
+"delete-event" signal. However, we must change our mainloop also, to
+really exit the application. Below a suggestion on how to do this:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#!/usr/bin/gawk
+-f</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"># AWK Hello
+world application using GTK</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">BEGIN{</span><br
+ style="font-family: courier new,courier,monospace;">
+<br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">GTK =
+"gtk-server -stdin"<br>
+<br>
+print "gtk_init NULL NULL" |&amp; GTK; GTK |&amp; getline<br>
+print "gtk_window_new 0" |&amp; GTK; GTK |&amp; getline WINDOW<br>
+print "gtk_window_set_title " WINDOW " \"This is a title\"" |&amp; GTK;
+GTK |&amp; getline<br>
+print "gtk_table_new 30 30 1" |&amp; GTK; GTK |&amp; getline TABLE<br>
+print "gtk_container_add " WINDOW " " TABLE |&amp; GTK; GTK |&amp;
+getline<br>
+print "gtk_label_new \"Hello world\"" |&amp; GTK; GTK |&amp; getline LABEL<br>
+print "gtk_table_attach_defaults " TABLE " " LABEL " 1 29 3 7"
+|&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;"> print
+"gtk_button_new_with_label Exit" |&amp; GTK; GTK |&amp; getline BUTTON<br>
+print "gtk_table_attach_defaults " TABLE " " BUTTON " 20 28 23
+27" |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " LABEL |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " BUTTON |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " TABLE |&amp; GTK; GTK |&amp; getline</span><br>
+<span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " WINDOW |&amp; GTK; GTK |&amp; getline<br>
+<br>
+EVENT = 0<br><br>
+</span></small>
+<small><span
+ style="font-family: courier new,courier,monospace;"> do {<br>
+<br>
+&nbsp;&nbsp;&nbsp; print "gtk_main_iteration" |&amp; GTK; GTK |&amp;
+getline<br>
+&nbsp;&nbsp;&nbsp; print "gtk_server_callback 0" |&amp; GTK;
+GTK |&amp; getline EVENT<br>
+&nbsp;&nbsp;&nbsp; </span></small>
+<small><span style="font-family: courier new,courier,monospace;"> <br>
+} while (EVENT != BUTTON &amp;&amp; EVENT != WINDOW)<br>
+<br>
+close(GTK)<br>
+fflush("")<br>
+}<br>
+</span></small> <br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="chapter9"></a>
+<h2>Chapter 9. Using colors.</h2>
+It is also possible to use colors in your application. This might seem
+strange since the coloring of widgets is a sake of GDK instead of GTK.
+However, with the GTK-server you can use GTK commands for coloring
+widgets.<br>
+<br>
+In our example, let's try to color the button. First we have to
+give this widget a particular name. Let's name it "exitbutton". After
+the name has been set, the script has to read an external file which
+contains the color definitions.<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#!/usr/bin/gawk
+-f</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"># AWK Hello
+world application using GTK</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">BEGIN{</span><br
+ style="font-family: courier new,courier,monospace;">
+<br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">GTK =
+"gtk-server -stdin"<br>
+<br>
+print "gtk_init NULL NULL" |&amp; GTK; GTK |&amp; getline<br>
+print "gtk_window_new 0" |&amp; GTK; GTK |&amp; getline WINDOW<br>
+print "gtk_window_set_title " WINDOW " \"This is a title\"" |&amp; GTK;
+GTK |&amp; getline<br>
+print "gtk_table_new 30 30 1" |&amp; GTK; GTK |&amp; getline TABLE<br>
+print "gtk_container_add " WINDOW " " TABLE |&amp; GTK; GTK |&amp;
+getline<br>
+print "gtk_label_new \"Hello world\"" |&amp; GTK; GTK |&amp; getline LABEL<br>
+print "gtk_table_attach_defaults " TABLE " " LABEL " 1 29 3 7"
+|&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;"> print
+"gtk_button_new_with_label Exit" |&amp; GTK; GTK |&amp; getline BUTTON<br>
+print "gtk_widget_set_name " BUTTON " exitbutton" |&amp; GTK; GTK
+|&amp; getline<br>
+print "gtk_table_attach_defaults " TABLE " " BUTTON " 20 28 23
+27" |&amp; GTK; GTK |&amp; getline<br>
+print "gtk_rc_parse gtkrc" |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " LABEL |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " BUTTON |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " TABLE |&amp; GTK; GTK |&amp; getline</span><br>
+<span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " WINDOW |&amp; GTK; GTK |&amp; getline<br>
+<br>
+EVENT = 0<br>
+</span></small>
+<small><span
+ style="font-family: courier new,courier,monospace;"> do {<br>
+<br>
+&nbsp;&nbsp;&nbsp; print "gtk_main_iteration" |&amp; GTK; GTK |&amp;
+getline<br>
+&nbsp;&nbsp;&nbsp; print "gtk_server_callback 0" |&amp; GTK;
+GTK |&amp; getline EVENT</span></small><br>
+<small><span style="font-family: courier new,courier,monospace;"> <br>
+} while (EVENT != BUTTON &amp;&amp; EVENT != WINDOW)<br>
+<br>
+close(GTK)<br>
+fflush("")<br>
+}</span></small><br>
+<br>
+------------------<br>
+<br>
+As you can see the commands <small><span
+ style="font-family: courier new,courier,monospace;">gtk_widget_set_name
+</span></small>and <small><span
+ style="font-family: courier new,courier,monospace;">gtk_rc_parse</span></small>
+are used. The first command sets the name, the second reads the
+colordefinitions. Of course these commands should be available in the
+configfile as well:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#<br>
+LIB_NAME = libgtk-x11-2.0.so<br
+ style="font-family: courier new,courier,monospace;">
+</span><span style="font-family: courier new,courier,monospace;">#<br>
+FUNCTION_NAME = gtk_init, NONE, NONE, 2, NULL, NULL<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_window_new, delete-event, WIDGET, 1, LONG<br>
+FUNCTION_NAME = gtk_window_set_title, NONE, NONE, 2, WIDGET, STRING<br>
+</span><span style="font-family: courier new,courier,monospace;">
+FUNCTION_NAME = gtk_table_new, NONE, WIDGET, 3, LONG, LONG, LONG<br>
+FUNCTION_NAME = gtk_container_add, NONE, NONE, 2, WIDGET, WIDGET<br>
+FUNCTION_NAME = gtk_label_new, NONE, WIDGET, 1, STRING<br>
+FUNCTION_NAME = gtk_table_attach_defaults, NONE, NONE, 6, WIDGET,
+WIDGET, LONG, LONG, LONG, LONG<br>
+FUNCTION_NAME = gtk_button_new_with_label, CLICK, WIDGET, 1, STRING<br>
+</span></small><span style="font-family: courier new,courier,monospace;"><small><span
+ style="font-family: courier new,courier,monospace;"></span></small></span><small><span
+ style="font-family: courier new,courier,monospace;">FUNCTION_NAME =
+gtk_widget_show, NONE, NONE, 1, WIDGET<br>
+FUNCTION_NAME = gtk_main_iteration, NONE, WIDGET, 0<br>
+</span></small><span style="font-family: courier new,courier,monospace;"><span
+ style="font-family: courier new,courier,monospace;"><small><span
+ style="font-family: courier new,courier,monospace;">FUNCTION_NAME =
+gtk_widget_set_name, NONE, NONE, 2, WIDGET, STRING<br>
+FUNCTION_NAME = gtk_rc_parse, NONE, NONE, 1, STRING<br>
+</span></small></span></span><small><span
+ style="font-family: courier new,courier,monospace;"></span></small><small><span
+ style="font-family: courier new,courier,monospace;"></span><span
+ style="font-family: courier new,courier,monospace;"></span></small><br>
+------------------<br>
+<br>
+Now, we need to create a file called "gtkrc" which contains the
+colordefintions for our button. This file resides in the same directory
+as our script and may look like this:<br>
+<br>
+------------------<br>
+<br>
+<span style="font-family: courier new,courier,monospace;"><small>style
+"mystyle"</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">{</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">&nbsp;
+bg[NORMAL] = { 65535, 0, 0 }</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">&nbsp;
+bg[PRELIGHT] = { 40000, 40000, 40000 }</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">&nbsp;
+bg[ACTIVE] = { 0, 65535, 0 }</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">}</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">widget
+"*.*.exitbutton*" style "mystyle"</small></span><br>
+<br>
+------------------<br>
+<br>
+Again, the command <span
+ style="font-family: courier new,courier,monospace;"><small>gtk_rc_parse</small></span>
+reads the file and puts the widgets with the name "exitbutton" to the
+mentioned colors. Here, the colors are defined as RGB triplets. Now,
+when the button is in a normal state, the color will be red; when the
+button is pressed, the color will be green. Finally, when the mouse
+moves over the button, the color will be grey.<br>
+<br>
+There are more possibilities using GTK rc-files, like coloring a whole
+set of widgets to a specific color. Please consult the GTK manual at <a
+ href="http://www.gtk.org">http://www.gtk.org</a> for detailed
+explanations on rc-files.<br>
+<br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="chapter10"></a>
+<h2>Chapter 10. Connecting to the GTK-server with TCP or UDP.</h2>
+Instead of using 2-way pipes, it is also possible to connect your
+script by TCP or UDP.<br>
+<br>
+To start the GTK-server using TCP sockets, the argument
+to the server must be of the format &lt;tcp=ipaddress:port&gt;. With UDP the
+format is almost the same: &lt;udp=ipaddress:port&gt;.<br>
+<br>For example:<br>
+<br>
+<span style="font-family: courier new,courier,monospace;"><small>gtk-server 
+-tcp=localhost:50000</small></span><br>
+<br>
+Now the server is started and it will listen to your localhost IP
+address (127.0.0.1). Your script must connect to TCP port 50000. If we
+rewrite our "Hello world" application to a TCP connection, the script
+would look like this:<br>
+<br>
+------------------<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">#!/usr/bin/gawk
+-f</span><br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"># AWK Hello
+world application using GTK</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">#</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">BEGIN{</span><br
+ style="font-family: courier new,courier,monospace;">
+<br style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">system("gtk-server
+-tcp=localhost:50000 &amp;") </span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"><br>
+GTK = "/inet/tcp/0/localhost/50000" </span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;"><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">print
+"gtk_init NULL NULL" |&amp; GTK; GTK |&amp; getline</span><br
+ style="font-family: courier new,courier,monospace;">
+<span style="font-family: courier new,courier,monospace;">print
+"gtk_window_new 0" |&amp; GTK; GTK |&amp; getline WINDOW</span><br
+ style="font-family: courier new,courier,monospace;">
+print "gtk_window_set_title " WINDOW " \"This is a title\"" |&amp; GTK;
+GTK |&amp; getline<br>
+print "gtk_table_new 30 30 1" |&amp; GTK; GTK |&amp; getline TABLE<br>
+print "gtk_container_add " WINDOW " " TABLE |&amp; GTK; GTK |&amp;
+getline<br>
+print "gtk_label_new \"Hello world\"" |&amp; GTK; GTK |&amp; getline LABEL<br>
+print "gtk_table_attach_defaults " TABLE " " LABEL " 1 29 3 7"
+|&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;"> print
+"gtk_button_new_with_label Exit" |&amp; GTK; GTK |&amp; getline BUTTON<br>
+print "gtk_table_attach_defaults " TABLE " " BUTTON " 20 28 23
+27" |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " LABEL |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " BUTTON |&amp; GTK; GTK |&amp; getline<br>
+</span><span style="font-family: courier new,courier,monospace;">print
+"gtk_widget_show " TABLE |&amp; GTK; GTK |&amp; getline</span><br>
+</small> <span style="font-family: courier new,courier,monospace;"><small>print
+"gtk_widget_show " WINDOW |&amp; GTK; GTK |&amp; getline<br>
+<br>
+EVENT = 0<br>
+</small></span>
+<span style="font-family: courier new,courier,monospace;"><small> <br>
+do {<br>
+<br>
+&nbsp;&nbsp;&nbsp; print "gtk_main_iteration" |&amp; GTK; GTK |&amp;
+getline<br>
+&nbsp;&nbsp;&nbsp; print "gtk_server_callback 0" |&amp; GTK;
+GTK |&amp; getline EVENT<br>
+&nbsp;&nbsp;&nbsp; </small></span>
+<span style="font-family: courier new,courier,monospace;"><small> <br>
+} while (EVENT != BUTTON &amp;&amp; EVENT != WINDOW)<br>
+<br>
+close(GTK)<br>
+fflush("")<br>
+}</small> <br>
+</span><br>
+------------------<br>
+<br>
+As of version 3.1, the GNU AWK script language has built-in network
+support. The above script connects AWK to the server by a TCP port. It
+might happen that the AWK interpreter executes to fast; therefore,
+after
+startup of the GTK-server it might be necessary to wait for a second,
+in order for the GTK-server to initialize.<br>
+<br>
+Finally it is possible to connect multiple scripts to 1 GTK-server using TCP
+(so not UDP). In
+this way you can avoid running multiple instances of the GTK-server in
+memory, each of which will consume a TCP port. (This functionality is
+not available in a Windows environment, since the Windows OS does not
+support forking.) To enable this functionality, start the GTK-server
+like this:<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">gtk-server -tcp
+localhost:50000:16</span></small><br>
+<br>
+The number '16' defines the maximum amount of client scripts allowed to
+use the GTK-server at the same time. You can use any number here (the
+maximum depending on your OS and hardware). It is a nice idea to start
+the GTK-server this way during boot time. You can create a "rc" script
+to take care of that, so the GTK-server will run permanently in the
+background. When necessary, any of your scripts can connect by TCP, so
+you have always have access to GTK GUI's.<br>
+<br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="chapter11"></a>
+<h2>Chapter 11. Connecting to the GTK-server with FIFO.</h2>
+Finally you can connect to the GTK-server by using a named pipe. A named pipe
+is a file with a special feature: it can deliver messages to other processes or
+programs. The first message delivered to the pipe is also the first to be
+read by the other side; and vice versa. Hence the abbreviation FIFO, which
+actually means "First In First Out".<br>
+<br>
+To start the GTK-server using FIFO pipes, the argument to the server must 
+be: fifo=&lt;name&gt;. The GTK-server will create a named pipe (which in fact 
+is a file on your hard disk) with the filename &lt;name&gt;.<br>
+<br>
+For example:<br>
+<br>
+<span style="font-family: courier new,courier,monospace;"><small>gtk-server
+-fifo=mypipe</small></span><br>
+<br>
+In Windows, the syntax is different. The GTK-server will create two independent
+named pipes, which also behave like a file. The named pipes have predefined names,
+so these do not have to be specified. To start the GTK-server with
+named pipes in Windows, just enter:<br>
+<br>
+<span style="font-family: courier new,courier,monospace;"><small>gtk-server
+-fifo</small></span><br>
+<br>
+Now, the client script first has to open the named pipe "\\.\pipe\out", and second
+the named pipe "\\.\pipe\in". As mentioned, the names of these pipes are predefined. Also the order in which to open
+the pipes is important! The 'out' pipe must be opened first, and is used by the client 
+script to write information to; the 'in' pipe must be used to read information from.<br>
+<br>
+Let's continue with our AWK program. The AWK program must be adjusted a little 
+bit, in order to use the named pipe. It
+is already clear that a named pipe behaves like a file. So to enable communication,
+we must write and read from this file. In AWK the program will look as follows:<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">
+function GTK(call)<br>
+{<br>
+print call &gt;&gt; "mypipe"<br>
+close("mypipe", "to")<br>
+getline &lt; "mypipe"<br>
+close("mypipe", "from")<br>
+return $0<br>
+}<br>
+<br>
+#-------------------------------------------<br>
+<br>
+BEGIN{<br>
+system("gtk-server -fifo=mypipe &amp;")<br>
+GTK("gtk_init NULL NULL")<br>
+WINDOW = GTK("gtk_window_new 0")<br>
+GTK("gtk_window_set_title " WINDOW " \"This is a title\"")<br>
+TABLE = GTK("gtk_table_new 30 30 1")<br>
+GTK("gtk_container_add " WINDOW " " TABLE)<br>
+LABEL = GTK("gtk_label_new \"Hello world\"")<br>
+GTK("gtk_table_attach_defaults " TABLE " " LABEL " 1 29 3 7")<br>
+BUTTON = GTK("gtk_button_new_with_label Exit")<br>
+GTK("gtk_table_attach_defaults " TABLE " " BUTTON " 20 28 23 27")<br>
+GTK("gtk_widget_show_all " WINDOW)<br>
+<br>
+EVENT = 0<br>
+<br>
+do {<br>
+<br>
+&nbsp;&nbsp;&nbsp; EVENT = GTK("gtk_server_callback WAIT")<br>
+<br>
+} while (EVENT != BUTTON &amp;&amp; EVENT != WINDOW)<br>
+<br>
+print "gtk_server_exit" &gt;&gt; "gtk"<br>
+}<br></small></span>
+<br>
+As you can see, the structure of the program has changed. The communication part
+is put into a separate function now (called 'GTK'). The two 'close' statements in this
+function are needed to let AWK flush it's IO buffers.<br>
+<br>
+Also, instead of showing each GTK widget separately, the GTK function "gtk_widget_show_all"
+will show the parent widget WINDOW and all children attached to it. Do not forget to put this
+new function into the configfile! You should know how to define it by now.<br>
+<br>
+The mainloop has changed, now the 'gtk_server_callback' function has the argument 'WAIT',
+which will take over the previous 'gtk_main_iteration'. So the callback function will
+wait, until an event has occured. It returns to the AWK program with the widget ID which
+emitted the signal.<br>
+<br>
+Finally the GTK library is exited by printing a plain 'gtk_server_exit' to the pipe, without
+waiting for answer from the GTK-server.<br>
+<br>
+<hr style="width: 100%; height: 2px;">
+<a name="chapter12"></a>
+<h2>Chapter 12. Logging.</h2>
+When you run into problems during your GTK programming, it might come
+handy to see the strings which were received by the GTK-server. Also,
+you might want to check the responses of the GTK-server to your input.
+Luckily the GTK-server is able to produce a logfile.
+To enable the logging facility of the
+GTK-server, just start as follows:<br>
+<br>
+<small><span style="font-family: courier new,courier,monospace;">gtk-server
+-stdin -log=log.txt</span></small><br>
+<br>
+or<br>
+<small><br>
+<span style="font-family: courier new,courier,monospace;">gtk-server 
+-tcp=localhost:50000 -log=mylog.txt &amp;</span></small><br>
+<br>
+or<br>
+<small><br>
+<span style="font-family: courier new,courier,monospace;">gtk-server
+-fifo=mypipe -log=program.log &amp;</span></small><br>
+<br>
+The last argument 'log' will put the GTK-server to logging mode. The logging
+will be redirected to the specified file.
+<br><br>
+Well, that is it. You are a GTK guru now. Go guify your scripts!<br>
+<br>
+<hr style="width: 100%; height: 2px;"><br>
+(c) December 2003 - October 2004, Peter van Eerten&nbsp; -&nbsp;
+http://www.gtk-server.org/<br><br>
+2nd revision july 2006 - PvE.<br>
+3rd revision december 2008 - PvE.<br>
+<br>
+<hr style="width: 100%; height: 2px;">
+</body>
+</html>
