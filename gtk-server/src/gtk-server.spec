@@ -1,8 +1,8 @@
 Summary: the GTK-server - Interpreted GUI Programming
 Name: gtk-server
-Version: 2.4.1
+Version: 2.4.4
 Release: 1
-Source: gtk-server-2.4.1.tar.gz
+Source: gtk-server-2.4.4.tar.gz
 URL: http://www.gtk-server.org/
 Copyright: GPL
 Packager: Peter van Eerten <peter AT gtk-server DOT org>
