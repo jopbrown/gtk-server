@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.57)
-AC_INIT(gtk-server, 2.4.4, peter AT gtk-server DOT org)
+AC_INIT(gtk-server, 2.4.5, peter AT gtk-server DOT org)
 AC_CONFIG_SRCDIR([gtk-server.c])
 AC_CONFIG_HEADER([config.h])
 

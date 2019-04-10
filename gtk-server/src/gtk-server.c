@@ -469,6 +469,13 @@
 *               . Added PTR_SHORT argument type
 *		. Upgraded to uthash 2.0.2 (https://troydhanson.github.io)
 *
+* CHANGES GTK-SERVER 2.4.5
+* ------------------------
+*               . Updated configure script so it can use environment variables LDFLAGS and CFLAGS.
+*               . Fixed compile warnings.
+*               . Fixed compile warning in SSL usage.
+*               . Bugfix in gtk_server_unpack so it can unpack values larger than a byte.
+*
 *************************************************************************************************************************************************/
 
 #ifdef HAVE_CONFIG_H
@@ -584,7 +591,7 @@
 #define GTK_SERVER_NONE 0
 
 /* Define GTK-server version - macro 'VERSION' also used by FFI on some platforms */
-#define GTK_SERVER_VERSION "2.4.4"
+#define GTK_SERVER_VERSION "2.4.5"
 
 /* Define backlog for tcp-connections */
 #define BACKLOG 4
