@@ -3464,27 +3464,27 @@ if (inputdata != NULL) {
             /* Determine type */
             switch (*arg_type){
                 case 'i':
-                    len += snprintf(pack+len-1, MAX_LEN-len, "%i ", (int)(*(unpack+position)));
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%i ", *(int*)(unpack+position));
                     position += sizeof(int);
                     break;
                 case 'l':
-                    len += snprintf(pack+len-1, MAX_LEN-len, "%ld ", (long)(*(unpack+position)));
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%ld ", *(long*)(unpack+position));
                     position += sizeof(long);
                     break;
                 case 'f':
-                    len += snprintf(pack+len-1, MAX_LEN-len, "%f ", (float)(*(unpack+position)));
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%f ", *(float*)(unpack+position));
                     position += sizeof(float);
                     break;
                 case 'd':
-                    len += snprintf(pack+len-1, MAX_LEN-len, "%f ", (double)(*(unpack+position)));
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%f ", *(double*)(unpack+position));
                     position += sizeof(double);
                     break;
                 case 'c':
-                    len += snprintf(pack+len-1, MAX_LEN-len, "%i ", (char)(*(unpack+position)));
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%i ", *(char*)(unpack+position));
                     position += sizeof(char);
                     break;
                 case 's':
-                    len += snprintf(pack+len-1, MAX_LEN-len, "%i ", (short)(*(unpack+position)));
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%i ", *(short*)(unpack+position));
                     position += sizeof(short);
                     break;
                 default:
