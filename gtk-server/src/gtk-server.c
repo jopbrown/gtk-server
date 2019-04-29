@@ -1099,7 +1099,7 @@ return ++stream;
 /*************************************************************************************************/
 /* If the library is not found, add a numeric suffix from 0-99 behind the soname. A larger range */
 /* slows down the GTK-server significantly. PvE. */
-
+#ifdef GTK_SERVER_UNIX
 #if GTK_SERVER_CINV
 CInvLibrary *search_and_open_lib(char *name, CInvContext *cinv_ctx)
 {
@@ -1165,7 +1165,6 @@ void *search_and_open_lib(char *name)
 /* When the GTK-server exits, remove the created pipe, but first send an 'OK'.	Oct 10, 2006	*/
 /* Use print to stderr here, since we are already in the 'atexit' EXIT function. */
 
-#ifdef GTK_SERVER_UNIX
 void remove_pipe(void)
 {
 int sockfd;
@@ -3253,7 +3252,9 @@ char *b64 = NULL;               /* Pointer to temporarily hold base64 data fir g
 int len;                        /* How much data was written in gtk_server_unpack */
 int cmd;			/* Macro-parser: what MACRO command are we currently executing? */
 int item;			/* If handle from client is given start parsing at item = 1, else item = 0 */
+#ifdef GTK_SERVER_UNIX
 struct utsname pf;              /* For gtk_server_os */
+#endif
 char *arg_type;                 /* Used by VARARGS */
 int in_varargs_list = 0;        /* In case we are in a varargs list of arguments */
 int position = 0;               /* For gtk_server_pack to keep position in memory layout */
@@ -3575,6 +3576,9 @@ if (inputdata != NULL) {
     }
     /* Internal call for OS */
     else if (!strcmp("gtk_server_os", gtk_api_call)){
+		#ifdef GTK_SERVER_WIN32
+		retstr = Print_Result("%s%sWindows%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
+		#else
         if (uname (&pf) < 0)
         {
 	    retstr = Print_Result("%s%sUnknown%s", 3, gtkserver.pre, gtkserver.handle, gtkserver.post);
@@ -3583,6 +3587,7 @@ if (inputdata != NULL) {
         {
 	    retstr = Print_Result("%s%s%s %s on %s%s", 6, gtkserver.pre, gtkserver.handle, pf.sysname, pf.release, pf.machine, gtkserver.post);
         }
+		#endif
     }
     else if (!strcmp("GTK_SERVER_ENABLE_C_STRING_ESCAPING", gtk_api_call) || !strcmp("gtk_server_enable_c_string_escaping", gtk_api_call)){
 	gtkserver.c_escaped = 1;
