@@ -3452,17 +3452,28 @@ if (inputdata != NULL) {
         }
 	retstr = Print_Result("%s%s%s%s", 4, gtkserver.pre, gtkserver.handle, base64_enc(pack, position), gtkserver.post);
     }
+    else if (!strcmp("gtk_server_string_from_pointer", gtk_api_call)){
+	/* Yes, find the first argument */
+	if ((arg = parse_data(list, ++item)) == NULL){
+	    Print_Error("%s", 1, "\nERROR: Cannot find POINTER in first arg!");
+	}
+	retstr = Print_Result("%s%s%s%s", 4, gtkserver.pre, gtkserver.handle, (char*)atol(arg), gtkserver.post);
+	}
     /* Internal call for unpacking data to S-expression */
-    else if (!strcmp("gtk_server_unpack", gtk_api_call)){
+    else if (!strncmp("gtk_server_unpack", gtk_api_call, 17)){
 	/* Yes, find the first argument */
 	if ((arg = parse_data(list, ++item)) == NULL || !strstr(arg,"%")){
 	    Print_Error("%s", 1, "\nERROR: Cannot find format in GTK_SERVER_UNPACK!");
 	}
 	/* Find the second argument */
 	if ((b64 = parse_data(list, ++item)) == NULL){
-	    Print_Error("%s", 1, "\nERROR: Cannot find BASE64 string data in GTK_SERVER_UNPACK!");
+	    Print_Error("%s", 1, "\nERROR: Cannot find BASE64 String or POINTER in GTK_SERVER_UNPACK!");
 	}
-        unpack = base64_dec(b64);
+		if (!strcmp("gtk_server_unpack_from_pointer", gtk_api_call)) {
+			unpack = (char*)atol(b64);
+		} else {
+			unpack = base64_dec(b64);
+		}        
         memset(pack, 0, MAX_LEN);
         position = 0;
         len = 1;
