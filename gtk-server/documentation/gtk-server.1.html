@@ -575,7 +575,7 @@ The returned string AQAAAAEAAAAFAAAABgAAAA== can be passed on as an argument to 
 
 <DD>
 Returns an S-expression from a base64 encoded string. It can be used when one of the arguments in a GTK function is defined as PTR_BASE64 type,
-for example in case an argument contains a pointer to an array or a struct. The &lt;format&gt; specifies the type, similar as in the 'printf' function: %c is a char,
+for example in case an argument contains a definition for an array or a struct. The &lt;format&gt; specifies the type, similar as in the 'printf' function: %c is a char,
 %s means short, %i means integer, %l means long, %f means float and %d means double. Example unpacking a memory layout containing a struct with 4 integer members:
 <P>
 <BR>
@@ -594,6 +594,27 @@ Defines the memory layout for PTR_BASE64 arguments. It should be set before the 
 <BR>
 
 gtk_server_data_format %i%i%i%i
+<P>
+<DT><B>gtk_server_unpack_from_pointer &lt;format&gt; &lt;pointer&gt;</B>
+
+<DD>
+Returns an S-expression from a memory area pointed to by a pointer. It can be used when one of the arguments in a GTK function is defined as PTR_LONG type,
+for example in case an argument contains a pointer to an array or a struct. The &lt;format&gt; specifies the type, similar as in the 'printf' function: %c is a char,
+%s means short, %i means integer, %l means long, %f means float and %d means double. Example unpacking a memory layout containing a struct with 3 integer members:
+<P>
+<BR>
+
+gtk_server_unpack_from_pointer %i%i%i 7478512
+<P>
+<DT><B>gtk_server_string_from_pointer &lt;pointer&gt;</B>
+
+<DD>
+Returns a string from a pointer to a character pointer. In C syntax, this is the '**' construct, which sometimes is used by the GTK API when returning error
+messages. For example:
+<P>
+<BR>
+
+gtk_server_string_from_pointer 62667232
 <P>
 </DL>
 <A NAME="lbAJ">&nbsp;</A>
@@ -668,6 +689,6 @@ the sourcepackage for credits.
 This document was created by
 <A HREF="/cgi-bin/man/man2html">man2html</A>,
 using the manual pages.<BR>
-Time: 19:20:40 GMT, November 25, 2017
+Time: 13:40:28 GMT, June 30, 2019
 </BODY>
 </HTML>

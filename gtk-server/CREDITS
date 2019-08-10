@@ -23,11 +23,11 @@ These people have helped to create the GTK-server as it is:
 * John Spikowski: INCLUDE concept (added 2.2.4)
 * Joonas Pihlaja: bugs found in UDP interface (hotfixed in 2.2.4)
 * Danie Brink: -socket option, many suggestions for improvements (2.3.1)
-
+* Jop Brown: added functions 'gtk_server_unpack_from_pointer' and 'gtk_server_string_from_pointer' (2.4.5)
 
 These people have contributed demoscripts:
 
-* CLISP: JÃ¶rg Kalsbach
+* CLISP: Jörg Kalsbach
 * PHP: Roberto Rossi
 * Python: Evan Hempel
 * Rebol, TCL, Bash, newLISP: Norman Deppenbroek

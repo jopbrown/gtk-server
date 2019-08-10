@@ -431,7 +431,7 @@ The returned string AQAAAAEAAAAFAAAABgAAAA== can be passed on as an argument to 
 .TP
 .B gtk_server_unpack <format> <base64 string>
 Returns an S-expression from a base64 encoded string. It can be used when one of the arguments in a GTK function is defined as PTR_BASE64 type,
-for example in case an argument contains a pointer to an array or a struct. The <format> specifies the type, similar as in the 'printf' function: %c is a char,
+for example in case an argument contains a definition for an array or a struct. The <format> specifies the type, similar as in the 'printf' function: %c is a char,
 %s means short, %i means integer, %l means long, %f means float and %d means double. Example unpacking a memory layout containing a struct with 4 integer members:
 
 .br
@@ -446,6 +446,23 @@ Defines the memory layout for PTR_BASE64 arguments. It should be set before the 
 
 .br
 gtk_server_data_format %i%i%i%i
+
+.TP
+.B gtk_server_unpack_from_pointer <format> <pointer>
+Returns an S-expression from a memory area pointed to by a pointer. It can be used when one of the arguments in a GTK function is defined as PTR_LONG type,
+for example in case an argument contains a pointer to an array or a struct. The <format> specifies the type, similar as in the 'printf' function: %c is a char,
+%s means short, %i means integer, %l means long, %f means float and %d means double. Example unpacking a memory layout containing a struct with 3 integer members:
+
+.br
+gtk_server_unpack_from_pointer %i%i%i 7478512
+
+.TP
+.B gtk_server_string_from_pointer <pointer>
+Returns a string from a pointer to a character pointer. In C syntax, this is the '**' construct, which sometimes is used by the GTK API when returning error
+messages. For example:
+
+.br
+gtk_server_string_from_pointer 62667232
 
 .SH "FILES"
 .I gtk-server.cfg

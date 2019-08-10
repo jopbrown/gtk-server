@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2017, Troy D. Hanson     http://troydhanson.github.com/uthash/
+Copyright (c) 2003-2018, Troy D. Hanson     http://troydhanson.github.com/uthash/
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -24,7 +24,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UTHASH_H
 #define UTHASH_H
 
-#define UTHASH_VERSION 2.0.2
+#define UTHASH_VERSION 2.1.0
 
 #include <string.h>   /* memcmp, memset, strlen */
 #include <stddef.h>   /* ptrdiff_t */
@@ -88,11 +88,19 @@ typedef unsigned char uint8_t;
 #ifndef uthash_bzero
 #define uthash_bzero(a,n) memset(a,'\0',n)
 #endif
-#ifndef uthash_memcmp
-#define uthash_memcmp(a,b,n) memcmp(a,b,n)
-#endif
 #ifndef uthash_strlen
 #define uthash_strlen(s) strlen(s)
+#endif
+
+#ifdef uthash_memcmp
+/* This warning will not catch programs that define uthash_memcmp AFTER including uthash.h. */
+#warning "uthash_memcmp is deprecated; please use HASH_KEYCMP instead"
+#else
+#define uthash_memcmp(a,b,n) memcmp(a,b,n)
+#endif
+
+#ifndef HASH_KEYCMP
+#define HASH_KEYCMP(a,b,n) uthash_memcmp(a,b,n)
 #endif
 
 #ifndef uthash_noexpand_fyi
@@ -167,9 +175,12 @@ do {                                                                            
 
 #define HASH_FIND(hh,head,keyptr,keylen,out)                                     \
 do {                                                                             \
-  unsigned _hf_hashv;                                                            \
-  HASH_VALUE(keyptr, keylen, _hf_hashv);                                         \
-  HASH_FIND_BYHASHVALUE(hh, head, keyptr, keylen, _hf_hashv, out);               \
+  (out) = NULL;                                                                  \
+  if (head) {                                                                    \
+    unsigned _hf_hashv;                                                          \
+    HASH_VALUE(keyptr, keylen, _hf_hashv);                                       \
+    HASH_FIND_BYHASHVALUE(hh, head, keyptr, keylen, _hf_hashv, out);             \
+  }                                                                              \
 } while (0)
 
 #ifdef HASH_BLOOM
@@ -478,11 +489,20 @@ do {                                                                            
 
 /* convenience forms of HASH_FIND/HASH_ADD/HASH_DEL */
 #define HASH_FIND_STR(head,findstr,out)                                          \
-    HASH_FIND(hh,head,findstr,(unsigned)uthash_strlen(findstr),out)
+do {                                                                             \
+    unsigned _uthash_hfstr_keylen = (unsigned)uthash_strlen(findstr);            \
+    HASH_FIND(hh, head, findstr, _uthash_hfstr_keylen, out);                     \
+} while (0)
 #define HASH_ADD_STR(head,strfield,add)                                          \
-    HASH_ADD(hh,head,strfield[0],(unsigned)uthash_strlen(add->strfield),add)
+do {                                                                             \
+    unsigned _uthash_hastr_keylen = (unsigned)uthash_strlen((add)->strfield);    \
+    HASH_ADD(hh, head, strfield[0], _uthash_hastr_keylen, add);                  \
+} while (0)
 #define HASH_REPLACE_STR(head,strfield,add,replaced)                             \
-    HASH_REPLACE(hh,head,strfield[0],(unsigned)uthash_strlen(add->strfield),add,replaced)
+do {                                                                             \
+    unsigned _uthash_hrstr_keylen = (unsigned)uthash_strlen((add)->strfield);    \
+    HASH_REPLACE(hh, head, strfield[0], _uthash_hrstr_keylen, add, replaced);    \
+} while (0)
 #define HASH_FIND_INT(head,findint,out)                                          \
     HASH_FIND(hh,head,findint,sizeof(int),out)
 #define HASH_ADD_INT(head,intfield,add)                                          \
@@ -824,7 +844,7 @@ do {                                                                            
   }                                                                              \
   while ((out) != NULL) {                                                        \
     if ((out)->hh.hashv == (hashval) && (out)->hh.keylen == (keylen_in)) {       \
-      if (uthash_memcmp((out)->hh.key, keyptr, keylen_in) == 0) {                \
+      if (HASH_KEYCMP((out)->hh.key, keyptr, keylen_in) == 0) {              \
         break;                                                                   \
       }                                                                          \
     }                                                                            \
@@ -928,7 +948,9 @@ do {                                                                            
         _he_newbkt = &(_he_new_buckets[_he_bkt]);                                \
         if (++(_he_newbkt->count) > (tbl)->ideal_chain_maxlen) {                 \
           (tbl)->nonideal_items++;                                               \
-          _he_newbkt->expand_mult = _he_newbkt->count / (tbl)->ideal_chain_maxlen; \
+          if (_he_newbkt->count > _he_newbkt->expand_mult * (tbl)->ideal_chain_maxlen) { \
+            _he_newbkt->expand_mult++;                                           \
+          }                                                                      \
         }                                                                        \
         _he_thh->hh_prev = NULL;                                                 \
         _he_thh->hh_next = _he_newbkt->hh_head;                                  \

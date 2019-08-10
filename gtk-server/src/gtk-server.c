@@ -7,7 +7,7 @@
 * Please read the documentation on how to use this program.
 * The CREDITS file lists all people who have helped improving the GTK-server.
 *
-* Original idea and design by Peter van Eerten, September 2003 - October 2017
+* Original idea and design by Peter van Eerten, September 2003 - June 2019
 * Mail: peter@gtk-server.org
 *
 * This source has become a little bit messy. What started as a quick hack,
@@ -475,6 +475,9 @@
 *               . Fixed compile warnings.
 *               . Fixed compile warning in SSL usage.
 *               . Bugfix in gtk_server_unpack so it can unpack values larger than a byte.
+*               . New function 'gtk_server_unpack_from_pointer' from Jop Brown
+*               . New function 'gtk_server_string_from_pointer' from Jop Brown
+*		. Upgraded to uthash 2.1.0 (https://troydhanson.github.io)
 *
 *************************************************************************************************************************************************/
 
@@ -3452,28 +3455,17 @@ if (inputdata != NULL) {
         }
 	retstr = Print_Result("%s%s%s%s", 4, gtkserver.pre, gtkserver.handle, base64_enc(pack, position), gtkserver.post);
     }
-    else if (!strcmp("gtk_server_string_from_pointer", gtk_api_call)){
-	/* Yes, find the first argument */
-	if ((arg = parse_data(list, ++item)) == NULL){
-	    Print_Error("%s", 1, "\nERROR: Cannot find POINTER in first arg!");
-	}
-	retstr = Print_Result("%s%s%s%s", 4, gtkserver.pre, gtkserver.handle, (char*)atol(arg), gtkserver.post);
-	}
     /* Internal call for unpacking data to S-expression */
-    else if (!strncmp("gtk_server_unpack", gtk_api_call, 17)){
+    else if (!strcmp("gtk_server_unpack", gtk_api_call)){
 	/* Yes, find the first argument */
 	if ((arg = parse_data(list, ++item)) == NULL || !strstr(arg,"%")){
 	    Print_Error("%s", 1, "\nERROR: Cannot find format in GTK_SERVER_UNPACK!");
 	}
 	/* Find the second argument */
 	if ((b64 = parse_data(list, ++item)) == NULL){
-	    Print_Error("%s", 1, "\nERROR: Cannot find BASE64 String or POINTER in GTK_SERVER_UNPACK!");
+	    Print_Error("%s", 1, "\nERROR: Cannot find BASE64 string data in GTK_SERVER_UNPACK!");
 	}
-		if (!strcmp("gtk_server_unpack_from_pointer", gtk_api_call)) {
-			unpack = (char*)atol(b64);
-		} else {
-			unpack = base64_dec(b64);
-		}        
+        unpack = base64_dec(b64);
         memset(pack, 0, MAX_LEN);
         position = 0;
         len = 1;
@@ -3549,6 +3541,66 @@ if (inputdata != NULL) {
         }
         PTR_BASE64 = position;
 	retstr = Print_Result("%sok%s", 2, gtkserver.pre, gtkserver.post);
+    }
+    /* Code for gtk_server_unpack_from_pointer comes from Jop Brown */
+    else if (!strcmp("gtk_server_unpack_from_pointer", gtk_api_call)){
+	/* Yes, find the first argument */
+	if ((arg = parse_data(list, ++item)) == NULL || !strstr(arg,"%")){
+	    Print_Error("%s", 1, "\nERROR: Cannot find format in GTK_SERVER_UNPACK_FROM_POINTER!");
+	}
+	/* Find the second argument */
+	if ((b64 = parse_data(list, ++item)) == NULL){
+	    Print_Error("%s", 1, "\nERROR: Cannot find pointer in GTK_SERVER_UNPACK_FROM_POINTER!");
+	}
+        unpack = (char*)atol(b64);
+        memset(pack, 0, MAX_LEN);
+        position = 0;
+        len = 1;
+        arg_type = strtok(arg, "%");
+        /* Isolate mem type */
+        while(arg_type) {
+            /* Determine type */
+            switch (*arg_type){
+                case 'i':
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%i ", *(int*)(unpack+position));
+                    position += sizeof(int);
+                    break;
+                case 'l':
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%ld ", *(long*)(unpack+position));
+                    position += sizeof(long);
+                    break;
+                case 'f':
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%f ", *(float*)(unpack+position));
+                    position += sizeof(float);
+                    break;
+                case 'd':
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%f ", *(double*)(unpack+position));
+                    position += sizeof(double);
+                    break;
+                case 'c':
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%i ", *(char*)(unpack+position));
+                    position += sizeof(char);
+                    break;
+                case 's':
+                    len += snprintf(pack+len-1, MAX_LEN-len, "%i ", *(short*)(unpack+position));
+                    position += sizeof(short);
+                    break;
+                default:
+	            Print_Error("%s%s%s", 3, "\nERROR: Format '", arg_type, "' in GTK_SERVER_UNPACK not recognized! Should be either i, l, d, f, s or c.");
+            }
+            arg_type = strtok(NULL, "%");
+        }
+	retstr = Print_Result("%s%s%s%s", 4, gtkserver.pre, gtkserver.handle, Trim_String(pack), gtkserver.post);
+    }
+    /* Code for gtk_server_string_from_pointer comes from Jop Brown */
+    else if (!strcmp("gtk_server_string_from_pointer", gtk_api_call)){
+	
+	/* Yes, find the first argument */
+	if ((arg = parse_data(list, ++item)) == NULL){
+	    Print_Error("%s", 1, "\nERROR: Cannot find pointer in first arg!");
+	}
+        
+	retstr = Print_Result("%s%s%s%s", 4, gtkserver.pre, gtkserver.handle, (char*)atol(arg), gtkserver.post);
     }
     #ifdef GTK_SERVER_MOTIF
     /* Call to get toplevel widget in Motif */

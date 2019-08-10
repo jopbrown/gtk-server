@@ -3,7 +3,7 @@
 ;;; Usage: clisp demo-stdin.clisp
 ;;;
 ;;; http://www.gtk-server.org/
-;;; April 21, 2004 by Jörg Kalsbach.
+;;; April 21, 2004 by Jorg Kalsbach.
 ;;;
 ;;; Revised for GTK-server 1.2 October 8, 2004 by PvE.
 ;;; Revised for CLISP and GTK-server 1.2.2 November 3, 2004 by Mark Carter
